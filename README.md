@@ -9,13 +9,21 @@ Library for Stackify users to integrate Stackify in to their projects. Provides 
 
 #Basics
 
-Several nuget packages are available for Stackify's core API as well as various logging frameworks. Please install the proper packages. In all cases the following is required in your App.config or Web.config:
+Several nuget packages are available for Stackify's core API as well as various logging frameworks. Please install the proper packages. 
+
+The following is required in your App.config or Web.config:
 
         <appSettings>
             <add key="Stackify.ApiKey" value="YOUR API KEY HERE" />
             <add key="Stackify.AppName" value="YOUR APP NAME" />
             <add key="Stackify.Environment" value="OPTIONAL ENVIRONMENT NAME LIKE PROD, DEV" />
         </appSettings>
+
+Optionally, you can set the config settings in code like so which will override the appSettings configs as well.
+
+        StackifyLib.Logger.GlobalApiKey = "";
+        StackifyLib.Logger.GlobalAppName = "";
+        StackifyLib.Logger.GlobalEnvironment = "";
 
 If you are having problems you can get logging out of the framework by hooking in to it's custom logging.
 
@@ -51,7 +59,8 @@ Sample config:
           <add assembly="StackifyLib.nLog"/>
         </extensions>
         <targets>
-          <target name="stackify" type="StackifyTarget" globalContextKeys="examplekey1,key2" mappedContextKeys="" callContextKeys="" logMethodNames="true" />
+          <target name="stackify" type="StackifyTarget" globalContextKeys="examplekey1,key2" 
+                mappedContextKeys="" callContextKeys="" logMethodNames="true" />
         </targets>
         <rules>
           <logger name="*" writeTo="stackify" minlevel="Debug" />
