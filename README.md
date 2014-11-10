@@ -31,7 +31,7 @@ Please note that Newtonsoft.Json is used by StackifyLib but is embedded as a res
 
 #Error and Logging
 
-If you log an object with the message, Stackify's log viewer makes it easy to search by these parameters. You can always search by the text in the log message itself, but searching by the logged properties provides a lot more power. If you always logged a "clientid" for example on every log message, you could search in Stackify for "json.clientid:1" and quickly see all logs and errors affecting that specific client. Another big differnce and advantage to logging objects is you can do a range type search "json.clientid:[1 TO 10]" which would not be possible by a straight text search.
+If you log an object with the message, Stackify's log viewer makes it easy to search by these parameters. You can always search by the text in the log message itself, but searching by the logged properties provides a lot more power. If you always logged a "clientid" for example on every log message, you could search in Stackify for "json.clientid:1" and quickly see all logs and errors affecting that specific client. Another big difference and advantage to logging objects is you can do a range type search "json.clientid:[1 TO 10]" which would not be possible by a straight text search.
 
 
 ##NLog 2.0.1.2 - v3.1+
@@ -46,7 +46,7 @@ Nuget packages are compiled against 2.0.1.2 but any newer version (including v3)
 
 Sample config:
 
-      <nlog internalLogToConsoleError="true">
+      <nlog>
         <extensions>
           <add assembly="StackifyLib.nLog"/>
         </extensions>
