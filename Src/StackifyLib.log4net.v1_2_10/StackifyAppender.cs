@@ -334,7 +334,7 @@ namespace StackifyLib.log4net
 
             foreach (string key in _CallContextKeys)
             {
-                object value = CallContext.GetData(key);
+                object value = CallContext.LogicalGetData(key);
 
                 if (value != null)
                 {

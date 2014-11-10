@@ -15,6 +15,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StackifyLib.ELMAH", "Stacki
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StackifyLib.log4net.v1_2_10", "StackifyLib.log4net.v1_2_10\StackifyLib.log4net.v1_2_10.csproj", "{0353F536-CC16-4008-8C7C-31CE123F3D10}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{63787993-BFE9-4A64-BEA9-C694D293EE52}"
+	ProjectSection(SolutionItems) = preProject
+		..\README.md = ..\README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
