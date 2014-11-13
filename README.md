@@ -6,10 +6,18 @@ Library for Stackify users to integrate Stackify in to their projects. Provides 
 - [Documentation](http://docs.stackify.com/s/3095/m/7787)
 - [NuGet Package](https://www.nuget.org/packages?q=Stackify)
 
-
 #Basics
 
-Several nuget packages are available for Stackify's core API as well as various logging frameworks. Please install the proper packages. 
+Several nuget packages are available for Stackify's core API as well as various logging frameworks. Please install the proper packages. All of the available packages for various logging frameworks are wrapper on top of StackifyLib which can also be used directly for logging. 
+
+Features
+
+ - Asynchronous logging framework for high performance
+ - Automatic queueing and error fall back logic 
+ - Support for NLog, log4net, ELMAH, and direct API usage
+ - Can be plugged in to custom built or other logging frameworks
+ - Does not depend on the Stackify monitoring agent. All data is sent directly to Stackify.
+
 
 The following is required in your App.config or Web.config:
 
