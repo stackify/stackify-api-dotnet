@@ -24,6 +24,14 @@ Optionally, you can set the config settings in code like so which will override 
         StackifyLib.Logger.GlobalApiKey = "";
         StackifyLib.Logger.GlobalAppName = "";
         StackifyLib.Logger.GlobalEnvironment = "";
+        
+By default the library will use the WebRequest.DefaultWebProxy. If you want to set a specific proxy server only for StackifyLib, you can do so in code OR via config.
+
+        <appSettings>
+                <add key="Stackify.ProxyServer" value="http://test:test@172.19.1.1:8888/" />
+        </appSettings>
+        
+        StackifyLib.Utils.HttpClient.CustomWebProxy = new WebProxy();
 
 If you are having problems you can get logging out of the framework by hooking in to it's custom logging.
 
