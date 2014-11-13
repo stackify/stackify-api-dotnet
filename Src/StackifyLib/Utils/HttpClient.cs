@@ -30,6 +30,8 @@ namespace StackifyLib.Utils
 
     public class HttpClient
     {
+        public static WebProxy CustomWebProxy = null;
+
         public string BaseAPIUrl { get; private set; }
 
         private string APIKey
@@ -70,6 +72,11 @@ namespace StackifyLib.Utils
             public string ResponseText { get; set; }
             public System.Net.HttpStatusCode StatusCode { get; set; }
             public Exception Exception { get; set; }
+        }
+
+        static HttpClient()
+        {
+            LoadWebProxyConfig();
         }
 
         public HttpClient(string apiKey, string apiUrl)
@@ -123,8 +130,54 @@ namespace StackifyLib.Utils
                 BaseAPIUrl = apiUrl;
             }
             _LastIdentityAttempt = DateTime.UtcNow.AddMinutes(-15);
+
+            
         }
-     
+
+        public static void LoadWebProxyConfig()
+        {
+            try
+            {
+                string val = ConfigurationManager.AppSettings["Stackify.ProxyServer"];
+
+                if (!string.IsNullOrEmpty(val))
+                {
+
+                    StackifyAPILogger.Log("Setting proxy server based on override config", true);
+
+                    var uri = new Uri(val);
+
+                    var proxy = new WebProxy(uri, false);
+
+                    if (!string.IsNullOrEmpty(uri.UserInfo) && uri.UserInfo.Contains(":"))
+                    {
+                        string[] pieces = uri.UserInfo.Split(':');
+
+                        proxy.Credentials = new NetworkCredential(pieces[0], pieces[1]);
+                    }
+                    else
+                    {
+
+                        string settingUseDefault = ConfigurationManager.AppSettings["Stackify.ProxyUseDefaultCredentials"];
+
+                        bool useDefault;
+
+                        if (!string.IsNullOrEmpty(settingUseDefault) && bool.TryParse(settingUseDefault, out useDefault))
+                        {
+                            //will make it use the user of the running windows service
+                            proxy.UseDefaultCredentials = useDefault;
+                        }
+                    }
+                    CustomWebProxy = proxy;
+                }
+            }
+            catch (Exception ex)
+            {
+                StackifyAPILogger.Log("Error setting default web proxy " + ex.Message, true);
+            }
+        }
+
+
         /// <summary>
         /// This method does some throttling when errors happen to control when it should try again. Error backoff logic
         /// </summary>
@@ -434,7 +487,12 @@ namespace StackifyLib.Utils
             request.KeepAlive = false;
             request.CachePolicy = new HttpRequestCachePolicy(HttpRequestCacheLevel.NoCacheNoStore);
             request.UserAgent = "StackifyLib-" + _version;
-            
+
+            if (HttpClient.CustomWebProxy != null)
+            {
+                request.Proxy = HttpClient.CustomWebProxy;
+            }
+
             if (!string.IsNullOrEmpty(jsonData) && compress)
             {
                 request.Method = "POST";
