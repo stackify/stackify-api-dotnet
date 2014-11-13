@@ -153,6 +153,6 @@ log4net does not internally have methods for logging a log message along with an
 If you use a custom logging framework or a framework not currently supported, you can easily send logs to Stackify with our core library and API like so:
 
         StackifyLib.Logger.Queue("DEBUG", "My log message");
-        StackifyLib.Logger.QueueException("Test exception", new ApplicationException("Uh oh and exception happened"));
+        StackifyLib.Logger.QueueException("Test exception", new ApplicationException("Sky is falling"));
 
     
