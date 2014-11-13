@@ -24,6 +24,14 @@ Optionally, you can set the config settings in code like so which will override 
         StackifyLib.Logger.GlobalApiKey = "";
         StackifyLib.Logger.GlobalAppName = "";
         StackifyLib.Logger.GlobalEnvironment = "";
+        
+By default the library will use the WebRequest.DefaultWebProxy. If you want to set a specific proxy server only for StackifyLib, you can do so in code OR via config.
+
+        <appSettings>
+                <add key="Stackify.ProxyServer" value="http://test:test@172.19.1.1:8888/" />
+        </appSettings>
+        
+        StackifyLib.Utils.HttpClient.CustomWebProxy = new WebProxy();
 
 If you are having problems you can get logging out of the framework by hooking in to it's custom logging.
 
@@ -145,6 +153,6 @@ log4net does not internally have methods for logging a log message along with an
 If you use a custom logging framework or a framework not currently supported, you can easily send logs to Stackify with our core library and API like so:
 
         StackifyLib.Logger.Queue("DEBUG", "My log message");
-        StackifyLib.Logger.QueueException("Test exception", new ApplicationException("Uh oh and exception happened"));
+        StackifyLib.Logger.QueueException("Test exception", new ApplicationException("Sky is falling"));
 
     
