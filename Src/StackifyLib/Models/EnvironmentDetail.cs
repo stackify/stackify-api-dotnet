@@ -83,7 +83,7 @@ namespace StackifyLib.Models
             }
             catch (Exception ex)
             {
-                StackifyLib.Utils.StackifyAPILogger.Log("Error figuring out app environment details\r\n" + ex.ToString(), true);
+                StackifyLib.Utils.StackifyAPILogger.Log("Error seeing if the app is an azure cloud service\r\n" + ex.ToString(), true);
             }
         }
 
@@ -204,11 +204,9 @@ namespace StackifyLib.Models
                     ConfiguredEnvironmentName = ConfigurationManager.AppSettings["Stackify.Environment"];
                 }
 
-                //might be azure server. Check
-                if (Environment.MachineName.StartsWith("RD"))
-                {
-                    GetAzureInfo();
-                }
+                //might be azure server. If it is, get the AppName from that
+                GetAzureInfo();
+                
 
                 //Not a web app, check for windows service
                 if (!Environment.UserInteractive && !AppDomain.CurrentDomain.FriendlyName.Contains("W3SVC"))
