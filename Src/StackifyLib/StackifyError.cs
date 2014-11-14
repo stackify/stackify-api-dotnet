@@ -124,7 +124,7 @@ namespace StackifyLib
 
                     if (HttpContext.Current.User != null && HttpContext.Current.User.Identity != null)
                     {
-                        CustomerName = HttpContext.Current.User.Identity.Name;
+                        UserName = HttpContext.Current.User.Identity.Name;
                     }
                 }
             }
