@@ -163,4 +163,36 @@ If you use a custom logging framework or a framework not currently supported, yo
         StackifyLib.Logger.Queue("DEBUG", "My log message");
         StackifyLib.Logger.QueueException("Test exception", new ApplicationException("Sky is falling"));
 
-    
+##Configuring with Azure service definitions
+
+StackifyLib reads the license key, app name, and environment settings from normal web.config appSettings. If you would prefer to store the settings in an azure cloud deployment cscfg, then you can create a little code to read the settings from there and set the StackifyLib settings in code like this in some similar way.
+
+		public class MvcApplication : System.Web.HttpApplication
+		{
+			public override void Init()
+			{
+				base.Init();
+				StackifyLib.Logger.GlobalApiKey = GetConfig("Stackify.ApiKey");
+				StackifyLib.Logger.GlobalEnvironment = GetConfig("Stackify.Environment");
+				StackifyLib.Logger.GlobalAppName = "My App Name"; //probably no reason to make this one configurable
+			}
+		}
+
+		public static string GetConfig(string configName)
+		{
+		    try
+		    {
+		        if (RoleEnvironment.IsAvailable)
+		        {
+		            return RoleEnvironment.GetConfigurationSettingValue(configName);
+		        }
+		        else
+		        {
+		            return ConfigurationManager.AppSettings[configName];
+		        }
+		    }
+		    catch (Exception ex)
+		    {
+		    }
+		    return null;
+		}
