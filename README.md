@@ -165,7 +165,7 @@ If you use a custom logging framework or a framework not currently supported, yo
 
 ##Configuring with Azure service definitions
 
-StackifyLib reads the license key, app name, and environment settings from normal web.config appSettings. If you would prefer to store the settings in an azure cloud deployment cscfg, then you can create a little code to read the settings from there and set the StackifyLib settings in code like this in some similar way.
+StackifyLib reads the license key, app name, and environment settings from normal web.config appSettings. If you would prefer to store the settings in an [azure cloud deployment cscfg](http://msdn.microsoft.com/en-us/library/azure/hh369931.aspx#NameValue), then you can create a little code to read the settings from there and set the StackifyLib settings in code like this in some similar way.
 
 		public class MvcApplication : System.Web.HttpApplication
 		{
@@ -180,6 +180,8 @@ StackifyLib reads the license key, app name, and environment settings from norma
 
 		public static string GetConfig(string configName)
 		{
+			//Doing an if here in case it's being used outside of azure emulator.
+			//Do this however works best for your project
 		    try
 		    {
 		        if (RoleEnvironment.IsAvailable)
