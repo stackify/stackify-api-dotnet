@@ -2,11 +2,12 @@
 
 Library for Stackify users to integrate Stackify in to their projects. Provides support for sending errors, logs, and custom metrics to Stackify. Also some support for querying metric data back out of Stackify for use in external projects.
 
+**Important Links:**
 - [Homepage](http://www.stackify.com)
 - [Documentation](http://docs.stackify.com/s/3095/m/7787)
 - [NuGet packages](https://www.nuget.org/packages?q=Stackify)
 
-Read me contents
+**Read me sections:**
 - [Basics](#basics)
 - [Error & Logging](#error-and-logging)
 - [StackifyLib NLog](#nlog-2012---v31)
