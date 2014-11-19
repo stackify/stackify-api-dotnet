@@ -58,7 +58,7 @@ Please note that Newtonsoft.Json is used by StackifyLib but is embedded as a res
 If you log an object with the message, Stackify's log viewer makes it easy to search by these parameters. You can always search by the text in the log message itself, but searching by the logged properties provides a lot more power. If you always logged a "clientid" for example on every log message, you could search in Stackify for "json.clientid:1" and quickly see all logs and errors affecting that specific client. Another big difference and advantage to logging objects is you can do a range type search "json.clientid:[1 TO 10]" which would not be possible by a straight text search.
 
 
-###[NLog 2.0.1.2 - v3.1+](#nlog)
+###NLog 2.0.1.2 - v3.1+
 
 Nuget packages are compiled against 2.0.1.2 but any newer version (including v3) will work with a valid assembly binding redirect.
   
@@ -96,7 +96,7 @@ Options
 - CallContextKeys is an additional feature unrelated to NLog that uses the local thread storage for more advanced tracking of context variables. It is used via CallContext.LogicalSetData(key, value). Research LogicalSetData online to learn more. It is supposed to work better across child Task objects and with async.
 - logMethodNames - Method names will show up in the StackifyLog viewer most of the time as the class name that did the logging. For exceptions it will usually show the method name. To enable the exact method name for all logging, set this property to true. Note that it does cause a small performance hit due to walking the StackTrace.
 
-###[log4net v2.0+ (v1.2.11+)](#log4net)
+###log4net v2.0+ (v1.2.11+)
   Note: Nuget packages are compiled against 2.0.0 (1.2.11) but any newer version will work with a valid assembly binding redirect. log4net 2.0.3 is actually 1.2.13 which makes the binding redirect look strange.
 
       <dependentAssembly>
@@ -150,7 +150,7 @@ log4net does not internally have methods for logging a log message along with an
         logger.Debug(dictionary); //This works fine and is indexed and searchable by Stackify 
         logger.Debug("Starting some process for client 1", dictionary); //extension method
 
-###[log4net v1.2.10](#log4net1210)
+###log4net v1.2.10
 Note: If you use 1.2.10 then you must use our special nuget package for that version. There is no way to use an assembly redirect because the public key of log4net v1 and v2 are different. Everything else is the same about using log4net with Stackify.
 
 
