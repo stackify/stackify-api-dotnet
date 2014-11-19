@@ -4,7 +4,16 @@ Library for Stackify users to integrate Stackify in to their projects. Provides 
 
 - [Homepage](http://www.stackify.com)
 - [Documentation](http://docs.stackify.com/s/3095/m/7787)
-- [NuGet Package](https://www.nuget.org/packages?q=Stackify)
+- [NuGet packages](https://www.nuget.org/packages?q=Stackify)
+
+Read me contents
+- [Basics](#basics)
+- [Error & Logging](#error-and-logging)
+- [StackifyLib NLog doc](#nlog-2012---v31)
+- [StackifyLib log4net 2.0+ doc](#log4net-v20-v1211)
+- [StackifyLib log4net 1.2.10](#log4net-v1210)
+- [Direct API](#direct-api)
+- [Configuring with Azure service definitions](#configuring-with-azure-service-definitions)
 
 ##Basics
 
