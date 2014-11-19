@@ -2,9 +2,9 @@
 
 Library for Stackify users to integrate Stackify in to their projects. Provides support for sending errors, logs, and custom metrics to Stackify. Also some support for querying metric data back out of Stackify for use in external projects.
 
-**Important Links:**
-- [Homepage](http://www.stackify.com)
-- [Documentation](http://docs.stackify.com/s/3095/m/7787)
+**Important links:**
+- [Stackify homepage](http://www.stackify.com)
+- [Stackify documentation site](http://docs.stackify.com/s/3095/m/7787)
 - [NuGet packages](https://www.nuget.org/packages?q=Stackify)
 
 **Read me sections:**
@@ -28,6 +28,7 @@ Features
  - Can be plugged in to custom built or other logging frameworks
  - Does not depend on the Stackify monitoring agent. All data is sent directly to Stackify.
 
+The packages for log4net, NLog and Elmah all depend on StackifyLib. StackifyLib also has support for custom metrics and accessing some of Stackify's API to pull data back out.
 
 The following is required in your App.config or Web.config:
 
@@ -70,6 +71,11 @@ If you log an object with the message, Stackify's log viewer makes it easy to se
 
 ###NLog 2.0.1.2 - v3.1+
 
+**Install via NuGet package**
+```
+PM> Install-Package StackifyLib.NLog
+```
+
 Nuget packages are compiled against 2.0.1.2 but any newer version (including v3) will work with a valid assembly binding redirect.
   
        <dependentAssembly>
@@ -107,7 +113,13 @@ Options
 - logMethodNames - Method names will show up in the StackifyLog viewer most of the time as the class name that did the logging. For exceptions it will usually show the method name. To enable the exact method name for all logging, set this property to true. Note that it does cause a small performance hit due to walking the StackTrace.
 
 ###log4net v2.0+ (v1.2.11+)
-  Note: Nuget packages are compiled against 2.0.0 (1.2.11) but any newer version will work with a valid assembly binding redirect. log4net 2.0.3 is actually 1.2.13 which makes the binding redirect look strange.
+
+**Install via NuGet package**
+```
+PM> Install-Package StackifyLib.log4net
+```
+
+Note: Nuget packages are compiled against 2.0.0 (1.2.11) but any newer version will work with a valid assembly binding redirect. log4net 2.0.3 is actually 1.2.13 which makes the binding redirect look strange.
 
       <dependentAssembly>
         <assemblyIdentity name="log4net" publicKeyToken="669e0ddf0bb1aa2a" culture="neutral" />
@@ -161,10 +173,21 @@ log4net does not internally have methods for logging a log message along with an
         logger.Debug("Starting some process for client 1", dictionary); //extension method
 
 ###log4net v1.2.10
+
+**Install via NuGet package**
+```
+PM> Install-Package StackifyLib.log4net.v1_2_10
+```
+
 Note: If you use 1.2.10 then you must use our special nuget package for that version. There is no way to use an assembly redirect because the public key of log4net v1 and v2 are different. Everything else is the same about using log4net with Stackify.
 
 
 ###Direct API
+
+**Install via NuGet package**
+```
+PM> Install-Package StackifyLib
+```
 
 If you use a custom logging framework or a framework not currently supported, you can easily send logs to Stackify with our core library and API like so:
 
