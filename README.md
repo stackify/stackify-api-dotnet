@@ -9,8 +9,8 @@ Library for Stackify users to integrate Stackify in to their projects. Provides 
 Read me contents
 - [Basics](#basics)
 - [Error & Logging](#error-and-logging)
-- [StackifyLib NLog doc](#nlog-2012---v31)
-- [StackifyLib log4net 2.0+ doc](#log4net-v20-v1211)
+- [StackifyLib NLog](#nlog-2012---v31)
+- [StackifyLib log4net 2.0+](#log4net-v20-v1211)
 - [StackifyLib log4net 1.2.10](#log4net-v1210)
 - [Direct API](#direct-api)
 - [Configuring with Azure service definitions](#configuring-with-azure-service-definitions)
