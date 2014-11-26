@@ -94,7 +94,7 @@ namespace StackifyLib.Utils
             {
                 string customUrl = ConfigurationManager.AppSettings["Stackify.ApiUrl"];
 
-                if (customUrl != null)
+                if (!string.IsNullOrWhiteSpace(customUrl))
                 {
                     Uri outuri;
                     if (Uri.TryCreate(customUrl, UriKind.Absolute, out outuri))

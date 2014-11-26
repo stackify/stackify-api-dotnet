@@ -186,11 +186,19 @@ namespace StackifyLib.Internal.Logs
 
                     bool keepGoing = false;
 
+                    List<Task<HttpClient.StackifyWebResponse>> tasks = new List<Task<HttpClient.StackifyWebResponse>>();
+
                     int flushTimes = 0;
                     //Keep flushing
                     do
                     {
-                        int count = FlushOnce();
+                        int count;
+                        var task = FlushOnceAsync(out count);
+                        
+                        if (task != null)
+                        {
+                            tasks.Add(task);
+                        }
 
                         if (count >= 100)
                         {
@@ -202,7 +210,15 @@ namespace StackifyLib.Internal.Logs
                         }
                         flushTimes++;
                         processedCount += count;
-                    } while (keepGoing && !_StopRequested && flushTimes < 25);
+                    } while (keepGoing && flushTimes < 25);
+
+
+                    if (_StopRequested && tasks.Any())
+                    {
+                        StackifyLib.Utils.StackifyAPILogger.Log("Waiting to ensure final log send. Waiting on " + tasks.Count + " tasks");
+                        Task.WaitAll(tasks.ToArray(), 5000);
+                        StackifyLib.Utils.StackifyAPILogger.Log("Final log flush complete");
+                    }
 
                     _CanSend = _MessageBuffer.Count < Logger.MaxLogBufferSize;
                 }
@@ -215,17 +231,15 @@ namespace StackifyLib.Internal.Logs
             return processedCount;
         }
 
-        private int FlushOnce()
+        private Task<HttpClient.StackifyWebResponse> FlushOnceAsync(out int messageSize)
         {
-            int messageSize = 0;
+            messageSize = 0;
             var chunk = new List<LogMsg>();
 
             //we only want to do this once at a time but the actual send is done async
             long startMs = (long)DateTime.UtcNow.Subtract(_Epoch).TotalMilliseconds;
             try
             {
-
-
                 while (true)
                 {
                     LogMsg msg;
@@ -264,7 +278,7 @@ namespace StackifyLib.Internal.Logs
 
                 if (chunk.Any())
                 {
-                    _LogClient.SendLogs(chunk.ToArray());
+                    return _LogClient.SendLogs(chunk.ToArray());
                 }
             }
             catch (Exception ex)
@@ -294,7 +308,7 @@ namespace StackifyLib.Internal.Logs
             }
 
 
-            return messageSize;
+            return null;
         }
 
 
@@ -307,6 +321,8 @@ namespace StackifyLib.Internal.Logs
             {
                 FlushLoop();
             }
+
+            Utils.StackifyAPILogger.Log("LogQueue stop complete");
         }
 
         public void Pause(bool isPaused)
