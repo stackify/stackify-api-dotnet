@@ -35,7 +35,6 @@ namespace StackifyLib.ELMAH
             try
             {
                 StackifyError error = StackifyError.New(e.Exception);
-                error.SetTags("ELMAH");
 
                 if (governor.ErrorShouldBeSent(error))
                 {

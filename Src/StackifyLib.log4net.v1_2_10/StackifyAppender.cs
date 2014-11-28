@@ -286,7 +286,7 @@ namespace StackifyLib.log4net
             {
                 msg.Ex = error;
             }
-            msg.Tags = new List<string>() { "log4net" };
+
             return msg;
         }
 

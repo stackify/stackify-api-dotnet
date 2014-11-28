@@ -278,7 +278,6 @@ namespace StackifyLib.nLog
                 msg.Ex = error;
             }
 
-            msg.Tags = new List<string>() {"nlog"};
 
             return msg;
         }
