@@ -44,16 +44,39 @@ namespace StackifyLib.Internal.Logs
             }
         }
 
+        public string LoggerName
+        {
+            get { return _LoggerName; }
+        }
+
         public string APIKey
         {
             get { return _ApiKey; }
         }
 
+        [Obsolete("Use CanQueue instead")]
         public bool CanSend()
         {
-            EnsureHttpClient();
-            return _HttpClient.CanSend();
+            return CanQueue();
         }
+
+        public bool CanQueue()
+        {
+            if (!_LogQueue.CanQueue())
+            {
+                return false;
+            }
+
+            EnsureHttpClient();
+            return _HttpClient.IsAuthorized();
+        }
+
+        public bool CanUpload()
+        {
+            EnsureHttpClient();
+            return _HttpClient.CanUpload();
+        }
+
 
         public AppIdentityInfo GetIdentity()
         {
@@ -113,15 +136,18 @@ namespace StackifyLib.Internal.Logs
 
                 if (_HttpClient.IsRecentError())
                 {
+                    //throw new ApplicationException("Unable to send logs at this time due to recent error: " +
+                    //                               (_HttpClient.LastErrorMessage ?? ""));
                     var tcs = new TaskCompletionSource<HttpClient.StackifyWebResponse>();
-                    tcs.SetException(new ApplicationException("Unable to send logs at this time due to recent error: " + (_HttpClient.LastErrorMessage ?? "")));
+                    tcs.SetResult(new HttpClient.StackifyWebResponse() { Exception = new ApplicationException("Unable to send logs at this time due to recent error: " + (_HttpClient.LastErrorMessage ?? "")) });
                     return tcs.Task;
                 }
 
                 if (!identified)
                 {
+                   // throw new ApplicationException("Unable to send logs at this time. Unable to identify app");
                     var tcs = new TaskCompletionSource<HttpClient.StackifyWebResponse>();
-                    tcs.SetException(new ApplicationException("Unable to send logs at this time. Unable to identify app"));
+                    tcs.SetResult(new HttpClient.StackifyWebResponse() { Exception = new ApplicationException("Unable to send logs at this time. Unable to identify app") });
                     return tcs.Task;
                 }
 
@@ -219,7 +245,8 @@ namespace StackifyLib.Internal.Logs
                 Utils.StackifyAPILogger.Log(ex.ToString());
 
                 var tcs = new TaskCompletionSource<HttpClient.StackifyWebResponse>();
-                tcs.SetException(ex);
+                tcs.SetResult(new HttpClient.StackifyWebResponse() { Exception = ex });
+//                tcs.SetException(ex);
                 return tcs.Task;
             }
 

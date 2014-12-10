@@ -234,7 +234,7 @@ namespace StackifyLib.Utils
             _LastError = DateTime.UtcNow;
         }
 
-        public bool CanSend()
+        public bool CanUpload()
         {
             if (!IsRecentError() && IsAuthorized() && IdentifyApp())
             {
@@ -331,6 +331,14 @@ namespace StackifyLib.Utils
 
                     if (AppIdentity != null)
                     {
+                        //always use whatever the configured app name is, don't just use what comes back in case they don't match
+                        if (!string.IsNullOrEmpty(env.ConfiguredAppName) && env.ConfiguredAppName != AppIdentity.AppName)
+                        {
+                            AppIdentity.AppName = env.ConfiguredAppName;
+                            AppIdentity.AppNameID = null;
+                            AppIdentity.AppEnvID = null;
+                        }
+
                         IdentityComplete = true;
                         return true;
                     }

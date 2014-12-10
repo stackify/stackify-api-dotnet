@@ -66,7 +66,7 @@ namespace StackifyLib
 
         public static bool CanSend()
         {
-            return _LogClient.CanSend();
+            return _LogClient.CanQueue();
         }
 
         public static void Queue(string level, string message, object debugData = null)
@@ -131,7 +131,7 @@ namespace StackifyLib
         {
             try
             {
-                if (_LogClient.CanSend())
+                if (_LogClient.CanQueue())
                 {
                     _LogClient.QueueMessage(msg);
                 }

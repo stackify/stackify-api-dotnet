@@ -16,15 +16,21 @@ namespace ConsoleTest
             log4net.Config.XmlConfigurator.Configure();
 
             StackifyLib.Utils.StackifyAPILogger.LogEnabled = true;
-
+            
             for (int i = 0; i < 1000; i++)
             {
-                log.Info("test info 2");
-                log.Debug("test debug 2");
-                log.Fatal("test fatal 2");
-                log.Error("test error 2");
+                log.Info("test info " + i);
+                log.Debug("test debug " + i);
+                log.Fatal("test fatal " + i);
+                log.Error("test error "  + i);
+                System.Threading.Thread.Sleep(1000);
             }
             Debug.WriteLine("Closing app...");
+        }
+
+        static void StackifyAPILogger_OnLogMessage(string data)
+        {
+            Debug.WriteLine(data);
         }
 
 

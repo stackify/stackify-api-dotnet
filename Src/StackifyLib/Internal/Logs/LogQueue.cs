@@ -23,10 +23,11 @@ namespace StackifyLib.Internal.Logs
 
         private bool _StopRequested = false;
         private bool _UploadingNow = false;
-        private bool _CanSend = true;
+        private bool _QueueTooBig = true;
         private bool _IsWebApp = false;
         private LogClient _LogClient = null;
         private bool _PauseUpload = false;
+        private bool _TimerStarted = false;
 
         public LogQueue(LogClient logClient)
         {
@@ -35,16 +36,26 @@ namespace StackifyLib.Internal.Logs
             _LogClient = logClient;
             _IsWebApp = System.Web.Hosting.HostingEnvironment.IsHosted;
             _MessageBuffer = new ConcurrentQueue<LogMsg>();
-            _timer = new System.Threading.Timer(OnTimer, null, _FlushInterval, _FlushInterval);
+            
         }
 
-        public bool CanSend()
+        public bool CanQueue()
         {
             //maximum size at which we just drop the messages
-            return _CanSend;
+            return _QueueTooBig;
         }
-        
 
+        /// <summary>
+        /// Doing this so the Logger class in StackifyLib doesn't run a timer unless someone actually logs something
+        /// </summary>
+        public void EnsureTimer()
+        {
+            if (_timer == null)
+            {
+                _TimerStarted = true;
+                _timer = new System.Threading.Timer(OnTimer, null, _FlushInterval, _FlushInterval);
+            }
+        }
 
         /// <summary>
         /// Should call CanSend() before this. Did not also put that call in here to improve performance. Makes more sense to do it earlier so it can skip other steps up the chain.
@@ -56,6 +67,11 @@ namespace StackifyLib.Internal.Logs
             {
                 if (msg == null)
                     return;
+
+                if (!_TimerStarted)
+                {
+                    EnsureTimer();
+                }
 
                 try
                 {
@@ -179,14 +195,16 @@ namespace StackifyLib.Internal.Logs
             {
                 int queueSize = _MessageBuffer.Count;
 
-                //CanSend() does an IdentifyApp so there is a chance this could take a while
-                if (queueSize > 0 && _LogClient.CanSend())
+               // StackifyLib.Utils.StackifyAPILogger.Log("FlushLoop - count: " + queueSize + " for " + _LogClient.LoggerName);
+
+                  //CanSend() does an IdentifyApp so there is a chance this could take a while
+                if (queueSize > 0 && _LogClient.CanUpload())
                 {
-                    _CanSend = queueSize < Logger.MaxLogBufferSize;
+                    _QueueTooBig = queueSize < Logger.MaxLogBufferSize;
 
                     bool keepGoing = false;
 
-                    List<Task<HttpClient.StackifyWebResponse>> tasks = new List<Task<HttpClient.StackifyWebResponse>>();
+                    var tasks = new List<Task>();
 
                     int flushTimes = 0;
                     //Keep flushing
@@ -220,7 +238,7 @@ namespace StackifyLib.Internal.Logs
                         StackifyLib.Utils.StackifyAPILogger.Log("Final log flush complete");
                     }
 
-                    _CanSend = _MessageBuffer.Count < Logger.MaxLogBufferSize;
+                    _QueueTooBig = _MessageBuffer.Count < Logger.MaxLogBufferSize;
                 }
             }
             catch (Exception ex)
@@ -231,8 +249,11 @@ namespace StackifyLib.Internal.Logs
             return processedCount;
         }
 
-        private Task<HttpClient.StackifyWebResponse> FlushOnceAsync(out int messageSize)
+        private Task FlushOnceAsync(out int messageSize)
         {
+
+           // StackifyLib.Utils.StackifyAPILogger.Log("Calling FlushOnceAsync");
+
             messageSize = 0;
             var chunk = new List<LogMsg>();
 
@@ -278,7 +299,53 @@ namespace StackifyLib.Internal.Logs
 
                 if (chunk.Any())
                 {
-                    return _LogClient.SendLogs(chunk.ToArray());
+                    return _LogClient.SendLogs(chunk.ToArray()).ContinueWith( (continuation) =>
+                    {
+                        
+                        if (continuation.Exception != null)
+                        {
+                            Utils.StackifyAPILogger.Log("Requeueing log messages due to error: " + continuation.Exception.ToString(), true);
+                        }
+
+                        if (continuation.Result != null && continuation.Result.Exception != null)
+                        {
+                            Utils.StackifyAPILogger.Log("Requeueing log messages due to error: " + continuation.Result.Exception.ToString(), true);
+                        }
+
+                        if (continuation.Exception != null ||
+                            (continuation.Result != null && continuation.Result.Exception != null))
+                        {
+                            try
+                            {
+                                bool messagesSentTooManyTimes = false;
+
+                                foreach (var item in chunk)
+                                {
+                                    item.UploadErrors++;
+
+                                    // try to upload up to 10 times
+                                    if (item.UploadErrors < 100)
+                                    {
+                                        _MessageBuffer.Enqueue(item);
+                                    }
+                                    else
+                                    {
+                                        messagesSentTooManyTimes = true;
+                                    }
+                                }
+
+                                if(messagesSentTooManyTimes)
+                                {
+                                    Utils.StackifyAPILogger.Log("Some messages not queued again due to too many failures uploading");
+                                }
+
+                            }
+                            catch (Exception ex2)
+                            {
+                                Utils.StackifyAPILogger.Log("Error trying to requeue messages " + ex2.ToString());
+                            }
+                        }
+                    });
                 }
             }
             catch (Exception ex)
