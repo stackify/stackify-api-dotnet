@@ -277,6 +277,10 @@ namespace StackifyLib.nLog
                 error.SetAdditionalMessage(formattedMessage);
                 msg.Ex = error;
             }
+            else if (error != null && msg.Msg != null)
+            {
+                msg.Msg += " #errorgoverned";
+            }
 
 
             return msg;

@@ -286,6 +286,11 @@ namespace StackifyLib.log4net
             {
                 msg.Ex = error;
             }
+            else if (error != null && msg.Msg != null)
+            {
+                msg.Msg += " #errorgoverned";
+            }
+
 
             return msg;
         }

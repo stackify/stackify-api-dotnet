@@ -133,6 +133,27 @@ namespace StackifyLib
             {
                 if (_LogClient.CanQueue())
                 {
+                    if (exceptionObject != null)
+                    {
+                        var error = StackifyError.New(exceptionObject);
+                        
+                        if (!StackifyError.IgnoreError(error) && _LogClient.ErrorShouldBeSent(error))
+                        {
+                            msg.Ex = error;
+
+                            if (!string.IsNullOrEmpty(msg.Msg))
+                            {
+                                msg.Ex.SetAdditionalMessage(msg.Msg);
+                            }
+
+                            msg.Msg = msg.Ex.ToString();
+                        }
+                        else
+                        {
+                            msg.Msg += " #errorgoverned";
+                        }
+                    }
+
                     _LogClient.QueueMessage(msg);
                 }
                 else
@@ -140,10 +161,7 @@ namespace StackifyLib
                     StackifyAPILogger.Log("Unable to send log because the queue is full");
                 }
                 
-                if (exceptionObject != null)
-                {
-                    msg.Ex = StackifyError.New(exceptionObject);
-                }
+
 
             }
             catch (Exception ex)
