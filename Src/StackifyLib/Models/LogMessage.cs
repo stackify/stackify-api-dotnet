@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace StackifyLib.Models
 {
@@ -9,6 +10,7 @@ namespace StackifyLib.Models
     /// <summary>
     /// Helper class for logging a message and object both
     /// </summary>
+    [Serializable]
     public class LogMessage
     {
         public object json { get; set; }
@@ -16,7 +18,14 @@ namespace StackifyLib.Models
 
         public override string ToString()
         {
-            return message;
+            if (json != null)
+            {
+                return message + " " + JsonConvert.SerializeObject(json);
+            }
+            else
+            {
+                return message;
+            }
         }
     }
 }
