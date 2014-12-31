@@ -79,7 +79,7 @@ namespace StackifyLib.Utils
         {
             if (_LogEnabled == null)
             {
-                var setting = ConfigurationManager.AppSettings["Stackify.ApiLog"];
+				var setting = Config.Get("Stackify.ApiLog");
 
                 if (setting != null && setting.Equals("true", StringComparison.CurrentCultureIgnoreCase))
                 {
