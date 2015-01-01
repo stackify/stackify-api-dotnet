@@ -294,7 +294,7 @@ namespace StackifyLib
             if(_InternalLogMsg == null)
                 _InternalLogMsg = new LogMsg();
 
-            _InternalLogMsg.data = HelperFunctions.SerializeDebugData(customProperties);
+            _InternalLogMsg.data = HelperFunctions.SerializeDebugData(customProperties, true);
 
             return this;
         }

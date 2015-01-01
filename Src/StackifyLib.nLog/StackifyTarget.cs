@@ -219,11 +219,11 @@ namespace StackifyLib.nLog
 
             if ((loggingEvent.Parameters != null) && (loggingEvent.Parameters.Length > 0))
             {
-                msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(loggingEvent.Parameters[0], GetDiagnosticContextProperties());
+                msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(loggingEvent.Parameters[0], true, GetDiagnosticContextProperties());
             }
             else
             {
-                msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(null, GetDiagnosticContextProperties());
+                msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(null, false, GetDiagnosticContextProperties());
             }
 
             string formattedMessage;

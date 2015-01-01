@@ -17,8 +17,14 @@ namespace StackifyLib.Utils
         static List<string> _BadTypes = new List<string>() { "log4net.Util.SystemStringFormat", "System.Object[]" };
         static JsonSerializer serializer = new JsonSerializer { ReferenceLoopHandling = ReferenceLoopHandling.Ignore };
 
-        //Trying to serialize something that the user passed in
-        public static string SerializeDebugData(object logObject, Dictionary<string, object> properties = null)
+        /// <summary>
+        /// Trying to serialize something that the user passed in. Sometimes this is used to serialize what we know is additional debug and sometimes it is the primary logged item. This is why the serializeSimpleTypes exists. For additional debug stuff we always serialize it. For the primary logged object we won't because it doesn't make any sense to put a string in the json as well as the main message. It's meant for objects.
+        /// </summary>
+        /// <param name="logObject"></param>
+        /// <param name="serializeSimpleTypes"></param>
+        /// <param name="properties"></param>
+        /// <returns></returns>
+        public static string SerializeDebugData(object logObject, bool serializeSimpleTypes, Dictionary<string, object> properties = null)
         {
             Type t = null;
 
@@ -35,21 +41,26 @@ namespace StackifyLib.Utils
 
                     if (logObject is string || t.FullName == "log4net.Util.SystemStringFormat" )
                     {
-                        jObject = new JObject();
-                        jObject.Add("logArg", new JValue(logObject.ToString()));
+                        if (serializeSimpleTypes)
+                        {
+                            jObject = new JObject();
+                            jObject.Add("logArg", new JValue(logObject.ToString()));
+                        }
                     }
                     else if (t.IsPrimitive || t.BaseType == typeof(ValueType))
                     {
-                        jObject = new JObject();
-                        try
+                        if (serializeSimpleTypes)
                         {
-                            jObject.Add("logArg", new JValue(logObject));
+                            jObject = new JObject();
+                            try
+                            {
+                                jObject.Add("logArg", new JValue(logObject));
+                            }
+                            catch (ArgumentException)
+                            {
+                                jObject.Add("logArg", new JValue(logObject.ToString()));
+                            }
                         }
-                        catch (ArgumentException)
-                        {
-                            jObject.Add("logArg", new JValue(logObject.ToString()));
-                        }
-                       
                     }
                     //look for some things we don't want to touch
                     else if (logObject is IDisposable || logObject is MarshalByRefObject)
@@ -65,6 +76,7 @@ namespace StackifyLib.Utils
                             jObject = (JObject)token;
                             var type = logObject.GetType();
 
+                            //do we log the objectType? Not logging it for simple things
                             if (type.IsPrimitive || type.Name == "String" || type.BaseType == typeof(ValueType) || type.Name.Contains("AnonymousType") || type.FullName.Contains("System.Collections.Generic.Dictionary"))
                             {
 
@@ -126,12 +138,11 @@ namespace StackifyLib.Utils
                         }
                         else if (token is JValue)
                         {
-                            jObject = new JObject();
-                            jObject.Add("logArg", token);
-                        }
-                        else
-                        {
-                            string x = "what is this";
+                            if (serializeSimpleTypes)
+                            {
+                                jObject = new JObject();
+                                jObject.Add("logArg", token);
+                            }
                         }
                     }
                 }
