@@ -9,7 +9,7 @@ Library for Stackify users to integrate Stackify in to their projects. Provides 
 
 **Read me sections:**
 - [Basics](#basics)
-- [Error & Logging](#error-and-logging)
+- [Errors & Logs](#errors-and-logs)
 - [StackifyLib NLog](#nlog-2012---v31)
 - [StackifyLib log4net 2.0+](#log4net-v20-v1211)
 - [StackifyLib log4net 1.2.10](#log4net-v1210)
@@ -70,7 +70,7 @@ If you are having problems you can get logging out of the framework by hooking i
 
 Please note that Newtonsoft.Json is used by StackifyLib but is embedded as a resource to avoid version conflicts. Costura.Fody is being used to embed it. If you have any issues with Newtonsoft.Json as a result of using StackifyLib please contact Stackify support.
 
-##Error and Logging
+##Errors and Logs
 
 If you log an object with the message, Stackify's log viewer makes it easy to search by these parameters. You can always search by the text in the log message itself, but searching by the logged properties provides a lot more power. If you always logged a "clientid" for example on every log message, you could search in Stackify for "json.clientid:1" and quickly see all logs and errors affecting that specific client. Another big difference and advantage to logging objects is you can do a range type search "json.clientid:[1 TO 10]" which would not be possible by a straight text search.
 
