@@ -38,7 +38,13 @@ The following is required in your App.config or Web.config:
             <add key="Stackify.Environment" value="OPTIONAL ENVIRONMENT NAME LIKE PROD, DEV" />
         </appSettings>
 
-Optionally, you can set the config settings in code like so which will override the appSettings configs as well.
+Optionally, you can set the config settings on your machine's environment variables with the same configuration key and value.
+	Example are executed in window's cmd as an admin:
+
+        setx Stackify.ApiKey "YOUR API KEY HERE" /m
+        setx Stackify.Environment "MY ENVIRONMENT HERE" /m
+		
+You can set the config settings in code like so which will override the appSettings configs as well.
 
         StackifyLib.Logger.GlobalApiKey = "";
         StackifyLib.Logger.GlobalAppName = "";

@@ -191,7 +191,7 @@ namespace StackifyLib.Models
                 }
                 else
                 {
-                    ConfiguredAppName = ConfigurationManager.AppSettings["Stackify.AppName"];    
+					ConfiguredAppName = Config.Get("Stackify.AppName");
                 }
 
 
@@ -201,7 +201,7 @@ namespace StackifyLib.Models
                 }
                 else
                 {
-                    ConfiguredEnvironmentName = ConfigurationManager.AppSettings["Stackify.Environment"];
+					ConfiguredEnvironmentName = Config.Get("Stackify.Environment");
                 }
 
                 //might be azure server. If it is, get the AppName from that

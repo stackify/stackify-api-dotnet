@@ -83,7 +83,7 @@ namespace StackifyLib.Utils
         {
             if (string.IsNullOrEmpty(apiKey))
             {
-                _APIKey = ConfigurationManager.AppSettings["Stackify.ApiKey"];
+                _APIKey = Config.Get("Stackify.ApiKey");
             }
             else
             {
@@ -92,7 +92,7 @@ namespace StackifyLib.Utils
 
             if (string.IsNullOrEmpty(apiUrl))
             {
-                string customUrl = ConfigurationManager.AppSettings["Stackify.ApiUrl"];
+				string customUrl = Config.Get("Stackify.ApiUrl");
 
                 if (!string.IsNullOrWhiteSpace(customUrl))
                 {
@@ -106,7 +106,7 @@ namespace StackifyLib.Utils
                 if (BaseAPIUrl == null)
                 {
                     //To account for our initial release which had a URL just for the error module
-                    string workaround = ConfigurationManager.AppSettings["Stackify.Url"];
+					string workaround = Config.Get("Stackify.Url");
 
                     if (workaround != null)
                     {
@@ -138,7 +138,7 @@ namespace StackifyLib.Utils
         {
             try
             {
-                string val = ConfigurationManager.AppSettings["Stackify.ProxyServer"];
+				string val = Config.Get("Stackify.ProxyServer");
 
                 if (!string.IsNullOrEmpty(val))
                 {
@@ -158,7 +158,7 @@ namespace StackifyLib.Utils
                     else
                     {
 
-                        string settingUseDefault = ConfigurationManager.AppSettings["Stackify.ProxyUseDefaultCredentials"];
+						string settingUseDefault = Config.Get("Stackify.ProxyUseDefaultCredentials");
 
                         bool useDefault;
 
