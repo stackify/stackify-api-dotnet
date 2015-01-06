@@ -212,11 +212,10 @@ namespace StackifyLib.log4net
 
                 if (loggingEvent.MessageObject is StackifyLib.Models.LogMessage)
                 {
+                    messageObject = loggingEvent.MessageObject;
+
                     var item = loggingEvent.MessageObject as StackifyLib.Models.LogMessage;
 
-                    msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(item.json, true, diags);
-
-                    messageObject = item.message + "\r\n" + error.ToString();
                     errorAdditionalMessage = item.message;
 
                 }
