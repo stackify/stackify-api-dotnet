@@ -53,6 +53,13 @@ namespace StackifyLib.Models
                             if (deployments.Any())
                             {
                                 string deploymentID = deployments.First();
+                                
+                                Guid g;
+                                bool validDeploymentID = Guid.TryParse(deploymentID, out g);
+                                if (!validDeploymentID)
+                                {
+                                    return;
+                                }
 
                                 string deploymentKeyPath = versionKeyPath + "\\" + deploymentID;
                                 using (var deploymentKey = RegistryHelper.GetRegistryKey(deploymentKeyPath))
