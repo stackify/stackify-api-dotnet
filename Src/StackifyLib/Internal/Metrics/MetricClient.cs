@@ -414,33 +414,36 @@ namespace StackifyLib.Internal.Metrics
                 {
                     GetMetricResponse monitorInfo;
 
+                    //in case the appid changes on the server side somehow and we need to update the monitorids we are adding the appid to the key
+                    //calling IdentifyApp() above will sometimes cause the library to sync with the server with the appid
+                    string keyWithAppID = string.Format("{0}-{1}", keyValuePair.Value.NameKey, _httpClient.AppIdentity.DeviceAppID);
                     
-                    if (!_MontorIDList.ContainsKey(keyValuePair.Value.NameKey))
+                    if (!_MontorIDList.ContainsKey(keyWithAppID))
                     {
                         monitorInfo = GetMonitorInfo(keyValuePair.Value);
                         if (monitorInfo != null && monitorInfo.MonitorID != null && monitorInfo.MonitorID > 0)
                         {
-                            _MontorIDList[keyValuePair.Value.NameKey] = monitorInfo;
+                            _MontorIDList[keyWithAppID] = monitorInfo;
                         }
                         else if (monitorInfo != null && monitorInfo.MonitorID == null)
                         {
-                            StackifyAPILogger.Log("Unable to get metric info for " + keyValuePair.Value.NameKey + " MonitorID is null");
-                            _MontorIDList[keyValuePair.Value.NameKey] = monitorInfo;
+                            StackifyAPILogger.Log("Unable to get metric info for " + keyWithAppID + " MonitorID is null");
+                            _MontorIDList[keyWithAppID] = monitorInfo;
                         }
                         else
                         {
-                            StackifyAPILogger.Log("Unable to get metric info for " + keyValuePair.Value.NameKey);
+                            StackifyAPILogger.Log("Unable to get metric info for " + keyWithAppID);
                             allSuccess = false;
                         }
                     }
                     else
                     {
-                        monitorInfo = _MontorIDList[keyValuePair.Value.NameKey];
+                        monitorInfo = _MontorIDList[keyWithAppID];
                     }
 
                     if (monitorInfo == null || monitorInfo.MonitorID == null)
                     {
-                        StackifyAPILogger.Log("Metric info missing for " + keyValuePair.Value.NameKey);
+                        StackifyAPILogger.Log("Metric info missing for " + keyWithAppID);
                         keyValuePair.Value.MonitorID = null;
                         allSuccess = false;
                     }
