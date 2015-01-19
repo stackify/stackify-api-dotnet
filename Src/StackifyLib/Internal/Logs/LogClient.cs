@@ -201,11 +201,7 @@ namespace StackifyLib.Internal.Logs
                     group.AppName = env.AppNameToUse();
                 }
 
-                //only grab the location if we don't know what CD AppID
-                if (group.CDAppID == null)
-                {
-                    group.AppLoc = env.AppLocation;
-                }
+                group.AppLoc = env.AppLocation;
 
                 if (string.IsNullOrEmpty(group.Env))
                 {
