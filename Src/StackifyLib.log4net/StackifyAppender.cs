@@ -215,8 +215,9 @@ namespace StackifyLib.log4net
                     messageObject = loggingEvent.MessageObject;
 
                     var item = loggingEvent.MessageObject as StackifyLib.Models.LogMessage;
-
                     errorAdditionalMessage = item.message;
+                    
+                    item.message = item.message + "\r\n" + error.ToString(); 
 
                 }
                 else
