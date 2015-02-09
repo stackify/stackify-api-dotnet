@@ -209,58 +209,41 @@ namespace StackifyLib.log4net
                     error = StackifyError.New(loggingEvent.ExceptionObject);
                 }
 
-
-                if (loggingEvent.MessageObject is StackifyLib.Models.LogMessage)
-                {
-                    messageObject = loggingEvent.MessageObject;
-
-                    var item = loggingEvent.MessageObject as StackifyLib.Models.LogMessage;
-                    errorAdditionalMessage = item.message;
-                    
-                    item.message = item.message + "\r\n" + error.ToString(); 
-
-                }
-                else
-                {
-                    messageObject = loggingEvent.RenderedMessage + "\r\n" + error.ToString();
-                    errorAdditionalMessage = loggingEvent.RenderedMessage;
-                }
+                errorAdditionalMessage = loggingEvent.RenderedMessage;
+                messageObject = loggingEvent.MessageObject;
             }
             else
             {
                 messageObject = loggingEvent.MessageObject;
             }
-           
 
-			//messageObject is not an object we need to serialize.
-			if (messageObject == null || messageObject.GetType().FullName == "log4net.Util.SystemStringFormat")
-			{
+
+            //messageObject is not an object we need to serialize.
+            if (messageObject == null || messageObject is string || messageObject.GetType().FullName == "log4net.Util.SystemStringFormat")
+            {
                 //passing null to the serialize object since we can't serialize the logged object. We only need to get potential diags.
-				msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(null, false, diags);
-				msg.Msg = loggingEvent.RenderedMessage;
-			}
-			else
-			{
-				if (messageObject is string)
-				{
-                    //passing null to the serialize object since we can't serialize the logged object. It is just a string. We only need to get potential diags.
-                    msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(null, false, diags);
-					msg.Msg = messageObject.ToString();
-				}
-				else if (messageObject is StackifyLib.Models.LogMessage)
-				{
-					var item = messageObject as StackifyLib.Models.LogMessage;
+                msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(null, false, diags);
+                msg.Msg = loggingEvent.RenderedMessage;
+            }
+            else if (messageObject is StackifyLib.Models.LogMessage)
+            {
+                var item = messageObject as StackifyLib.Models.LogMessage;
 
-					msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(item.json, true, diags);
-					msg.Msg = item.message;
-				}
-				else
-				{
-                    //try to serialize the messageObject since we know its not a string
-					msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(messageObject, false, diags);
-					msg.Msg = loggingEvent.RenderedMessage;
-				}
-			}
+                msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(item.json, true, diags);
+                msg.Msg = item.message;
+            }
+            else
+            {
+                //try to serialize the messageObject since we know its not a string
+                msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(messageObject, false, diags);
+                msg.Msg = loggingEvent.RenderedMessage;
+
+                if (error != null)
+                {
+                    msg.Msg += "\r\n" + error.ToString();
+                }
+            }
+			
 
 
             if (!string.IsNullOrWhiteSpace(errorAdditionalMessage) && error != null)
