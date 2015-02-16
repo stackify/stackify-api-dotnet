@@ -150,7 +150,7 @@ namespace StackifyLib.Models
 
                     //var match = Regex.Match(AppDomain.CurrentDomain.FriendlyName, "/LM/W3SVC/(?<siteid>[\\d]+)/ROOT/(?<appname>[^\\/-]+)-");
                     var match = Regex.Match(AppDomain.CurrentDomain.FriendlyName,
-                        "/LM/W3SVC/(?<siteid>[\\d]+)/ROOT/(?<appname>.+)-[0-9]{1}-[\\d]{2,}$");
+                        "/LM/W3SVC/(?<siteid>[\\d]+)/ROOT/(?<appname>.+)-[0-9]{1,3}-[\\d]{2,}$");
 
 
                     if (match.Success)
@@ -161,7 +161,7 @@ namespace StackifyLib.Models
 
 
                     match = Regex.Match(AppDomain.CurrentDomain.FriendlyName,
-                        "/LM/W3SVC/(?<siteid>[\\d]+)/ROOT-[0-9]{1}-[\\d]{2,}$");
+                        "/LM/W3SVC/(?<siteid>[\\d]+)/ROOT-[0-9]{1,3}-[\\d]{2,}$");
 
 
                     if (match.Success)
