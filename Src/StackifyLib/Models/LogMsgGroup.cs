@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Text;
 
@@ -81,7 +82,8 @@ namespace StackifyLib.Models
         [DataMember]
         public List<string> Tags { get; set; }
 
-        public void SetLogMsgID(string id, bool isError)
+        [MethodImpl(MethodImplOptions.NoInlining |  MethodImplOptions.PreserveSig | MethodImplOptions.NoOptimization)]
+        public void SetLogMsgID(string id, int isError, string logLevel)
         {
             this.id = id;
         }

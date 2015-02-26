@@ -114,7 +114,13 @@ namespace StackifyLib.Internal.Logs
         {
             if (msg.id == null)
             {
-                msg.SetLogMsgID(SequentialGuid.NewGuid().ToString(), msg.Ex != null);
+                int isError = 0;
+
+                if (msg.Ex != null)
+                {
+                    isError = 1;
+                }
+                msg.SetLogMsgID(SequentialGuid.NewGuid().ToString(), isError, msg.Level);
             }
 
             _LogQueue.QueueLogMessage(msg);
