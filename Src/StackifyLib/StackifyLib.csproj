@@ -57,6 +57,7 @@
     <Compile Include="Internal\Logs\LogQueue.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Models\LogMessage.cs" />
+    <Compile Include="ProfileTracer.cs" />
     <Compile Include="StringException.cs" />
     <Compile Include="Models\LogMsgGroup.cs" />
     <Compile Include="Extensions.cs" />
