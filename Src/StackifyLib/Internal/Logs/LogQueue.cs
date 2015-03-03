@@ -57,6 +57,15 @@ namespace StackifyLib.Internal.Logs
             }
         }
 
+        //private struct ThreadUsage
+        //{
+        //    public string SrcMethod { get; set; }
+        //    public string TransID { get; set; }
+        //}
+
+
+        //ConcurrentDictionary<string, ThreadUsage> _ThreadInfo = new ConcurrentDictionary<string, ThreadUsage>();
+
         /// <summary>
         /// Should call CanSend() before this. Did not also put that call in here to improve performance. Makes more sense to do it earlier so it can skip other steps up the chain.
         /// </summary>
@@ -73,45 +82,21 @@ namespace StackifyLib.Internal.Logs
                     EnsureTimer();
                 }
 
-                try
-                {
-                    if (string.IsNullOrEmpty(msg.TransID))
-                    {
-                        //gets from Trace.CorrelationManager.ActivityId but doesnt assume it is guid since it technically doesn't have to be
-                        //not calling the CorrelationManager method because it blows up if it isn't a guid
-                        Object correltionManagerId = CallContext.LogicalGetData("E2ETrace.ActivityID");
-
-                        if (correltionManagerId != null)
-                        {
-                            msg.TransID = correltionManagerId.ToString();
-                        }
-                        else 
-                            if (_IsWebApp && System.Web.Hosting.HostingEnvironment.IsHosted
-                            && System.Web.HttpContext.Current != null && System.Web.HttpContext.Current.Request != null)
-                        {
-                            msg.TransID = System.Web.HttpContext.Current.Request.GetHashCode().ToString();
-                        }
-                    }
-                }
-                catch
-                {
-                }
+                //try
+                //{
+                //    //Thread # for the OS, not .net
+                //    if (string.IsNullOrEmpty(msg.ThOs))
+                //    {
+                //        msg.ThOs = AppDomain.GetCurrentThreadId().ToString();
+                //    }
+                //}
+                //catch
+                //{
+                //}
 
                 try
                 {
-                    //Thread # for the OS, not .net
-                    if (string.IsNullOrEmpty(msg.ThOs))
-                    {
-                        msg.ThOs = AppDomain.GetCurrentThreadId().ToString();
-                    }
-                }
-                catch
-                {
-                }
 
-                try
-                {
-                    
                     if (string.IsNullOrEmpty(msg.Th))
                     {
                         msg.Th = System.Threading.Thread.CurrentThread.ManagedThreadId.ToString();
@@ -120,6 +105,49 @@ namespace StackifyLib.Internal.Logs
                 catch
                 {
                 }
+
+                try
+                {
+                    if (string.IsNullOrEmpty(msg.TransID))
+                    {
+
+                        Object stackifyRequestID = CallContext.LogicalGetData("Stackify-RequestID");
+
+                        if (stackifyRequestID != null)
+                        {
+                            msg.TransID = stackifyRequestID.ToString();
+                        }
+                    }
+
+                    if (string.IsNullOrEmpty(msg.TransID))
+                    {
+                        //gets from Trace.CorrelationManager.ActivityId but doesnt assume it is guid since it technically doesn't have to be
+                        //not calling the CorrelationManager method because it blows up if it isn't a guid
+                        Object correltionManagerId = CallContext.LogicalGetData("E2ETrace.ActivityID");
+
+                        if (correltionManagerId != null && correltionManagerId is Guid && ((Guid)correltionManagerId) != Guid.Empty)
+                        {
+                            msg.TransID = correltionManagerId.ToString();
+                        }
+                    }
+
+                    if (string.IsNullOrEmpty(msg.TransID))
+                    {
+                        if (_IsWebApp && System.Web.Hosting.HostingEnvironment.IsHosted
+                                 && System.Web.HttpContext.Current != null &&
+                                 System.Web.HttpContext.Current.Request != null)
+                        {
+                            msg.TransID = System.Web.HttpContext.Current.Request.GetHashCode().ToString();
+                        }
+                        
+                    }
+                }
+                catch(Exception ex)
+                {
+                    StackifyAPILogger.Log("Error figuring out TransID \r\n" + ex.ToString());
+                }
+
+            
 
                 _MessageBuffer.Enqueue(msg);
 

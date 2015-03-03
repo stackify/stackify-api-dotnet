@@ -23,8 +23,8 @@ namespace StackifyLib
         private string _customMetricCategory = null;
         private string _customMetricName = null;
 
-        private Guid _transactionID = Guid.NewGuid();
-        private Guid _RequestID = Guid.Empty;
+        private string _transactionID = Guid.NewGuid().ToString();
+        private string _RequestID = null;
 
         public ProfileTracer(string methodDisplayText, string requestLevelReportingCategory, string appLevelReportingCategory)
         {
@@ -32,11 +32,11 @@ namespace StackifyLib
             _requestReportingCategory = requestLevelReportingCategory;
             _appReportingCategory = appLevelReportingCategory;
 
-            Object correltionManagerId = CallContext.LogicalGetData("E2ETrace.ActivityID");
+            Object correltionManagerId = CallContext.LogicalGetData("Stackify-RequestID");
 
-            if (correltionManagerId != null && correltionManagerId is Guid && ((Guid) correltionManagerId) != Guid.Empty)
+            if (correltionManagerId != null)
             {
-                _RequestID = (Guid)correltionManagerId;
+                _RequestID = correltionManagerId.ToString();
             }
         }
 
@@ -72,8 +72,8 @@ namespace StackifyLib
 
         public void Exec(Action action)
         {
-            string actionID = _transactionID.ToString();
-            string requestID = _RequestID.ToString();
+            string actionID = _transactionID;
+            string requestID = _RequestID;
 
             ExecInternal(action, _methodDisplayText, ignoreChildFrames ? 1 : 0, _requestReportingCategory, _appReportingCategory, actionID, requestID);
          
