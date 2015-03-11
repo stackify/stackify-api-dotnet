@@ -40,6 +40,12 @@ namespace StackifyLib
             }
         }
 
+        [MethodImpl(MethodImplOptions.PreserveSig | MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        public static void SetReportingUrl(string reportingUrl)
+        {
+            
+        }
+
         public static ProfileTracer Create(string methodDisplayText)
         {
             ProfileTracer tracer = new ProfileTracer(methodDisplayText, null, null);
