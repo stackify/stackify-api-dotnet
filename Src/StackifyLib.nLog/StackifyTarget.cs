@@ -151,7 +151,7 @@ namespace StackifyLib.nLog
                 return null;
 
             //do not log our own messages. This is to prevent any sort of recursion that could happen since calling to send this will cause even more logging to happen
-            if (loggingEvent.FormattedMessage.IndexOf("StackifyLib:", StringComparison.OrdinalIgnoreCase) > -1)
+            if (loggingEvent.FormattedMessage != null && loggingEvent.FormattedMessage.IndexOf("StackifyLib:", StringComparison.OrdinalIgnoreCase) > -1)
                 return null;
 
             StackifyLib.Models.LogMsg msg = new LogMsg();
