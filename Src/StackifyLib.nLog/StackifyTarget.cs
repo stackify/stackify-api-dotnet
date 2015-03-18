@@ -219,11 +219,11 @@ namespace StackifyLib.nLog
 
             if ((loggingEvent.Parameters != null) && (loggingEvent.Parameters.Length > 0))
             {
-                msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(loggingEvent.Parameters[0], true, GetDiagnosticContextProperties());
+                msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(loggingEvent.Parameters[0], true, diags);
             }
             else
             {
-                msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(null, false, GetDiagnosticContextProperties());
+                msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(null, false, diags);
             }
 
             string formattedMessage;
@@ -244,7 +244,7 @@ namespace StackifyLib.nLog
 
             if (msg.Msg != null && error != null)
             {
-                msg.Msg += error.ToString();
+                msg.Msg += "\r\n" + error.ToString();
             }
             else if (msg.Msg == null && error != null)
             {
