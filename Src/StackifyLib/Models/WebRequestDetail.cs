@@ -37,6 +37,10 @@ namespace StackifyLib.Models
         public string RequestUrlRoot { get; set; }
 
         [DataMember]
+        public string ReportingUrl { get; set; }
+
+
+        [DataMember]
         public string ReferralUrl { get; set; }
 
         [DataMember]
@@ -78,6 +82,10 @@ namespace StackifyLib.Models
                 HttpMethod = request.RequestType;
                 UserIPAddress = request.UserHostAddress;
 
+                if (context.Items != null && context.Items.Contains("Stackify.ReportingUrl"))
+                {
+                    ReportingUrl = context.Items["Stackify.ReportingUrl"].ToString();
+                }
 
                 //We be nice to detect if it is a web sockets connection and denote that in the protocol field
                 //do we care about things like HTTP/1.1 or the port?

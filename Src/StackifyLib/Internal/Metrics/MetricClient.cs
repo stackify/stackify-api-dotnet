@@ -503,6 +503,12 @@ namespace StackifyLib.Internal.Metrics
                     model.OccurredUtc = metric.OccurredUtc;
                     model.Count = metric.Count;
                     model.MonitorTypeID = (short)metric.MetricType;
+
+                    if (_httpClient.AppIdentity != null)
+                    {
+                        model.ClientDeviceID = _httpClient.AppIdentity.DeviceID;
+                    }
+
                     records.Add(model);
 
                     StackifyAPILogger.Log(string.Format("Uploading metric {0}:{1} Count {2}, Value {3}, ID {4}", metric.Category, metric.Name, metric.Count, metric.Value, metric.MonitorID));

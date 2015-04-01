@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace StackifyLib
 {
@@ -43,7 +44,24 @@ namespace StackifyLib
         [MethodImpl(MethodImplOptions.PreserveSig | MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public static void SetReportingUrl(string reportingUrl)
         {
-            
+            try
+            {
+                if (System.Web.HttpContext.Current != null)
+                {
+                    System.Web.HttpContext.Current.Items["Stackify.ReportingUrl"] = reportingUrl;
+                }
+            }
+            catch 
+            {
+                
+            }
+     
+        }
+
+        [MethodImpl(MethodImplOptions.PreserveSig | MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        public static void TraceString(string value)
+        {
+
         }
 
         public static ProfileTracer Create(string methodDisplayText)
@@ -78,23 +96,11 @@ namespace StackifyLib
 
         public void Exec(Action action)
         {
-            string actionID = _transactionID;
-            string requestID = _RequestID;
+            if (action == null)
+                return;
 
-            ExecInternal(action, _methodDisplayText, ignoreChildFrames ? 1 : 0, _requestReportingCategory, _appReportingCategory, actionID, requestID);
-         
-        }
-
-        [MethodImpl(MethodImplOptions.PreserveSig | MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-        private void ExecInternalComplete(string actionID, string requestID)
-        {
-            
-        }
-
-        //Method the profiler looks for
-        [MethodImpl(MethodImplOptions.PreserveSig | MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-        private void ExecInternal(Action action, string traceDisplay, int suppressChildren, string requestLevelReportingCategory, string appLevelReportingCategory, string actionID, string requestID)
-        {
+            ExecInternal(_methodDisplayText, ignoreChildFrames ? 1 : 0, _requestReportingCategory, _appReportingCategory, _transactionID, _RequestID, null);
+  
 
             if (_customMetricTime)
             {
@@ -113,7 +119,43 @@ namespace StackifyLib
                 Metrics.Count(_customMetricCategory, _customMetricName, 1, _autoReportZeroIfNothingReported);
             }
 
-            ExecInternalComplete(actionID, requestID);
+            ExecInternalComplete(_transactionID, _RequestID, null);
+        }
+
+        public Task WrapTask(Task task)
+        {
+            DateTimeOffset now = DateTimeOffset.UtcNow;
+
+            ExecInternal(_methodDisplayText, ignoreChildFrames ? 1 : 0, _requestReportingCategory, _appReportingCategory, _transactionID, _RequestID, task.Id);
+
+            task.ContinueWith((t) =>
+            {
+                if (_customMetricTime)
+                {
+                    Metrics.Time(_customMetricCategory, _customMetricName + " Time", now);
+                }
+                ExecInternalComplete(_transactionID, _RequestID, t.Id);
+            });
+
+            if (_customMetricCount)
+            {
+                Metrics.Count(_customMetricCategory, _customMetricName, 1, _autoReportZeroIfNothingReported);
+            }
+
+            return task;
+        }
+
+        [MethodImpl(MethodImplOptions.PreserveSig | MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        private void ExecInternalComplete(string actionID, string requestID, int? taskID)
+        {
+            
+        }
+
+        //Method the profiler looks for
+        [MethodImpl(MethodImplOptions.PreserveSig | MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        private void ExecInternal(string traceDisplay, int suppressChildren, string requestLevelReportingCategory, string appLevelReportingCategory, string actionID, string requestID, int? taskID)
+        {
+       
         }
     }
 }

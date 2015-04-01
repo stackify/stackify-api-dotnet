@@ -136,6 +136,7 @@ namespace StackifyLib.Models
         public int Count { get; set; }
         public DateTime OccurredUtc { get; set; }
         public short? MonitorTypeID { get; set; }
+        public int? ClientDeviceID { get; set; }
     }
 
 }
