@@ -350,7 +350,7 @@ namespace StackifyLib.Utils
             {
                 _LastIdentityAttempt = DateTime.UtcNow;
 
-                StackifyAPILogger.Log("HTTP Response Error: " + ex.ToString(), true);
+                StackifyAPILogger.Log("IdentifyApp() HTTP Response Error: " + ex.ToString(), true);
 
                 return currentIdentityStatus;
             }
@@ -412,6 +412,8 @@ namespace StackifyLib.Utils
             }
             catch (WebException ex)
             {
+                StackifyAPILogger.Log(ex.ToString());
+
                 CalcNextTryOnError();
                 result.Exception = ex;
                 LastErrorMessage = ex.Message;
@@ -435,6 +437,7 @@ namespace StackifyLib.Utils
             }
             catch (Exception ex)
             {
+                StackifyAPILogger.Log(ex.ToString());
                 CalcNextTryOnError();
                 LastErrorMessage = ex.Message;
                 result.Exception = ex;
@@ -450,6 +453,7 @@ namespace StackifyLib.Utils
             
             try
             {
+                
                 using (var responseStream = response.GetResponseStream())
                 {
                     if (responseStream == null || !responseStream.CanRead)
@@ -462,7 +466,7 @@ namespace StackifyLib.Utils
 
                         bool forceLog = ((int) response.StatusCode) > 400;
 
-                        StackifyAPILogger.Log("HTTP Response: " + ((int)response.StatusCode).ToString() + ", Took: " + took + "ms - " + responseData, forceLog);
+                        StackifyAPILogger.Log("GetResponseString HTTP Response: " + ((int)response.StatusCode).ToString() + ", Took: " + took + "ms - " + responseData + " " + response.ResponseUri.ToString(), forceLog);
                         return responseData;
                     }
                 }
@@ -470,7 +474,7 @@ namespace StackifyLib.Utils
             }
             catch (Exception ex)
             {
-                StackifyAPILogger.Log("HTTP Response Error: " + ex.ToString(), true);
+                StackifyAPILogger.Log("HTTP Response Error: " + ex.ToString() + " " + response.ResponseUri.ToString(), true);
                 LastErrorMessage = ex.Message;
                 CalcNextTryOnError();
                 return null;
