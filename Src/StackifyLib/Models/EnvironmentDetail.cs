@@ -20,13 +20,13 @@ namespace StackifyLib.Models
         {
             if (refresh || _CachedCopy == null)
             {
-                _CachedCopy = new EnvironmentDetail();
+                _CachedCopy = new EnvironmentDetail(true);
             }
 
             return _CachedCopy;
         }
 
-        private bool registryAccessFailure = false;
+        private static bool registryAccessFailure = false;
 
         /// <summary>
         /// Figures out if the server is in azure and if so gets the azure instance name
@@ -130,8 +130,13 @@ namespace StackifyLib.Models
             }
         }
 
-        private EnvironmentDetail()
+        
+        
+
+        public EnvironmentDetail(bool loadDetails)
         {
+            if (!loadDetails)
+                return;
 
             bool isWebRequest = false;
 

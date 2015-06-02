@@ -55,6 +55,19 @@ namespace StackifyLib
         [IgnoreDataMember]
         private LogMsg _InternalLogMsg { get; set; }
 
+        public StackifyError(long errorOccurredEpochMillis, ErrorItem errorItem)
+        {
+            OccurredEpochMillis = errorOccurredEpochMillis;
+            this.Error = errorItem;
+        }
+
+        public StackifyError(DateTime errorOccurredUtc, ErrorItem errorItem)
+        {
+            TimeSpan ts = errorOccurredUtc.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, 0));
+            OccurredEpochMillis = (long)ts.TotalMilliseconds;
+            this.Error = errorItem;
+        }
+        
         public StackifyError(Exception exception)
             : this(exception.Message, exception)
         {
@@ -313,7 +326,14 @@ namespace StackifyLib
 
         public override string ToString()
         {
-            return _Exception.ToString();
+            if (_Exception != null)
+            {
+                return _Exception.ToString();
+            }
+            else
+            {
+                return Error.ToString();
+            }
         }
     }
 }

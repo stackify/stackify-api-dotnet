@@ -127,20 +127,29 @@ namespace StackifyLib
             _LogClient.PauseUpload(isPaused);
         }
 
-        public static void QueueLogObject(StackifyLib.Models.LogMsg msg, Exception exceptionObject)
+        public static void QueueException(StackifyError error)
+        {
+            var msg = new LogMsg()
+            {
+                Level = "ERROR",
+                Msg = error.Message,
+                Ex = error
+            };
+
+            QueueLogObject(msg);
+        }
+
+        public static void QueueLogObject(StackifyLib.Models.LogMsg msg)
         {
             try
             {
                 if (_LogClient.CanQueue())
                 {
-                    if (exceptionObject != null)
-                    {
-                        var error = StackifyError.New(exceptionObject);
-                        
-                        if (!StackifyError.IgnoreError(error) && _LogClient.ErrorShouldBeSent(error))
-                        {
-                            msg.Ex = error;
 
+                    if (msg.Ex != null)
+                    {
+                        if (!StackifyError.IgnoreError(msg.Ex) && _LogClient.ErrorShouldBeSent(msg.Ex))
+                        {
                             if (!string.IsNullOrEmpty(msg.Msg))
                             {
                                 msg.Ex.SetAdditionalMessage(msg.Msg);
@@ -152,6 +161,11 @@ namespace StackifyLib
                         {
                             msg.Msg += " #errorgoverned";
                         }
+
+                        if (string.IsNullOrEmpty(msg.Level))
+                        {
+                            msg.Level = "ERROR";
+                        }
                     }
 
                     _LogClient.QueueMessage(msg);
@@ -160,7 +174,7 @@ namespace StackifyLib
                 {
                     StackifyAPILogger.Log("Unable to send log because the queue is full");
                 }
-                
+
 
 
             }
@@ -168,6 +182,16 @@ namespace StackifyLib
             {
                 StackifyAPILogger.Log(ex.ToString());
             }
+        }
+
+        public static void QueueLogObject(StackifyLib.Models.LogMsg msg, Exception exceptionObject)
+        {
+            if (exceptionObject != null)
+            {
+                msg.Ex = StackifyError.New(exceptionObject);
+            }
+ 
+            QueueLogObject(msg);
         }
 
 

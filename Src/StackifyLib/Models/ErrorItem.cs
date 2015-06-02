@@ -11,6 +11,11 @@ namespace StackifyLib.Models
     [DataContract]
     public class ErrorItem
     {
+        public ErrorItem()
+        {
+            
+        }
+
         public ErrorItem(Exception ex)
         {
           
@@ -50,6 +55,14 @@ namespace StackifyLib.Models
                 {
                     ErrorTypeCode = Marshal.GetHRForException(ex).ToString();
                 }
+
+                
+                //this is the default HResult. Ignore it?
+                //Leave it since we are already using it. Would cause unique errors to reset on people
+                //if (!string.IsNullOrEmpty(ErrorTypeCode) && ErrorTypeCode == "-2146233088")
+                //{
+                //    ErrorTypeCode = "";
+                //}
 
                 var t = ex.GetType();
 
@@ -240,6 +253,40 @@ namespace StackifyLib.Models
             }
 
             sb.Append(")");
+
+            return sb.ToString();
+        }
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendFormat("{0}: {1}", this.ErrorType, this.Message);
+
+            ErrorItem innerError = this.InnerError;
+
+            while (innerError != null)
+            {
+                sb.AppendFormat(" ---> {0}: {1}", innerError.ErrorType, innerError.Message);
+                innerError = innerError.InnerError;
+            }
+            sb.Append("\r\n" + this.FramesToString());
+            return sb.ToString();
+        }
+
+        public string FramesToString()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            foreach (var item in this.StackTrace)
+            {
+                sb.AppendFormat("  at {0}\r\n", item.Method);
+            }
+
+            if (InnerError != null)
+            {
+                sb.Append("--- End of inner exception stack trace ---\r\n");
+                sb.Append(InnerError.FramesToString());
+            }
 
             return sb.ToString();
         }

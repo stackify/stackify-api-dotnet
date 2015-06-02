@@ -35,7 +35,13 @@ namespace StackifyLib.Models
         public string Platform { get; set; }
     
         [DataMember]
-        public LogMsg[] Msgs { get; set; }
+        public List<LogMsg> Msgs { get; set; }
+
+        public string GetUniqueKey()
+        {
+            return ServerName + "-" + AppName + "-" + Env + "-" + (EnvID ?? 0) + "-" + (CDID ?? 0) + "-" +
+                   (CDAppID ?? 0);
+        }
 
     }
 
@@ -71,6 +77,14 @@ namespace StackifyLib.Models
         public string Level { get; set; }
 
         [DataMember]
+        public string UrlRoute { get; set; }
+
+
+        [DataMember]
+        public string UrlFull { get; set; }
+
+
+        [DataMember]
         public string SrcMethod { get; set; }
 
         [DataMember]
@@ -81,6 +95,10 @@ namespace StackifyLib.Models
 
         [DataMember]
         public List<string> Tags { get; set; }
+
+        [IgnoreDataMember]
+        public LogMsgGroup AppDetails { get; set; }
+
 
         [MethodImpl(MethodImplOptions.NoInlining |  MethodImplOptions.PreserveSig | MethodImplOptions.NoOptimization)]
         public void SetLogMsgID(string id, int isError, string logLevel)

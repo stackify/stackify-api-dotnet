@@ -223,5 +223,49 @@ namespace StackifyLib.Utils
 
             return expando as ExpandoObject;
         }
+
+
+        public static string CleanPartialUrl(string url)
+        {
+            if (string.IsNullOrEmpty(url) || !url.Contains("/"))
+                return url;
+
+            string[] urlPieces = url.Split(new char[] { '/' });
+
+            var sbNewUrl = new StringBuilder(url.Length);
+
+            int index = 0;
+            foreach (string piece in urlPieces)
+            {
+                if (string.IsNullOrEmpty(piece))
+                {
+                    continue;
+                }
+
+                long val;
+                Guid guidval;
+                if (long.TryParse(piece, out val))
+                {
+                    sbNewUrl.Append("/{id}");
+                }
+                else if (Guid.TryParse(piece, out guidval))
+                {
+                    sbNewUrl.Append("/{guid}");
+                }
+                else
+                {
+                    sbNewUrl.AppendFormat("/{0}", piece);
+                }
+
+                index++;
+            }
+
+            if (url.EndsWith("/"))
+            {
+                sbNewUrl.Append("/");
+            }
+
+            return sbNewUrl.ToString();
+        }
     }
 }

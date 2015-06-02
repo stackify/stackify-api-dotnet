@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Web.Hosting;
 using StackifyLib.Models;
 using StackifyLib.Utils;
+using StackifyLib.Web;
 
 namespace StackifyLib.Internal.Logs
 {
@@ -147,7 +148,43 @@ namespace StackifyLib.Internal.Logs
                     StackifyAPILogger.Log("Error figuring out TransID \r\n" + ex.ToString());
                 }
 
-            
+
+          
+                if (_IsWebApp && System.Web.Hosting.HostingEnvironment.IsHosted
+                    && System.Web.HttpContext.Current != null &&
+                    System.Web.HttpContext.Current.Request != null)
+                {
+                    var context = System.Web.HttpContext.Current;
+
+                    msg.UrlFull = context.Request.Url.ToString();
+
+                    if (context.Items != null && context.Items.Contains("Stackify.ReportingUrl"))
+                    {
+                        msg.UrlRoute = context.Items["Stackify.ReportingUrl"].ToString();
+                    }
+                    else
+                    {
+                        RouteResolver resolver = new RouteResolver(context);
+
+                        var route = resolver.GetRoute();
+
+                        if (!string.IsNullOrEmpty(route.Action))
+                        {
+                            msg.UrlRoute = route.ToString();
+                        }
+                    }
+
+
+                    if (string.IsNullOrEmpty(msg.UrlRoute))
+                    {
+                        HelperFunctions.CleanPartialUrl(
+                            context.Request.AppRelativeCurrentExecutionFilePath.TrimStart('~'));
+                    }
+
+
+                }
+                   
+                
 
                 _MessageBuffer.Enqueue(msg);
 
@@ -327,7 +364,8 @@ namespace StackifyLib.Internal.Logs
 
                 if (chunk.Any())
                 {
-                    return _LogClient.SendLogs(chunk.ToArray()).ContinueWith( (continuation) =>
+                    
+                    return _LogClient.SendLogsByGroups(chunk.ToArray()).ContinueWith((continuation) =>
                     {
                         
                         if (continuation.Exception != null)
@@ -362,9 +400,10 @@ namespace StackifyLib.Internal.Logs
                                     }
                                 }
 
-                                if(messagesSentTooManyTimes)
+                                if (messagesSentTooManyTimes)
                                 {
-                                    Utils.StackifyAPILogger.Log("Some messages not queued again due to too many failures uploading");
+                                    Utils.StackifyAPILogger.Log(
+                                        "Some messages not queued again due to too many failures uploading");
                                 }
 
                             }

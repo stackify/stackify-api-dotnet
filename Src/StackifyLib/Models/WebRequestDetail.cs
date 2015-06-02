@@ -116,6 +116,10 @@ namespace StackifyLib.Models
                 MVCController = route.Controller;
                 MVCAction = route.Action;
 
+                if (string.IsNullOrEmpty(ReportingUrl) && route != null && !string.IsNullOrEmpty(route.Action))
+                {
+                    ReportingUrl = route.ToString();
+                }
             }
             catch (Exception)
             {
