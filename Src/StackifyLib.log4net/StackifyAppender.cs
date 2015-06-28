@@ -163,7 +163,7 @@ namespace StackifyLib.log4net
             }
             catch (Exception ex)
             {
-                StackifyAPILogger.Log("Errror evaluating source method " + ex.ToString());
+                StackifyAPILogger.Log("Error evaluating source method " + ex.ToString());
             }
 
             var diags = GetDiagnosticContextProperties();
