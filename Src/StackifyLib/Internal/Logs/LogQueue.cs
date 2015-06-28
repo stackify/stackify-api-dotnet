@@ -201,8 +201,41 @@ namespace StackifyLib.Internal.Logs
             if (_PauseUpload)
                 return;
 
-           _timer.Change(-1, -1); //disable while it does this so it does fire multiple times
-           
+            _timer.Change(-1, -1); //disable while it does this so it does fire multiple times
+
+
+            try
+            {
+                //remove messages in the queue that are old
+                if (!_LogClient.IsAuthorized() && _MessageBuffer.Count > 0)
+                {
+                    var cutoff = (long)DateTime.UtcNow.AddMinutes(-5).Subtract(_Epoch).TotalMilliseconds;
+
+                    while (true)
+                    {
+                        LogMsg msg;
+                        if(_MessageBuffer.TryPeek(out msg) && msg.EpochMs < cutoff)
+                        {
+                            LogMsg msg2;
+                            _MessageBuffer.TryDequeue(out msg2);
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+
+                    if (_timer != null && !_StopRequested)
+                        _timer.Change(_FlushInterval, _FlushInterval);
+
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                StackifyLib.Utils.StackifyAPILogger.Log(ex.ToString());
+            }
+
 
             try
             {

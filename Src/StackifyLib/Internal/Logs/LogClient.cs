@@ -72,6 +72,13 @@ namespace StackifyLib.Internal.Logs
             return _HttpClient.IsAuthorized();
         }
 
+        public bool IsAuthorized()
+        {
+            EnsureHttpClient();
+            return _HttpClient.IsAuthorized();
+           
+        }
+
         public bool CanUpload()
         {
             EnsureHttpClient();
