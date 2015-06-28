@@ -222,7 +222,7 @@ namespace StackifyLib.Models
                 {
                     HttpCookie cookie = collection[key];
 
-                    if (cookie != null &&  !string.IsNullOrWhiteSpace(cookie.Value))
+                    if (cookie != null &&  !string.IsNullOrWhiteSpace(cookie.Value) && !items.ContainsKey(key))
                     {
                      
                         if (keysOnly)
@@ -295,7 +295,7 @@ namespace StackifyLib.Models
                 {
                     object val = collection[key];
 
-                    if (val != null && !string.IsNullOrWhiteSpace(val.ToString()))
+                    if (val != null && !string.IsNullOrWhiteSpace(val.ToString()) && items.ContainsKey(key))
                     {
                         if (keysOnly)
                         {
