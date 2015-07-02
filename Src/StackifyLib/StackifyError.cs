@@ -55,6 +55,10 @@ namespace StackifyLib
         [IgnoreDataMember]
         private LogMsg _InternalLogMsg { get; set; }
 
+        [IgnoreDataMember]
+        public bool IsUnHandled { get; set; }
+
+
         public StackifyError(long errorOccurredEpochMillis, ErrorItem errorItem)
         {
             OccurredEpochMillis = errorOccurredEpochMillis;
