@@ -239,7 +239,13 @@ namespace StackifyLib.Internal.Metrics
                 if (metric.IsIncrement)
                 {
                     //add or subtract
-                    batches[metric.AggregateKey].Value += metric.Value;    
+                    batches[metric.AggregateKey].Value += metric.Value;
+
+                    if (metric.Settings != null && batches[metric.AggregateKey].Value < 0 && !metric.Settings.AllowNegativeGauge)
+                    {
+                        batches[metric.AggregateKey].Value = 0;
+                    }
+
                 }
                 else if (metric.MetricType == MetricType.MetricLast)
                 {

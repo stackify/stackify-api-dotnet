@@ -19,6 +19,7 @@ namespace StackifyLib.Models
     {
         public bool AutoReportZeroIfNothingReported { get; set; }
         public bool AutoReportLastValueIfNothingReported { get; set; }
+        public bool AllowNegativeGauge { get; set; }
     }
 
     public class Metric

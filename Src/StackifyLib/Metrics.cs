@@ -73,15 +73,15 @@ namespace StackifyLib
         /// <param name="category">Category of the metric</param>
         /// <param name="metricName">Name of the metric</param>
         /// <param name="incrementBy">Value can be positive or negative to decrement. Defaults to 1</param>
-        //public static void IncrementGauge(string category, string metricName, double incrementBy = 1, MetricSetting advancedSettings = null)
-        //{
-        //    //leaving the count as 1 below because when it gets processed later it would sum up the count there
-        //    var m = new Metric(category, metricName, MetricType.MetricLast);
-        //    m.Value = incrementBy;
-        //    m.IsIncrement = true;
-        //    m.Settings = advancedSettings;
-        //    StackifyLib.Internal.Metrics.MetricClient.QueueMetric(m);
-        //}
+        public static void IncrementGauge(string category, string metricName, double incrementBy, MetricSetting advancedSettings)
+        {
+            //leaving the count as 1 below because when it gets processed later it would sum up the count there
+            var m = new Metric(category, metricName, MetricType.MetricLast);
+            m.Value = incrementBy;
+            m.IsIncrement = true;
+            m.Settings = advancedSettings;
+            StackifyLib.Internal.Metrics.MetricClient.QueueMetric(m);
+        }
 
         /// <summary>
         /// Increment or decrement a guage metric type
@@ -92,12 +92,8 @@ namespace StackifyLib
         /// <param name="autoResendLastValueIfNothingReported">Every minute resend the last value if nothing reported</param>
         public static void IncrementGauge(string category, string metricName, double incrementBy = 1, bool autoResendLastValueIfNothingReported = false)
         {
-            //leaving the count as 1 below because when it gets processed later it would sum up the count there
-            var m = new Metric(category, metricName, MetricType.MetricLast);
-            m.Value = incrementBy;
-            m.IsIncrement = true;
-            m.Settings = new MetricSetting() { AutoReportLastValueIfNothingReported = autoResendLastValueIfNothingReported };
-            StackifyLib.Internal.Metrics.MetricClient.QueueMetric(m);
+            IncrementGauge(category, metricName, incrementBy,
+                new MetricSetting() {AutoReportLastValueIfNothingReported = autoResendLastValueIfNothingReported});
         }
 
         /// <summary>
