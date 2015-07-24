@@ -58,7 +58,7 @@ By default the library will use the WebRequest.DefaultWebProxy. If you want to s
         
         StackifyLib.Utils.HttpClient.CustomWebProxy = new WebProxy();
 
-If you are having problems you can get logging out of the framework by hooking in to it's custom logging.
+If you are having problems you can get logging out of the framework by hooking in to its custom logging.
 
         StackifyLib.Utils.StackifyAPILogger.LogEnabled = true;
         StackifyLib.Utils.StackifyAPILogger.OnLogMessage += StackifyAPILogger_OnLogMessage;
