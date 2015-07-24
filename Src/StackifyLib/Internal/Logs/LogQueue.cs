@@ -2,11 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Remoting.Messaging;
-using System.Text;
 using System.Collections.Concurrent;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Web.Hosting;
 using StackifyLib.Models;
 using StackifyLib.Utils;
 using StackifyLib.Web;
@@ -135,13 +132,17 @@ namespace StackifyLib.Internal.Logs
                     if (string.IsNullOrEmpty(msg.TransID))
                     {
                         if (_IsWebApp && System.Web.Hosting.HostingEnvironment.IsHosted
-                                 && System.Web.HttpContext.Current != null &&
+                                 && System.Web.HttpContext.Current != null && System.Web.HttpContext.Current.Handler != null &&
                                  System.Web.HttpContext.Current.Request != null)
                         {
                             msg.TransID = System.Web.HttpContext.Current.Request.GetHashCode().ToString();
                         }
                         
                     }
+                }
+                catch (System.Web.HttpException ex)
+                {
+                    StackifyAPILogger.Log("Request not available \r\n" + ex.ToString());
                 }
                 catch(Exception ex)
                 {
@@ -151,8 +152,9 @@ namespace StackifyLib.Internal.Logs
 
           
                 if (_IsWebApp && System.Web.Hosting.HostingEnvironment.IsHosted
-                    && System.Web.HttpContext.Current != null &&
-                    System.Web.HttpContext.Current.Request != null)
+                    && System.Web.HttpContext.Current != null
+                    && System.Web.HttpContext.Current.Handler != null
+                    && System.Web.HttpContext.Current.Request != null)
                 {
                     var context = System.Web.HttpContext.Current;
 

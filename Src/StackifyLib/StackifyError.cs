@@ -124,11 +124,17 @@ namespace StackifyLib
 
                 try
                 {
-                    HttpRequest request = System.Web.HttpContext.Current.Request;
-
-                    if (request != null)
+                    if (System.Web.Hosting.HostingEnvironment.IsHosted
+                        && System.Web.HttpContext.Current != null
+                        && System.Web.HttpContext.Current.Handler != null
+                        && System.Web.HttpContext.Current.Request != null)
                     {
-                        requestAvailable = true;
+                        HttpRequest request = System.Web.HttpContext.Current.Request;
+
+                        if (request != null)
+                        {
+                            requestAvailable = true;
+                        }
                     }
                 }
                 catch
