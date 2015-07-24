@@ -60,12 +60,14 @@ namespace StackifyLib
 
 
         public StackifyError(long errorOccurredEpochMillis, ErrorItem errorItem)
+            : this(errorItem.Message, null)
         {
             OccurredEpochMillis = errorOccurredEpochMillis;
             this.Error = errorItem;
         }
 
         public StackifyError(DateTime errorOccurredUtc, ErrorItem errorItem)
+            : this(errorItem.Message, null)
         {
             TimeSpan ts = errorOccurredUtc.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, 0));
             OccurredEpochMillis = (long)ts.TotalMilliseconds;
@@ -79,24 +81,28 @@ namespace StackifyLib
         }
 
         public StackifyError(string message, Exception exception)
+            :base(message)
         {
             Init();
 
-            //Reflection caused error. Real error is the inner exception
-            if (exception is TargetInvocationException && exception.InnerException != null)
+            if (exception != null)
             {
-                Error = new ErrorItem(exception.InnerException);
-                _Exception = exception.InnerException;
-            }
-            else if (exception is HttpUnhandledException && exception.InnerException != null)
-            {
-                Error = new ErrorItem(exception.GetBaseException());
-                _Exception = exception.GetBaseException();
-            }
-            else
-            {
-                Error = new ErrorItem(exception);
-                _Exception = exception;
+                //Reflection caused error. Real error is the inner exception
+                if (exception is TargetInvocationException && exception.InnerException != null)
+                {
+                    Error = new ErrorItem(exception.InnerException);
+                    _Exception = exception.InnerException;
+                }
+                else if (exception is HttpUnhandledException && exception.InnerException != null)
+                {
+                    Error = new ErrorItem(exception.GetBaseException());
+                    _Exception = exception.GetBaseException();
+                }
+                else
+                {
+                    Error = new ErrorItem(exception);
+                    _Exception = exception;
+                }
             }
 
             SetAdditionalMessage(message);
@@ -155,16 +161,20 @@ namespace StackifyLib
 
         public StackifyError SetAdditionalMessage(string message)
         {
-            if (!String.IsNullOrEmpty(Error.Message))
+            if (Error != null)
             {
-                if (!String.IsNullOrEmpty(message) && !Error.Message.Equals(message, StringComparison.InvariantCultureIgnoreCase))
+                if (!String.IsNullOrEmpty(Error.Message))
                 {
-                    Error.Message = Error.Message + " (" + message + ")";
+                    if (!String.IsNullOrEmpty(message) &&
+                        !Error.Message.Equals(message, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        Error.Message = Error.Message + " (" + message + ")";
+                    }
                 }
-            }
-            else
-            {
-                Error.Message = message;
+                else
+                {
+                    Error.Message = message;
+                }
             }
 
             return this;
