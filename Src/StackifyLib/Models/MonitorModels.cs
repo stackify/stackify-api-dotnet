@@ -14,6 +14,7 @@ namespace StackifyLib.Models
         public int? EnvId { get; set; }
         public string Loc { get; set; }
         public int? LocId { get; set; }
+        public string Alerts { get; set; }
     }
 
     public class Monitor

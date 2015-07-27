@@ -30,6 +30,23 @@ namespace StackifyLib
             }
         }
 
+        public bool? ConfigureAlerts(Dictionary<int, string> devices)
+        {
+            Utils.HttpClient client = new HttpClient(null, null);
+            var response = client.SendAndGetResponse(System.Web.VirtualPathUtility.AppendTrailingSlash(client.BaseAPIUrl) +
+                                      "API/Device/ConfigureAlerts",
+                                       JsonConvert.SerializeObject(devices));
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                return JsonConvert.DeserializeObject<bool>(response.ResponseText);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         public Models.Monitor[] GetDeviceMonitors(int clientDeviceId)
         {
             Utils.HttpClient client = new HttpClient(null, null);
