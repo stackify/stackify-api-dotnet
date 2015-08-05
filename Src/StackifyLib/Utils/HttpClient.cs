@@ -320,7 +320,7 @@ namespace StackifyLib.Utils
                 string jsonData = JsonConvert.SerializeObject(env, new JsonSerializerSettings() {NullValueHandling = NullValueHandling.Ignore});
 
                 var response =
-                    SendAndGetResponse(
+                    SendJsonAndGetResponse(
                         System.Web.VirtualPathUtility.AppendTrailingSlash(BaseAPIUrl) + "Metrics/IdentifyApp", jsonData);
 
                 if (response.Exception == null && response.StatusCode == HttpStatusCode.OK)
@@ -356,9 +356,9 @@ namespace StackifyLib.Utils
             }
         }
 
-        public Task<StackifyWebResponse> SendAndGetResponseAsync(string url, string jsonData, bool compress = false)
+        public Task<StackifyWebResponse> SendJsonAndGetResponseAsync(string url, string jsonData, bool compress = false)
         {
-            return AsyncWrap<StackifyWebResponse>(() => SendAndGetResponse(url, jsonData, compress));
+            return AsyncWrap<StackifyWebResponse>(() => SendJsonAndGetResponse(url, jsonData, compress));
         }
 
         private Task<T> AsyncWrap<T>(Func<T> selector)
@@ -366,7 +366,7 @@ namespace StackifyLib.Utils
             return Task.Factory.StartNew(selector);
         }
 
-        public StackifyWebResponse SendAndGetResponse(string url, string jsonData, bool compress = false)
+        public StackifyWebResponse SendJsonAndGetResponse(string url, string jsonData, bool compress = false)
         {
             if (url == null || this.APIKey == null)
             {
@@ -377,7 +377,7 @@ namespace StackifyLib.Utils
             if (!IsAuthorized())
             {
                 StackifyAPILogger.Log("Preventing API call due to unauthorized error");
-                return new StackifyWebResponse() { Exception = new ApplicationException("Missing url or api key") };
+                return new StackifyWebResponse() { Exception = new ApplicationException("unauthorized") };
             }
 
             StackifyAPILogger.Log("Send to " + url + " key " + this.APIKey + "\r\n" + jsonData);
@@ -388,7 +388,7 @@ namespace StackifyLib.Utils
 
             try
             {
-                var request = BuildWebRequest(url, jsonData, compress);
+                var request = BuildJsonRequest(url, jsonData, compress);
 
                 using (var response = (HttpWebResponse)request.GetResponse())
                 {
@@ -446,6 +446,87 @@ namespace StackifyLib.Utils
             return result;
         }
 
+        public StackifyWebResponse POSTAndGetResponse(string url, string postData)
+        {
+            if (url == null || this.APIKey == null)
+            {
+                StackifyAPILogger.Log("unable to send. Missing url or api key");
+                return new StackifyWebResponse() { Exception = new ApplicationException("Missing url or api key") };
+            }
+
+            if (!IsAuthorized())
+            {
+                StackifyAPILogger.Log("Preventing API call due to unauthorized error");
+                return new StackifyWebResponse() { Exception = new ApplicationException("unauthorized") };
+            }
+
+            StackifyAPILogger.Log("Send to " + url + " key " + this.APIKey + "\r\n" + postData);
+
+            //default to 500. Should get set below.
+            StackifyWebResponse result = new StackifyWebResponse() { StatusCode = HttpStatusCode.InternalServerError };
+            DateTime started = DateTime.UtcNow;
+
+            try
+            {
+                var request = BuildPOSTRequest(url, postData);
+
+                using (var response = (HttpWebResponse)request.GetResponse())
+                {
+                    if (response == null)
+                        return null;
+
+                    if (response.StatusCode == HttpStatusCode.Unauthorized)
+                    {
+                        _UnauthorizedResponse = DateTime.UtcNow;
+                    }
+
+                    result.ResponseText = GetResponseString(response, started);
+                    result.StatusCode = response.StatusCode;
+
+                    _LastSuccess = DateTime.UtcNow;
+                    _LastError = null;
+                    LastErrorMessage = null;
+
+                    response.Close();
+                }
+            }
+            catch (WebException ex)
+            {
+                StackifyAPILogger.Log(ex.ToString());
+
+                CalcNextTryOnError();
+                result.Exception = ex;
+                LastErrorMessage = ex.Message;
+                if (ex.Response != null)
+                {
+                    HttpWebResponse response = ex.Response as HttpWebResponse;
+
+                    if (response != null)
+                    {
+                        if (response.StatusCode == HttpStatusCode.Unauthorized)
+                        {
+                            _UnauthorizedResponse = DateTime.UtcNow;
+                        }
+
+                        result.StatusCode = response.StatusCode;
+                        result.ResponseText = GetResponseString(response, started);
+
+                        response.Close();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                StackifyAPILogger.Log(ex.ToString());
+                CalcNextTryOnError();
+                LastErrorMessage = ex.Message;
+                result.Exception = ex;
+            }
+
+            return result;
+        }
+
+
         public string GetResponseString(HttpWebResponse response, DateTime started)
         {
             if (response == null)
@@ -483,7 +564,7 @@ namespace StackifyLib.Utils
 
         private string _version = null;
 
-        private HttpWebRequest BuildWebRequest(string url, string jsonData, bool compress)
+        private HttpWebRequest BuildJsonRequest(string url, string jsonData, bool compress)
         {
             if (string.IsNullOrEmpty(_version))
             {
@@ -537,6 +618,46 @@ namespace StackifyLib.Utils
             {
                 request.Method = "GET";
             }
+
+            return request;
+        }
+
+
+        private HttpWebRequest BuildPOSTRequest(string url, string postdata)
+        {
+            if (string.IsNullOrEmpty(_version))
+            {
+                _version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            }
+
+            var request = (HttpWebRequest)WebRequest.Create(url);
+
+
+            request.Headers.Add("X-Stackify-Key", this.APIKey);
+            request.Headers.Add("X-Stackify-PV", "V1");
+            request.ContentType = "application/x-www-form-urlencoded";
+            request.KeepAlive = false;
+            request.CachePolicy = new HttpRequestCachePolicy(HttpRequestCacheLevel.NoCacheNoStore);
+            request.UserAgent = "StackifyLib-" + _version;
+
+            if (HttpClient.CustomWebProxy != null)
+            {
+                request.Proxy = HttpClient.CustomWebProxy;
+            }
+
+           
+            request.Method = "POST";
+            request.ContentLength = 0;
+            if (!String.IsNullOrEmpty(postdata))
+            {
+                byte[] payload = Encoding.UTF8.GetBytes(postdata);
+
+                using (Stream postStream = request.GetRequestStream())
+                {
+                    postStream.Write(payload, 0, payload.Length);
+                }
+            }
+
 
             return request;
         }

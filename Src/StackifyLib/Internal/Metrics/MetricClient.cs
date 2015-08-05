@@ -524,7 +524,7 @@ namespace StackifyLib.Internal.Metrics
 
                 string jsonData = JsonConvert.SerializeObject(records);
 
-                var response = _httpClient.SendAndGetResponse(
+                var response = _httpClient.SendJsonAndGetResponse(
                         System.Web.VirtualPathUtility.AppendTrailingSlash(_httpClient.BaseAPIUrl) +
                         "Metrics/SubmitMetricsByID",
                         jsonData);
@@ -574,7 +574,7 @@ namespace StackifyLib.Internal.Metrics
 
 
                 var response =
-                    _httpClient.SendAndGetResponse(
+                    _httpClient.SendJsonAndGetResponse(
                         System.Web.VirtualPathUtility.AppendTrailingSlash(_httpClient.BaseAPIUrl) +
                         "Metrics/GetMetricInfo",
                         jsonData);

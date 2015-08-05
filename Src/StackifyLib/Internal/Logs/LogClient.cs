@@ -349,7 +349,7 @@ namespace StackifyLib.Internal.Logs
 
                 StackifyAPILogger.Log("Sending " + messages.Length.ToString() + " log messages");
                 var task =
-                    _HttpClient.SendAndGetResponseAsync(
+                    _HttpClient.SendJsonAndGetResponseAsync(
                         urlToUse,
                         jsonData, jsonData.Length > 5000);
 
@@ -411,7 +411,7 @@ namespace StackifyLib.Internal.Logs
 
                 StackifyAPILogger.Log("Sending " + messages.Length.ToString() + " log messages via send multi groups");
                 var task =
-                    _HttpClient.SendAndGetResponseAsync(
+                    _HttpClient.SendJsonAndGetResponseAsync(
                         urlToUse,
                         jsonData, jsonData.Length > 5000);
 
