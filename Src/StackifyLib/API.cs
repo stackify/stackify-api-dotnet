@@ -44,7 +44,7 @@ namespace StackifyLib
         public static bool RemoveServerByName(string name, bool uninstallAgent = false)
         {
             var response = client.POSTAndGetResponse(System.Web.VirtualPathUtility.AppendTrailingSlash(client.BaseAPIUrl) +
-                                      "API/Device/RemoveServerByID/?name=" + name + "&uninstallAgent=" + uninstallAgent,
+                                      "API/Device/RemoveServerByName/?name=" + name + "&uninstallAgent=" + uninstallAgent,
                                        null);
 
             return response.StatusCode == HttpStatusCode.OK;
