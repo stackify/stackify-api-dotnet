@@ -1,23 +1,14 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Globalization;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.Remoting.Messaging;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using StackifyLib.Internal.Logs;
 using StackifyLib.Models;
 using StackifyLib.Utils;
 using Apache_log4net = log4net;
 using log4net.Appender;
 using log4net.Core;
-using System.Diagnostics;
 using log4netOffical = log4net;
-using System.Dynamic;
 
 
 namespace StackifyLib.log4net

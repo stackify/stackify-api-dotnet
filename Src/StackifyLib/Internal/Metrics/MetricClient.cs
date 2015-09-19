@@ -3,13 +3,9 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Web.Hosting;
 using Newtonsoft.Json;
 using StackifyLib.Models;
-using System.Diagnostics;
 using StackifyLib.Utils;
 
 namespace StackifyLib.Internal.Metrics
