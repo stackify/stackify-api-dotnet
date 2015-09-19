@@ -200,6 +200,8 @@ If you use a custom logging framework or a framework not currently supported, yo
         StackifyLib.Logger.Queue("DEBUG", "My log message");
         StackifyLib.Logger.QueueException("Test exception", new ApplicationException("Sky is falling"));
 
+		StackifyLib.Logger.Shutdown(); //should be called before your app closes to flush the log queue
+
 ###Configuring with Azure service definitions
 
 StackifyLib reads the license key, app name, and environment settings from normal web.config appSettings. If you would prefer to store the settings in an [azure cloud deployment cscfg](http://msdn.microsoft.com/en-us/library/azure/hh369931.aspx#NameValue), then you can create a little code to read the settings from there and set the StackifyLib settings in code like this in some similar way.
