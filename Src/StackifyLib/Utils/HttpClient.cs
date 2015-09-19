@@ -34,7 +34,7 @@ namespace StackifyLib.Utils
 
         public string BaseAPIUrl { get; private set; }
 
-        private string APIKey
+        public string APIKey
         {
             get
             {

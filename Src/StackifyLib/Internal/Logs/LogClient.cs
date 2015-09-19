@@ -52,7 +52,11 @@ namespace StackifyLib.Internal.Logs
 
         public string APIKey
         {
-            get { return _ApiKey; }
+            get
+            {
+                EnsureHttpClient();
+                return _HttpClient.APIKey;
+            }
         }
 
         [Obsolete("Use CanQueue instead")]

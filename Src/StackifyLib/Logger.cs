@@ -12,8 +12,7 @@ namespace StackifyLib
     public class Logger
     {
         public static int _MaxLogBufferSize = 10000;
-       // public static bool AutoSetTransID = false;
-
+       
         private static LogClient _LogClient = null;
 
         static Logger()
@@ -22,11 +21,25 @@ namespace StackifyLib
         }
 
 
-
+        /// <summary>
+        /// Used to override the appname being used by any and all logging appenders. Be it this Logger class, log4net, NLog, etc
+        /// </summary>
         public static string GlobalAppName = null;
+
+        /// <summary>
+        /// Used to override the environment being used by any and all logging appenders. Be it this Logger class, log4net, NLog, etc
+        /// </summary>
         public static string GlobalEnvironment = null;
+
+        /// <summary>
+        /// Used to override the api key being used by any and all logging appenders. Be it this Logger class, log4net, NLog, etc
+        /// </summary>
         public static string GlobalApiKey = null;
 
+
+        /// <summary>
+        /// Used to get/set the api key used by this logger class, not appenders like log4net, NLog, etc. Set GlobalApiKey to change it for those
+        /// </summary>
         public static string ApiKey
         {
             get
@@ -45,6 +58,9 @@ namespace StackifyLib
             }
         }
 
+        /// <summary>
+        /// Global setting for any log appenders for how big the log queue size can be in memory before messages are lost if there are problems uploading or we can't upload fast enough
+        /// </summary>
         public static int MaxLogBufferSize
         {
             get { return _MaxLogBufferSize; }
@@ -59,11 +75,19 @@ namespace StackifyLib
             _LogClient.Close();
         }
 
+        /// <summary>
+        /// Gets info about the app
+        /// </summary>
+        /// <returns></returns>
         public static AppIdentityInfo Identity()
         {
             return _LogClient.GetIdentity();
         }
 
+        /// <summary>
+        /// Used to check if there have been recent failures or if the queue is backed up and if logs can be sent or not
+        /// </summary>
+        /// <returns></returns>
         public static bool CanSend()
         {
             return _LogClient.CanQueue();
@@ -194,7 +218,11 @@ namespace StackifyLib
             QueueLogObject(msg);
         }
 
-
+        /// <summary>
+        /// Helper method for getting the current stack trace
+        /// </summary>
+        /// <param name="declaringClassName"></param>
+        /// <returns></returns>
         public static List<TraceFrame> GetCurrentStackTrace(string declaringClassName)
         {
             List<TraceFrame> frames = new List<TraceFrame>();
