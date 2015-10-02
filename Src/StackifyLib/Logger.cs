@@ -223,7 +223,7 @@ namespace StackifyLib
         /// </summary>
         /// <param name="declaringClassName"></param>
         /// <returns></returns>
-        public static List<TraceFrame> GetCurrentStackTrace(string declaringClassName)
+        public static List<TraceFrame> GetCurrentStackTrace(string declaringClassName, int maxFrames = 99, bool simpleMethodNames = false)
         {
             List<TraceFrame> frames = new List<TraceFrame>();
 
@@ -257,8 +257,13 @@ namespace StackifyLib
                         var f2 = new TraceFrame();
                         f2.CodeFileName = frame2.GetFileName();
                         f2.LineNum = frame2.GetFileLineNumber();
-                        f2.Method = ErrorItem.GetMethodFullName(frame2.GetMethod());
+                        f2.Method = ErrorItem.GetMethodFullName(frame2.GetMethod(), simpleMethodNames);
                         frames.Add(f2);
+
+                        if (frames.Count > maxFrames)
+                        {
+                            return frames;
+                        }
                     }
 
                 }

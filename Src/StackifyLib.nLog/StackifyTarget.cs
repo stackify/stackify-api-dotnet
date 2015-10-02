@@ -93,12 +93,23 @@ namespace StackifyLib.nLog
 
         private Dictionary<string, object> GetDiagnosticContextProperties()
         {
-            if (!_HasContextKeys)
-            {
-                return null;
-            }
+
 
             Dictionary<string, object> properties = new Dictionary<string, object>();
+
+
+            string ndc = NLog.NestedDiagnosticsContext.TopMessage;
+
+            if (!String.IsNullOrEmpty(ndc))
+            {
+                properties["ndc"] = ndc;
+            }
+
+
+            if (!_HasContextKeys)
+            {
+                return properties;
+            }
 
             // GlobalDiagnosticsContext
 
@@ -114,7 +125,6 @@ namespace StackifyLib.nLog
                     }
                 }
             }
-
             // MappedDiagnosticsContext
 
             foreach (string mdcKey in _MappedContextKeys)
@@ -185,7 +195,7 @@ namespace StackifyLib.nLog
 
                 if (logMethodNames)
                 {
-                    var frames = StackifyLib.Logger.GetCurrentStackTrace(loggingEvent.LoggerName);
+                    var frames = StackifyLib.Logger.GetCurrentStackTrace(loggingEvent.LoggerName, 1, true);
 
                     if (frames.Any())
                     {
@@ -217,14 +227,7 @@ namespace StackifyLib.nLog
             }
 
 
-            if ((loggingEvent.Parameters != null) && (loggingEvent.Parameters.Length > 0))
-            {
-                msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(loggingEvent.Parameters[0], true, diags);
-            }
-            else
-            {
-                msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(null, false, diags);
-            }
+     
 
             string formattedMessage;
 
@@ -239,7 +242,29 @@ namespace StackifyLib.nLog
                 formattedMessage = loggingEvent.FormattedMessage;
             }
 
-            msg.Msg = formattedMessage;
+            msg.Msg = (formattedMessage ?? "").Trim();
+
+            object debugObject = null;
+
+            if ((loggingEvent.Parameters != null) && (loggingEvent.Parameters.Length > 0))
+            {
+                debugObject = loggingEvent.Parameters[0];
+
+                //if the debug param is the same as the logging message itself, suppress it
+                if (debugObject != null && debugObject.ToString() == msg.Msg)
+                {
+                    debugObject = null;
+                }
+            }
+
+            if (debugObject != null)
+            {
+                msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(debugObject, true, diags);
+            }
+            else
+            {
+                msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(null, false, diags);
+            }
           
 
             if (msg.Msg != null && error != null)

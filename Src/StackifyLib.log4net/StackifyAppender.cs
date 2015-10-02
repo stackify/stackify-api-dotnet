@@ -141,7 +141,7 @@ namespace StackifyLib.log4net
 
                 if (logMethodNames)
                 {
-                    var frames = StackifyLib.Logger.GetCurrentStackTrace(loggingEvent.LoggerName);
+                    var frames = StackifyLib.Logger.GetCurrentStackTrace(loggingEvent.LoggerName, 1, true);
 
                     if (frames.Any())
                     {
@@ -285,7 +285,7 @@ namespace StackifyLib.log4net
                 return null;
             }
 
-
+            
             Dictionary<string, object> properties = new Dictionary<string, object>();
 
 
