@@ -10,7 +10,7 @@ using StackifyLib.Utils;
 
 namespace StackifyLib.Internal.Metrics
 {
-    internal static class MetricClient
+    public static class MetricClient
     {
         private static HttpClient _httpClient = new HttpClient(null, null);
 
@@ -23,6 +23,7 @@ namespace StackifyLib.Internal.Metrics
         private static ConcurrentDictionary<string, MetricAggregate> _LastAggregates = new ConcurrentDictionary<string, MetricAggregate>();
         private static ConcurrentDictionary<string, MetricSetting> _MetricSettings = new ConcurrentDictionary<string, MetricSetting>();
 
+        private static bool _StopRequested = false;
 
         static MetricClient()
         {
@@ -271,10 +272,49 @@ namespace StackifyLib.Internal.Metrics
             StackifyAPILogger.Log("Upload metrics check");
 
             _Timer.Change(-1, -1);
-            bool allSuccess = false;
-            DateTime purgeOlderThan = DateTime.UtcNow.AddMinutes(-10);
-            DateTime currentMinute = DateTime.UtcNow.Floor(TimeSpan.FromMinutes(1));
-            List<KeyValuePair<string, MetricAggregate>> metrics = new List<KeyValuePair<string, MetricAggregate>>();
+
+            double seconds = 15;
+
+            if (!_StopRequested)
+            {
+                bool allSuccess = false;
+                DateTime purgeOlderThan = DateTime.UtcNow.AddMinutes(-10);
+
+                DateTime currentMinute = DateTime.UtcNow.Floor(TimeSpan.FromMinutes(1));
+
+                allSuccess = UploadMetrics(currentMinute);
+
+                PurgeOldMetrics(purgeOlderThan);
+
+                if (_AggregateMetrics.Count > 0 && allSuccess)
+                {
+                    seconds = .1;
+                }
+            }
+
+
+
+            _Timer.Change(TimeSpan.FromSeconds(seconds), TimeSpan.FromSeconds(seconds));
+     
+        }
+
+        public static void StopMetricsQueue()
+        {
+            //don't let t his method run more than once
+            if (_StopRequested)
+                return;
+
+            _StopRequested = true;
+
+            DateTime currentMinute = DateTime.UtcNow.AddMinutes(2).Floor(TimeSpan.FromMinutes(1));
+
+            UploadMetrics(currentMinute);
+        }
+
+        public static bool UploadMetrics(DateTime currentMinute)
+        {
+            bool success = false;
+             List<KeyValuePair<string, MetricAggregate>> metrics = new List<KeyValuePair<string, MetricAggregate>>();
             try
             {
                 //read everything up to the start of the current minute
@@ -317,7 +357,7 @@ namespace StackifyLib.Internal.Metrics
 
                         //only getting metrics less than 10 minutes old to drop old data in case we get backed up
                         //they are removed from the _AggregateMetrics in the upload function upon success
-                        allSuccess =
+                        success =
                             UploadAggregates(
                                 metrics.Where(x => x.Value.OccurredUtc > DateTime.UtcNow.AddMinutes(-10)).ToList());
 
@@ -332,7 +372,7 @@ namespace StackifyLib.Internal.Metrics
             }
             catch (Exception ex)
             {
-                allSuccess = false;
+                success = false;
                 StackifyAPILogger.Log("Error uploading metrics " + ex.ToString());
 
                 //if an error put them back in
@@ -347,6 +387,12 @@ namespace StackifyLib.Internal.Metrics
                 }
             }
 
+            return success;
+
+        }
+
+        private static void PurgeOldMetrics(DateTime purgeOlderThan)
+        {
             try
             {
                 //beginning of this method we save off latest aggregates before upload or purge
@@ -354,7 +400,7 @@ namespace StackifyLib.Internal.Metrics
                 //purge old stuff
                 //if uploading disabled it purges everything
                 //if success uploading then should be nothing to purge as that is already done above
-               
+
                 var oldMetrics = _AggregateMetrics.Where(x => x.Value.OccurredUtc < purgeOlderThan).ToList();
                 MetricAggregate oldval;
                 oldMetrics.ForEach(x => _AggregateMetrics.TryRemove(x.Key, out oldval));
@@ -365,16 +411,6 @@ namespace StackifyLib.Internal.Metrics
                 StackifyAPILogger.Log("Error purging metrics " + ex.ToString());
             }
 
-           
-            double seconds = 15;
-
-            if (_AggregateMetrics.Count > 0 && allSuccess)
-            {
-                seconds = .1;
-            }
-
-            _Timer.Change(TimeSpan.FromSeconds(seconds), TimeSpan.FromSeconds(seconds));
-     
         }
 
         private static void SetLatestAggregates(List<MetricAggregate> aggregates)

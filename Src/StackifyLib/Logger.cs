@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using StackifyLib.Internal.Logs;
+using StackifyLib.Internal.Metrics;
 using StackifyLib.Models;
 using StackifyLib.Utils;
 
@@ -72,7 +73,11 @@ namespace StackifyLib
         /// </summary>
         public static void Shutdown()
         {
+            //flush logs queue
             _LogClient.Close();
+
+            //flush any remaining metrics as well
+            MetricClient.StopMetricsQueue();
         }
 
         /// <summary>

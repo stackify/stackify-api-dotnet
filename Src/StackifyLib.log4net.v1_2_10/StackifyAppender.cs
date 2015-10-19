@@ -30,7 +30,7 @@ namespace StackifyLib.log4net
         public string threadContextKeys { get; set; }
         public string logicalThreadContextKeys { get; set; }
         public string callContextKeys { get; set; }
-        public bool logMethodNames { get; set; }
+        public bool? logMethodNames { get; set; }
 
         private List<string> _GlobalContextKeys = new List<string>();
         private List<string> _ThreadContextKeys = new List<string>();
@@ -46,6 +46,8 @@ namespace StackifyLib.log4net
             try
             {
                 _logClient.Close();
+                StackifyLib.Internal.Metrics.MetricClient.StopMetricsQueue();
+
             }
             catch
             {
@@ -148,7 +150,7 @@ namespace StackifyLib.log4net
             {
                 msg.SrcMethod = loggingEvent.LoggerName;
 
-                if (logMethodNames)
+                if (logMethodNames ?? false)
                 {
                     var frames = StackifyLib.Logger.GetCurrentStackTrace(loggingEvent.LoggerName, 1, true);
 

@@ -28,7 +28,8 @@ namespace StackifyLib.nLog
         public string globalContextKeys { get; set; }
         public string mappedContextKeys { get; set; }
         public string callContextKeys { get; set; }
-        public bool logMethodNames { get; set; }
+        public bool? logMethodNames { get; set; }
+        public bool? logAllParams { get; set; }
 
         private List<string> _GlobalContextKeys = new List<string>();
         private List<string> _MappedContextKeys = new List<string>();
@@ -38,8 +39,15 @@ namespace StackifyLib.nLog
 
         protected override void CloseTarget()
         {
-            _logClient.Close();
-            
+            try
+            {
+                _logClient.Close();
+                StackifyLib.Internal.Metrics.MetricClient.StopMetricsQueue();
+
+            }
+            catch 
+            {
+            }
         }
 
         protected override void InitializeTarget()
@@ -193,7 +201,7 @@ namespace StackifyLib.nLog
             {
                 msg.SrcMethod = loggingEvent.LoggerName;
 
-                if (logMethodNames)
+                if ((logMethodNames ?? false))
                 {
                     var frames = StackifyLib.Logger.GetCurrentStackTrace(loggingEvent.LoggerName, 1, true);
 
@@ -254,6 +262,17 @@ namespace StackifyLib.nLog
                 if (debugObject != null && debugObject.ToString() == msg.Msg)
                 {
                     debugObject = null;
+                }
+                else if (logAllParams ?? true)
+                {
+                    Dictionary<string, object> args = new Dictionary<string, object>();
+
+                    for (int i = 0; i < loggingEvent.Parameters.Length; i++)
+                    {
+                        args["arg" + i] = loggingEvent.Parameters[i];
+                    }
+
+                    debugObject = args;
                 }
             }
 

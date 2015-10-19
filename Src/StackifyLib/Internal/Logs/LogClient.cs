@@ -103,6 +103,7 @@ namespace StackifyLib.Internal.Logs
             {
                 if (_LogQueue != null)
                 {
+                    //stop will flush the queue
                     _LogQueue.Stop();
                 }
             }
