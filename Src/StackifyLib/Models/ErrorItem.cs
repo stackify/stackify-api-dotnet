@@ -195,14 +195,21 @@ namespace StackifyLib.Models
 
         public static string GetMethodFullName(MethodBase method, bool simpleMethodNames = false)
         {
+            if (method == null)
+                return "Unknown";
 
-            if (simpleMethodNames)
-            {
-                return method.ReflectedType.FullName + "." + method.Name;
-            }
+
+
+
+          
 
             if (method.ReflectedType != null)
             {
+                if (simpleMethodNames)
+                {
+                    return method.ReflectedType.FullName + "." + method.Name;
+                }
+
                 try
                 {
                     string fullName = method.ReflectedType.FullName + "." +
