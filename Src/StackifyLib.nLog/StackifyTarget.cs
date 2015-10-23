@@ -41,12 +41,13 @@ namespace StackifyLib.nLog
         {
             try
             {
+                Utils.StackifyAPILogger.Log("NLog target closing");
                 _logClient.Close();
                 StackifyLib.Internal.Metrics.MetricClient.StopMetricsQueue();
-
             }
-            catch 
+            catch (Exception ex)
             {
+                Utils.StackifyAPILogger.Log("NLog target closing error: " + ex.ToString());
             }
         }
 
