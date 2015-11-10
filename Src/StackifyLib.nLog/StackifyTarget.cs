@@ -198,7 +198,10 @@ namespace StackifyLib.nLog
                 }
 
             }
-            else
+
+
+            //if it wasn't set above for some reason we will do it this way as a fallback
+            if (string.IsNullOrEmpty(msg.SrcMethod))
             {
                 msg.SrcMethod = loggingEvent.LoggerName;
 

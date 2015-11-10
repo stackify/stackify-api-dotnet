@@ -490,7 +490,17 @@ namespace StackifyLib.Internal.Logs
             {
                 FlushLoop();
             }
+            else
+            {
+                DateTime stopWaiting = DateTime.UtcNow.AddSeconds(5);
 
+                //wait for it to finish up to 5 seconds
+                while (_UploadingNow && DateTime.UtcNow < stopWaiting)
+                {
+                    System.Threading.Thread.Sleep(10);
+                }
+
+            }
             Utils.StackifyAPILogger.Log("LogQueue stop complete");
         }
 
