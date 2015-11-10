@@ -197,10 +197,21 @@ PM> Install-Package StackifyLib
 
 If you use a custom logging framework or a framework not currently supported, you can easily send logs to Stackify with our core library and API like so:
 
-        StackifyLib.Logger.Queue("DEBUG", "My log message");
-        StackifyLib.Logger.QueueException("Test exception", new ApplicationException("Sky is falling"));
+	StackifyLib.Logger.Queue("DEBUG", "My log message");
+	StackifyLib.Logger.QueueException("Test exception", new ApplicationException("Sky is falling"));
+	
+	StackifyLib.Logger.Shutdown(); //should be called before your app closes to flush the log queue
+		
+	//More advanced example
+	LogMsg msg = new LogMsg();
+	msg.Ex = StackifyError.New(new ApplicationException("Exception goes here"));
+	msg.AppDetails = new LogMsgGroup() {AppName = "My app", Env = "Prod", ServerName = Environment.MachineName};
+	msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(new { color= "red"}, true);
+	msg.Msg = "My log message";
+	msg.Level = "ERROR";
+	StackifyLib.Logger.QueueLogObject(msg);
 
-		StackifyLib.Logger.Shutdown(); //should be called before your app closes to flush the log queue
+*Make sure you call StackifyLib.Logger.Shutdown() before your app ends to flush the queue*
 
 ###Configuring with Azure service definitions
 
