@@ -218,7 +218,64 @@ namespace StackifyLib.nLog
                     }
                 }
             }
-           
+
+            string formattedMessage;
+
+            //Use the layout render to allow custom fields to be logged, but not if it is the default format as it logs a bunch fields we already log
+            //really no reason to use a layout at all
+            if (this.Layout != null && this.Layout.ToString() != "'${longdate}|${level:uppercase=true}|${logger}|${message}'") //do not use if it is the default
+            {
+                formattedMessage = this.Layout.Render(loggingEvent);
+            }
+            else
+            {
+                formattedMessage = loggingEvent.FormattedMessage;
+            }
+
+            msg.Msg = (formattedMessage ?? "").Trim();
+
+            object debugObject = null;
+            Dictionary<string, object> args = new Dictionary<string, object>();
+
+            if ((loggingEvent.Parameters != null) && (loggingEvent.Parameters.Length > 0))
+            {
+
+                for (int i = 0; i < loggingEvent.Parameters.Length; i++)
+                {
+                    var item = loggingEvent.Parameters[i];
+
+                    if (item == null)
+                    {
+                        continue;
+                    }
+                    else if (item is Exception)
+                    {
+                        if (loggingEvent.Exception == null)
+                        {
+                            loggingEvent.Exception = (Exception)item;
+                        }
+                    }
+                    else if (item.ToString() == msg.Msg)
+                    {
+                        //ignore it.   
+                    }
+                    else if (logAllParams ?? true)
+                    {
+                        args["arg" + i] = loggingEvent.Parameters[i];
+                        debugObject = item;
+                    }
+                    else
+                    {
+                        debugObject = item;
+                    }
+                }
+
+                if ((logAllParams ?? true) && args != null && args.Count > 1)
+                {
+                    debugObject = args;
+                }
+            }
+
 
             StackifyError error = null;
 
@@ -241,44 +298,9 @@ namespace StackifyLib.nLog
 
      
 
-            string formattedMessage;
 
-            //Use the layout render to allow custom fields to be logged, but not if it is the default format as it logs a bunch fields we already log
-            //really no reason to use a layout at all
-            if (this.Layout != null && this.Layout.ToString() != "'${longdate}|${level:uppercase=true}|${logger}|${message}'") //do not use if it is the default
-            {
-                formattedMessage = this.Layout.Render(loggingEvent);
-            }
-            else
-            {
-                formattedMessage = loggingEvent.FormattedMessage;
-            }
 
-            msg.Msg = (formattedMessage ?? "").Trim();
 
-            object debugObject = null;
-
-            if ((loggingEvent.Parameters != null) && (loggingEvent.Parameters.Length > 0))
-            {
-                debugObject = loggingEvent.Parameters[0];
-
-                //if the debug param is the same as the logging message itself, suppress it
-                if (debugObject != null && debugObject.ToString() == msg.Msg)
-                {
-                    debugObject = null;
-                }
-                else if (logAllParams ?? true)
-                {
-                    Dictionary<string, object> args = new Dictionary<string, object>();
-
-                    for (int i = 0; i < loggingEvent.Parameters.Length; i++)
-                    {
-                        args["arg" + i] = loggingEvent.Parameters[i];
-                    }
-
-                    debugObject = args;
-                }
-            }
 
             if (debugObject != null)
             {
