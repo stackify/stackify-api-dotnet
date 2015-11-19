@@ -161,20 +161,25 @@ namespace StackifyLib.Internal.Logs
                     }
                     else
                     {
+                        var defaults = CreateDefaultMsgGroup();
+
+                        //default app, env, and server name if not set to whatever the current one is
+                        //do not default the other fields as they not match what is being set. 
+                        //i.e. the default appnameid is not the correct id for a new custom app name being used.
                         var d = message.AppDetails;
                         var group = new LogMsgGroup()
                         {
                             AppEnvID = d.AppEnvID,
                             AppLoc = d.AppLoc,
-                            AppName =  d.AppName,
+                            AppName = d.AppName ?? defaults.AppName,
                             AppNameID = d.AppNameID,
                             CDAppID = d.CDAppID,
                             CDID = d.CDID,
-                            Env = d.Env,
+                            Env = d.Env ?? defaults.Env,
                             EnvID = d.EnvID,
                             Logger = _LoggerName,
                             Platform = ".net",
-                             ServerName = d.ServerName,
+                            ServerName = d.ServerName ?? defaults.ServerName,
                              Msgs = new List<LogMsg>()
                         };
                         

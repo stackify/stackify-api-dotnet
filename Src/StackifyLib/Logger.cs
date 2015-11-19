@@ -177,24 +177,37 @@ namespace StackifyLib
 
                     if (msg.Ex != null)
                     {
+                        if (string.IsNullOrEmpty(msg.Level))
+                        {
+                            msg.Level = "ERROR";
+                        }
+
+                        string origMsg = msg.Msg;
+
+                        if (msg.Msg != null && msg.Ex != null)
+                        {
+                            msg.Msg += "\r\n" + msg.Ex.ToString();
+                        }
+                        else if (msg.Msg == null && msg.Ex != null)
+                        {
+                            msg.Msg = msg.Ex.ToString();
+                        }
+
                         if (!StackifyError.IgnoreError(msg.Ex) && _LogClient.ErrorShouldBeSent(msg.Ex))
                         {
-                            if (!string.IsNullOrEmpty(msg.Msg))
+                            if (!string.IsNullOrEmpty(origMsg))
                             {
-                                msg.Ex.SetAdditionalMessage(msg.Msg);
+                                msg.Ex.SetAdditionalMessage(origMsg);
                             }
 
-                            msg.Msg = msg.Ex.ToString();
+                            //remove because of so many errors
+                            msg.Ex = null;
                         }
                         else
                         {
                             msg.Msg += " #errorgoverned";
                         }
-
-                        if (string.IsNullOrEmpty(msg.Level))
-                        {
-                            msg.Level = "ERROR";
-                        }
+                  
                     }
 
                     _LogClient.QueueMessage(msg);
