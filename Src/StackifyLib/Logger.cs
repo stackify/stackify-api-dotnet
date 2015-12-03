@@ -193,21 +193,28 @@ namespace StackifyLib
                             msg.Msg = msg.Ex.ToString();
                         }
 
-                        if (!StackifyError.IgnoreError(msg.Ex) && _LogClient.ErrorShouldBeSent(msg.Ex))
+
+                        bool ignore = StackifyError.IgnoreError(msg.Ex);
+                        bool shouldSend = _LogClient.ErrorShouldBeSent(msg.Ex);
+
+
+                        if (!ignore)
                         {
                             if (!string.IsNullOrEmpty(origMsg))
                             {
                                 msg.Ex.SetAdditionalMessage(origMsg);
                             }
 
-                            //remove because of so many errors
-                            msg.Ex = null;
+                            if (!shouldSend)
+                            {
+                                msg.Ex = null;
+                                msg.Msg += " #errorgoverned";
+                            }
                         }
                         else
                         {
-                            msg.Msg += " #errorgoverned";
+                            msg.Ex = null;
                         }
-                  
                     }
 
                     _LogClient.QueueMessage(msg);
