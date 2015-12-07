@@ -39,7 +39,7 @@ namespace StackifyLib.Models
 
         public string GetUniqueKey()
         {
-            return ServerName + "-" + AppName + "-" + Env + "-" + (EnvID ?? 0) + "-" + (CDID ?? 0) + "-" +
+            return (Logger??"") + "" + ServerName + "-" + AppName + "-" + Env + "-" + (EnvID ?? 0) + "-" + (CDID ?? 0) + "-" +
                    (CDAppID ?? 0);
         }
 

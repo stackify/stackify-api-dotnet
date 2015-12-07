@@ -177,7 +177,7 @@ namespace StackifyLib.Internal.Logs
                             CDID = d.CDID,
                             Env = d.Env ?? defaults.Env,
                             EnvID = d.EnvID,
-                            Logger = _LoggerName,
+                            Logger = d.Logger ?? _LoggerName,
                             Platform = ".net",
                             ServerName = d.ServerName ?? defaults.ServerName,
                              Msgs = new List<LogMsg>()
@@ -254,130 +254,130 @@ namespace StackifyLib.Internal.Logs
             return group;
         }
 
-        internal Task<HttpClient.StackifyWebResponse> SendLogs(LogMsg[] messages)
-        {
-            try
-            {
-                StackifyAPILogger.Log("Trying to SendLogs");
+//        internal Task<HttpClient.StackifyWebResponse> SendLogs(LogMsg[] messages)
+//        {
+//            try
+//            {
+//                StackifyAPILogger.Log("Trying to SendLogs");
 
-                EnsureHttpClient();
+//                EnsureHttpClient();
 
-                LogMsgGroup group = new LogMsgGroup();
+//                LogMsgGroup group = new LogMsgGroup();
 
-                var identified = _HttpClient.IdentifyApp();
-
-
-                if (_HttpClient.IsRecentError())
-                {
-                    var tcs = new TaskCompletionSource<HttpClient.StackifyWebResponse>();
-                    tcs.SetResult(new HttpClient.StackifyWebResponse() { Exception = new ApplicationException("Unable to send logs at this time due to recent error: " + (_HttpClient.LastErrorMessage ?? "")) });
-                    return tcs.Task;
-                }
-
-                if (!identified)
-                {
-                    var tcs = new TaskCompletionSource<HttpClient.StackifyWebResponse>();
-                    tcs.SetResult(new HttpClient.StackifyWebResponse() { Exception = new ApplicationException("Unable to send logs at this time. Unable to identify app") });
-                    return tcs.Task;
-                }
+//                var identified = _HttpClient.IdentifyApp();
 
 
-                group.Msgs = messages.ToList();
+//                if (_HttpClient.IsRecentError())
+//                {
+//                    var tcs = new TaskCompletionSource<HttpClient.StackifyWebResponse>();
+//                    tcs.SetResult(new HttpClient.StackifyWebResponse() { Exception = new ApplicationException("Unable to send logs at this time due to recent error: " + (_HttpClient.LastErrorMessage ?? "")) });
+//                    return tcs.Task;
+//                }
+
+//                if (!identified)
+//                {
+//                    var tcs = new TaskCompletionSource<HttpClient.StackifyWebResponse>();
+//                    tcs.SetResult(new HttpClient.StackifyWebResponse() { Exception = new ApplicationException("Unable to send logs at this time. Unable to identify app") });
+//                    return tcs.Task;
+//                }
 
 
-                //set these fields even if some could be null
-                if (_HttpClient.AppIdentity != null)
-                {
-                    group.CDAppID = _HttpClient.AppIdentity.DeviceAppID;
-                    group.CDID = _HttpClient.AppIdentity.DeviceID;
-                    group.EnvID = _HttpClient.AppIdentity.EnvID;
-                    group.Env = _HttpClient.AppIdentity.Env;
-                    group.AppNameID = _HttpClient.AppIdentity.AppNameID;
-                    group.AppEnvID = _HttpClient.AppIdentity.AppEnvID;
-                    if (!String.IsNullOrWhiteSpace(_HttpClient.AppIdentity.DeviceAlias))
-                    {
-                        group.ServerName = _HttpClient.AppIdentity.DeviceAlias;
-                    }
-
-                    if (!String.IsNullOrWhiteSpace(_HttpClient.AppIdentity.AppName))
-                    {
-                        group.AppName = _HttpClient.AppIdentity.AppName;
-                    }
-                }
-
-                var env = EnvironmentDetail.Get(false);
-
-                //We use whatever the identity stuff says, otherwise we use the azure instance name and fall back to the machine name
-                if (string.IsNullOrEmpty(group.ServerName))
-                {
-                    if (!string.IsNullOrEmpty(env.AzureInstanceName))
-                    {
-                        group.ServerName = env.AzureInstanceName;
-                    }
-                    else
-                    {
-                        group.ServerName = Environment.MachineName;
-                    }
-                }
+//                group.Msgs = messages.ToList();
 
 
-                //if it wasn't set by the identity call above
-                if (string.IsNullOrWhiteSpace(group.AppName))
-                {
-                    group.AppName = env.AppNameToUse();
-                }
-                else if (group.AppName.StartsWith("/LM/W3SVC"))
-                {
-                    group.AppName = env.AppNameToUse();
-                }
+//                //set these fields even if some could be null
+//                if (_HttpClient.AppIdentity != null)
+//                {
+//                    group.CDAppID = _HttpClient.AppIdentity.DeviceAppID;
+//                    group.CDID = _HttpClient.AppIdentity.DeviceID;
+//                    group.EnvID = _HttpClient.AppIdentity.EnvID;
+//                    group.Env = _HttpClient.AppIdentity.Env;
+//                    group.AppNameID = _HttpClient.AppIdentity.AppNameID;
+//                    group.AppEnvID = _HttpClient.AppIdentity.AppEnvID;
+//                    if (!String.IsNullOrWhiteSpace(_HttpClient.AppIdentity.DeviceAlias))
+//                    {
+//                        group.ServerName = _HttpClient.AppIdentity.DeviceAlias;
+//                    }
 
-                group.AppLoc = env.AppLocation;
+//                    if (!String.IsNullOrWhiteSpace(_HttpClient.AppIdentity.AppName))
+//                    {
+//                        group.AppName = _HttpClient.AppIdentity.AppName;
+//                    }
+//                }
 
-                if (string.IsNullOrEmpty(group.Env))
-                {
-                    group.Env = env.ConfiguredEnvironmentName;
-                }
+//                var env = EnvironmentDetail.Get(false);
 
-                group.Logger = _LoggerName;
-                group.Platform = ".net";
-
-                //string jsonData = SimpleJson.SimpleJson.SerializeObject(group);
-
-                string jsonData = JsonConvert.SerializeObject(group, new JsonSerializerSettings() {NullValueHandling = NullValueHandling.Ignore});
-
-                string urlToUse = null;
-
-
-                urlToUse = System.Web.VirtualPathUtility.AppendTrailingSlash(_HttpClient.BaseAPIUrl) + "Log/Save";
+//                //We use whatever the identity stuff says, otherwise we use the azure instance name and fall back to the machine name
+//                if (string.IsNullOrEmpty(group.ServerName))
+//                {
+//                    if (!string.IsNullOrEmpty(env.AzureInstanceName))
+//                    {
+//                        group.ServerName = env.AzureInstanceName;
+//                    }
+//                    else
+//                    {
+//                        group.ServerName = Environment.MachineName;
+//                    }
+//                }
 
 
-                if (!_ServicePointSet)
-                {
-                    ServicePointManager.FindServicePoint(urlToUse, null).ConnectionLimit = 10;
-                    _ServicePointSet = true;
-                }
+//                //if it wasn't set by the identity call above
+//                if (string.IsNullOrWhiteSpace(group.AppName))
+//                {
+//                    group.AppName = env.AppNameToUse();
+//                }
+//                else if (group.AppName.StartsWith("/LM/W3SVC"))
+//                {
+//                    group.AppName = env.AppNameToUse();
+//                }
 
-                StackifyAPILogger.Log("Sending " + messages.Length.ToString() + " log messages");
-                var task =
-                    _HttpClient.SendJsonAndGetResponseAsync(
-                        urlToUse,
-                        jsonData, jsonData.Length > 5000);
+//                group.AppLoc = env.AppLocation;
 
-                return task;
+//                if (string.IsNullOrEmpty(group.Env))
+//                {
+//                    group.Env = env.ConfiguredEnvironmentName;
+//                }
 
-            }
-            catch (Exception ex)
-            {
-                Utils.StackifyAPILogger.Log(ex.ToString());
+//                group.Logger = _LoggerName;
+//                group.Platform = ".net";
 
-                var tcs = new TaskCompletionSource<HttpClient.StackifyWebResponse>();
-                tcs.SetResult(new HttpClient.StackifyWebResponse() { Exception = ex });
-//                tcs.SetException(ex);
-                return tcs.Task;
-            }
+//                //string jsonData = SimpleJson.SimpleJson.SerializeObject(group);
 
-            return null;
-        }
+//                string jsonData = JsonConvert.SerializeObject(group, new JsonSerializerSettings() {NullValueHandling = NullValueHandling.Ignore});
+
+//                string urlToUse = null;
+
+
+//                urlToUse = System.Web.VirtualPathUtility.AppendTrailingSlash(_HttpClient.BaseAPIUrl) + "Log/Save";
+
+
+//                if (!_ServicePointSet)
+//                {
+//                    ServicePointManager.FindServicePoint(urlToUse, null).ConnectionLimit = 10;
+//                    _ServicePointSet = true;
+//                }
+
+//                StackifyAPILogger.Log("Sending " + messages.Length.ToString() + " log messages");
+//                var task =
+//                    _HttpClient.SendJsonAndGetResponseAsync(
+//                        urlToUse,
+//                        jsonData, jsonData.Length > 5000);
+
+//                return task;
+
+//            }
+//            catch (Exception ex)
+//            {
+//                Utils.StackifyAPILogger.Log(ex.ToString());
+
+//                var tcs = new TaskCompletionSource<HttpClient.StackifyWebResponse>();
+//                tcs.SetResult(new HttpClient.StackifyWebResponse() { Exception = ex });
+////                tcs.SetException(ex);
+//                return tcs.Task;
+//            }
+
+//            return null;
+//        }
 
         internal Task<HttpClient.StackifyWebResponse> SendLogsByGroups(LogMsg[] messages)
         {
