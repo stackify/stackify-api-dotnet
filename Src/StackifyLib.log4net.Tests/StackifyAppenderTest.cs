@@ -124,7 +124,10 @@ namespace StackifyLib.log4net.Tests
         public void QueueMessage(LogMsg msg)
         {
             var action = OnQueueMessage;
-            action?.Invoke(msg);
+            if (action != null)
+            {
+                action.Invoke(msg);
+            }
         }
     }
 }
