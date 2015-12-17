@@ -316,7 +316,19 @@ namespace StackifyLib.log4net
 
                 if (mdcValue != null)
                 {
-                    properties[mdcKey.ToLower()] = mdcValue;
+                    // Check if the property is a Log4net Context Stack,
+                    // If it is, then we want to read it as a string as that is
+                    // the expected behavior for a Log4Net Appender.
+                    var tcs = mdcValue as Apache_log4net.Util.ThreadContextStack;
+                    if (tcs != null)
+                    {
+                        properties[mdcKey.ToLower()] = tcs.ToString();
+                    }
+                    else
+                    {
+                        // for anything else, we will let Json.Net take care of it.
+                        properties[mdcKey.ToLower()] = mdcValue;
+                    }
                 }
             }
 
@@ -326,7 +338,19 @@ namespace StackifyLib.log4net
 
                 if (mdcValue != null)
                 {
-                    properties[mdcKey.ToLower()] = mdcValue;
+                    // Check if the property is a Log4net Context Stack,
+                    // If it is, then we want to read it as a string as that is
+                    // the expected behavior for a Log4Net Appender.
+                    var tcs = mdcValue as Apache_log4net.Util.ThreadContextStack;
+                    if (tcs != null)
+                    {
+                        properties[mdcKey.ToLower()] = tcs.ToString();
+                    }
+                    else
+                    {
+                        // for anything else, we will let Json.Net take care of it.
+                        properties[mdcKey.ToLower()] = mdcValue;
+                    }
                 }
             }
 
