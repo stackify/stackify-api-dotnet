@@ -29,8 +29,10 @@ namespace StackifyLib.log4net
         private List<string> _CallContextKeys = new List<string>();
 
 
-        private LogClient _logClient = null;
+        private ILogClient _logClient = null;
         private bool _HasContextKeys = false;
+
+        public Func<string, string, ILogClient> CreateLogClient = (apiKey, uri) => new LogClient("StackifyLib.net-log4net", apiKey, uri);
 
         protected override void OnClose()
         {
@@ -76,8 +78,7 @@ namespace StackifyLib.log4net
 
                 _HasContextKeys = _GlobalContextKeys.Any() || _ThreadContextKeys.Any() || _LogicalThreadContextKeys.Any() || _CallContextKeys.Any();
 
-
-                _logClient = new LogClient("StackifyLib.net-log4net", apiKey, uri);
+                _logClient = CreateLogClient(apiKey, uri);
             }
             catch (Exception ex)
             {

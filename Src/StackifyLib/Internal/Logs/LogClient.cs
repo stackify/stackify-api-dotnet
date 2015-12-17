@@ -12,7 +12,7 @@ using StackifyLib.Utils;
 
 namespace StackifyLib.Internal.Logs
 {
-    public class LogClient
+    public class LogClient : ILogClient
     {
         private static bool _ServicePointSet = false;
         private LogQueue _LogQueue = null;
