@@ -196,7 +196,8 @@ namespace StackifyLib.Utils
                 return JsonConvert.SerializeObject(jObject,
                                                    new JsonSerializerSettings()
                                                        {
-                                                           NullValueHandling = NullValueHandling.Ignore
+                                                           NullValueHandling = NullValueHandling.Ignore,
+                                                           ReferenceLoopHandling  = ReferenceLoopHandling.Ignore
                                                        });
             }
 
