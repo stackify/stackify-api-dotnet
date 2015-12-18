@@ -237,8 +237,6 @@ namespace StackifyLib.log4net
                     msg.Msg += "\r\n" + error.ToString();
                 }
             }
-			
-
 
             if (!string.IsNullOrWhiteSpace(errorAdditionalMessage) && error != null)
             {
@@ -349,7 +347,7 @@ namespace StackifyLib.log4net
                     var mdcType = mdcValue.GetType();
                     if (mdcType.FullName == "log4net.Util.LogicalThreadContextStack")
                     {
-                        properties[mdcKey.ToLower()] = mdcType.ToString();
+                        properties[mdcKey.ToLower()] = mdcValue.ToString();
                         continue;
                     }
 
