@@ -23,26 +23,11 @@ namespace StackifyLib.log4net.Tests
         private MockLogClient _mockLogClient;
         private StackifyAppender _appender;
 
-        [SetUp]
+        [OneTimeSetUp]
         public void Init()
         {
             _mockLogClient = new MockLogClient();
             Hierarchy hierarchy = (Hierarchy)LogManager.GetRepository();
-
-            PatternLayout patternLayout = new PatternLayout();
-            patternLayout.ConversionPattern = "%date [%thread] %-5level %logger - %message%newline";
-            patternLayout.ActivateOptions();
-
-            RollingFileAppender roller = new RollingFileAppender();
-            roller.AppendToFile = false;
-            roller.File = @"Logs\EventLog.txt";
-            roller.Layout = patternLayout;
-            roller.MaxSizeRollBackups = 5;
-            roller.MaximumFileSize = "1GB";
-            roller.RollingStyle = RollingFileAppender.RollingMode.Size;
-            roller.StaticLogFileName = true;
-            roller.ActivateOptions();
-            hierarchy.Root.AddAppender(roller);
 
             _appender = new StackifyAppender { CreateLogClient = (s, s1) => _mockLogClient, threadContextKeys = "TestThreadContext", logicalThreadContextKeys = "TestLogicalThreadContext" };
             _appender.ActivateOptions();
@@ -50,6 +35,15 @@ namespace StackifyLib.log4net.Tests
 
             hierarchy.Root.Level = Level.Info;
             hierarchy.Configured = true;
+            Console.WriteLine("Setup Log4Net");
+        }
+
+        public void CleanUp()
+        {
+            // Just a bit of cleanup.
+            ThreadContext.Properties["TestThreadContext"] = null;
+            LogicalThreadContext.Properties["TestLogicalThreadContext"] = null;
+            Console.WriteLine("Cleaned up Context");
         }
 
         [Test]
@@ -58,6 +52,7 @@ namespace StackifyLib.log4net.Tests
             LogMsg result = null;
             _mockLogClient.OnQueueMessage = m => result = m;
             var logger = LogManager.GetLogger("Test");
+
             using (LogicalThreadContext.Stacks["TestLogicalThreadContext"].Push("Logical Test Value"))
             using (ThreadContext.Stacks["TestThreadContext"].Push("Thread Test Value"))
             {
@@ -76,6 +71,31 @@ namespace StackifyLib.log4net.Tests
 
             Assert.AreEqual("Thread Test Value", dataObj.context.testthreadcontext.Value, "TestThreadContext didn't match expected value.");
             Assert.AreEqual("Logical Test Value", dataObj.context.testlogicalthreadcontext.Value, "TestLogicalThreadContext didn't match expected value");
+        }
+
+        [Test]
+        public void ShouldIncludeContextObjects_WhenUsingLog4NetContextProperty()
+        {
+            LogMsg result = null;
+            _mockLogClient.OnQueueMessage = m => result = m;
+            var logger = LogManager.GetLogger("Test");
+            LogicalThreadContext.Properties["TestLogicalThreadContext"] = new { MyProp = "Logical Test Value" };
+            ThreadContext.Properties["TestThreadContext"] = new { MyProp = "Thread Test Value" };
+
+            logger.Info("Test Message");
+
+            Console.WriteLine("Actual Result:");
+            Console.WriteLine(JsonConvert.SerializeObject(result, Formatting.Indented));
+            Console.WriteLine();
+
+            Assert.IsNotNull(result, "No Message was queued");
+            Assert.IsNotNull(result.data, "Data was not set on result");
+
+            // Data is JSON, so we are going to Deserialize it so we can take a deeper look. 
+            dynamic dataObj = JsonConvert.DeserializeObject(result.data);
+
+            Assert.AreEqual("Thread Test Value", dataObj.context.testthreadcontext.MyProp.Value, "TestThreadContext didn't match expected value.");
+            Assert.AreEqual("Logical Test Value", dataObj.context.testlogicalthreadcontext.MyProp.Value, "TestLogicalThreadContext didn't match expected value");
         }
     }
 

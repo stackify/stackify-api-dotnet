@@ -237,8 +237,6 @@ namespace StackifyLib.log4net
                     msg.Msg += "\r\n" + error.ToString();
                 }
             }
-			
-
 
             if (!string.IsNullOrWhiteSpace(errorAdditionalMessage) && error != null)
             {
@@ -333,16 +331,28 @@ namespace StackifyLib.log4net
                     // Check if the property is a Log4net Context Stack,
                     // If it is, then we want to read it as a string as that is
                     // the expected behavior for a Log4Net Appender.
+
                     var tcs = mdcValue as Apache_log4net.Util.ThreadContextStack;
                     if (tcs != null)
                     {
                         properties[mdcKey.ToLower()] = tcs.ToString();
+                        continue;
                     }
-                    else
+
+                    // Log4Net 1.2.14 (2.0.4) added LogicalThreadContextStack
+                    // see https://issues.apache.org/jira/browse/LOG4NET-455
+                    // To maintain compatibility with version 2.0.0 in this library, we have to use reflection here.
+
+                    // TODO: Require version 1.2.14, as we know there are issues in prior versions.
+                    var mdcType = mdcValue.GetType();
+                    if (mdcType.FullName == "log4net.Util.LogicalThreadContextStack")
                     {
-                        // for anything else, we will let Json.Net take care of it.
-                        properties[mdcKey.ToLower()] = mdcValue;
+                        properties[mdcKey.ToLower()] = mdcValue.ToString();
+                        continue;
                     }
+
+                    // for anything else, we will let Json.Net take care of it.
+                    properties[mdcKey.ToLower()] = mdcValue;
                 }
             }
             
