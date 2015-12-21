@@ -172,7 +172,7 @@ namespace StackifyLib
         {
             try
             {
-                if (_LogClient.CanQueue())
+                if (_LogClient.CanQueue() || SasquatchEnabled())
                 {
 
                     if (msg.Ex != null)
@@ -301,5 +301,45 @@ namespace StackifyLib
             return frames;
         }
 
+        private static bool? _SasquatchEnabled = null;
+
+        public static bool SasquatchEnabled()
+        {
+            if (_SasquatchEnabled != null)
+                return _SasquatchEnabled.Value;
+
+            var variable = Environment.GetEnvironmentVariable("StackSquatchUpdated");
+
+
+            if (!string.IsNullOrEmpty(variable))
+            {
+
+                DateTime updated;
+
+                if (DateTime.TryParse(variable, out updated))
+                {
+                    if (updated > DateTime.UtcNow.AddHours(-1))
+                    {
+                        StackifyLib.Utils.StackifyAPILogger.Log("Sasquatch enabled", true);
+                        _SasquatchEnabled = true;
+                    }
+                    else
+                    {
+                        _SasquatchEnabled = false;
+                    }
+                }
+                else
+                {
+                    _SasquatchEnabled = false;
+                }
+                
+            }
+            else
+            {
+                _SasquatchEnabled = false;
+            }
+
+            return _SasquatchEnabled.Value;
+        }
     }
 }

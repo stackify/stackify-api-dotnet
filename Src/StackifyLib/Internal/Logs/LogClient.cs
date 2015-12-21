@@ -125,18 +125,28 @@ namespace StackifyLib.Internal.Logs
 
         public void QueueMessage(LogMsg msg)
         {
-            if (msg.id == null)
-            {
-                int isError = 0;
+            if (msg == null) return;
 
-                if (msg.Ex != null)
-                {
-                    isError = 1;
-                }
-                msg.SetLogMsgID(SequentialGuid.NewGuid().ToString(), isError, msg.Level);
+            int isError = 0;
+
+            if (msg.id == null) //should be null unless someone is using our API directly and setting it
+            {
+                msg.id = SequentialGuid.NewGuid().ToString();
             }
 
-            _LogQueue.QueueLogMessage(msg);
+            if (msg.Ex != null)
+            {
+                isError = 1;
+            }
+
+            //Used by Stackify profiler only
+            msg.SetLogMsgID(msg.id, isError, msg.Level, msg.Msg, msg.data);
+
+            //We need to do everything up to this point for sasquatch. Even if we aren't uploading the log.
+            if (this.CanQueue())
+            {
+                _LogQueue.QueueLogMessage(msg);
+            }
 
         }
 

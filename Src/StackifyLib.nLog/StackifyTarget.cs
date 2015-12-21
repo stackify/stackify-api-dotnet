@@ -79,7 +79,7 @@ namespace StackifyLib.nLog
             {
                 //make sure the buffer isn't overflowing
                 //if it is skip since we can't do anything with the message
-                if (_logClient.CanQueue())
+                if (_logClient.CanQueue() || Logger.SasquatchEnabled())
                 {
                     var logMsg = Translate(logEvent);
                     if (logMsg != null)

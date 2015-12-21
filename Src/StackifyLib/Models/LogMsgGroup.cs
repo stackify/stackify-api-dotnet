@@ -101,7 +101,7 @@ namespace StackifyLib.Models
 
 
         [MethodImpl(MethodImplOptions.NoInlining |  MethodImplOptions.PreserveSig | MethodImplOptions.NoOptimization)]
-        public void SetLogMsgID(string id, int isError, string logLevel)
+        public void SetLogMsgID(string id, int isError, string logLevel, string logMsg, string logData)
         {
             this.id = id;
         }
