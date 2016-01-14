@@ -113,15 +113,19 @@ namespace StackifyLib.Models
                 request.Timeout = 5000;
                 using (var response = (HttpWebResponse) request.GetResponse())
                 {
-                    var encoding = Encoding.GetEncoding(response.CharacterSet);
-                    using (var responseStream = response.GetResponseStream())
+                    if ((int) response.StatusCode >= 200 && (int) response.StatusCode < 300)
                     {
-                        using (var reader = new StreamReader(responseStream, encoding))
+                        var encoding = Encoding.GetEncoding(response.CharacterSet);
+                        using (var responseStream = response.GetResponseStream())
                         {
-                            var id = reader.ReadToEnd();
-                            return string.IsNullOrWhiteSpace(id) ? null : id;
+                            using (var reader = new StreamReader(responseStream, encoding))
+                            {
+                                var id = reader.ReadToEnd();
+                                return string.IsNullOrWhiteSpace(id) ? null : id;
+                            }
                         }
                     }
+                    return null;
                 }
             }
             catch // if not in aws this will timeout
