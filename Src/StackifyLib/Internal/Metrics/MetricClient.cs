@@ -31,6 +31,11 @@ namespace StackifyLib.Internal.Metrics
             _Timer = new Timer(UploadMetricsCheck, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
         }
 
+        public static int QueueSize
+        {
+            get { return _MetricQueue.Count; }
+        }
+
         /// <summary>
         /// Used to make sure we report 0 values if nothing new comes in
         /// </summary>
@@ -197,17 +202,21 @@ namespace StackifyLib.Internal.Metrics
         /// <summary>
         /// Read everything in the queue up to a certain time point
         /// </summary>
-        private static void ReadQueuedMetricsBatch(DateTime maxDate)
+        private static void ReadAllQueuedMetrics()
         {
+            DateTime maxDate = DateTime.UtcNow; //read only up until now so it doesn't get stuck in an endless loop
             //Loop through add sum up the totals of the counts and values by aggregate key then pass it all in at once to update the aggregate dictionary so it is done in one pass
 
             //key is the aggregate key which is the metric name, type and rounded minute of the occurrence
-         
+
             var batches = new Dictionary<string, MetricAggregate>();
-            
+
+            long processed = 0;
+
             Metric metric;
             while (_MetricQueue.TryDequeue(out metric))
             {
+                processed++;
                 metric.CalcAndSetAggregateKey();
 
                 if (!batches.ContainsKey(metric.AggregateKey))
@@ -261,6 +270,8 @@ namespace StackifyLib.Internal.Metrics
                 }
             }
 
+            StackifyLib.Utils.StackifyAPILogger.Log(string.Format("Read queued metrics processed {0} for max date {1}", processed, maxDate));
+
             foreach (var batch in batches)
             {
                 Aggregate(batch.Value);
@@ -273,7 +284,7 @@ namespace StackifyLib.Internal.Metrics
 
             _Timer.Change(-1, -1);
 
-            double seconds = 15;
+            double seconds = 2; //read quickly in case there is a very high volume to keep queue size down
 
             if (!_StopRequested)
             {
@@ -317,8 +328,8 @@ namespace StackifyLib.Internal.Metrics
              List<KeyValuePair<string, MetricAggregate>> metrics = new List<KeyValuePair<string, MetricAggregate>>();
             try
             {
-                //read everything up to the start of the current minute
-                ReadQueuedMetricsBatch(currentMinute);
+                //read everything up to now
+                ReadAllQueuedMetrics();
 
                 //ensures all the aggregate keys exists for any previous metrics so we report zeros on no changes
                 HandleZeroReports(currentMinute);
