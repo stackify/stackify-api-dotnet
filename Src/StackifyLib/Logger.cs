@@ -77,7 +77,7 @@ namespace StackifyLib
             _LogClient.Close();
 
             //flush any remaining metrics as well
-            MetricClient.StopMetricsQueue();
+            MetricClient.StopMetricsQueue("Logger Shutdown called");
         }
 
         /// <summary>

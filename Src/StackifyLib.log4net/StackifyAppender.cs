@@ -38,9 +38,12 @@ namespace StackifyLib.log4net
         {
             try
             {
-                _logClient.Close();
-                StackifyLib.Internal.Metrics.MetricClient.StopMetricsQueue();
+                StackifyAPILogger.Log("log4net appender closing");
 
+                _logClient.Close();
+
+                //This is to force the metrics queue to flush as well
+                StackifyLib.Internal.Metrics.MetricClient.StopMetricsQueue("log4net OnClose");
             }
             catch
             {

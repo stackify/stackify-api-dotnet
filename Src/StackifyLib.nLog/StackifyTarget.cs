@@ -43,7 +43,7 @@ namespace StackifyLib.nLog
             {
                 Utils.StackifyAPILogger.Log("NLog target closing");
                 _logClient.Close();
-                StackifyLib.Internal.Metrics.MetricClient.StopMetricsQueue();
+                StackifyLib.Internal.Metrics.MetricClient.StopMetricsQueue("NLog CloseTarget");
             }
             catch (Exception ex)
             {
@@ -53,6 +53,8 @@ namespace StackifyLib.nLog
 
         protected override void InitializeTarget()
         {
+            Utils.StackifyAPILogger.Log("NLog InitializeTarget");
+
             _logClient = new LogClient("StackifyLib.net-nlog", apiKey, uri);
             if (!String.IsNullOrEmpty(globalContextKeys))
             {

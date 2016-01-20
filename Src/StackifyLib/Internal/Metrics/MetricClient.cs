@@ -149,7 +149,11 @@ namespace StackifyLib.Internal.Metrics
         {
             try
             {
-                _MetricQueue.Enqueue(metric);
+                //set a sanity cap
+                if (_MetricQueue.Count < 100000)
+                {
+                    _MetricQueue.Enqueue(metric);
+                }
             }
             catch(Exception ex)
             {
@@ -205,9 +209,11 @@ namespace StackifyLib.Internal.Metrics
         private static void ReadAllQueuedMetrics()
         {
             DateTime maxDate = DateTime.UtcNow; //read only up until now so it doesn't get stuck in an endless loop
-            //Loop through add sum up the totals of the counts and values by aggregate key then pass it all in at once to update the aggregate dictionary so it is done in one pass
+                                                //Loop through add sum up the totals of the counts and values by aggregate key then pass it all in at once to update the aggregate dictionary so it is done in one pass
 
             //key is the aggregate key which is the metric name, type and rounded minute of the occurrence
+
+            StackifyAPILogger.Log("ReadAllQueuedMetrics " + maxDate);
 
             var batches = new Dictionary<string, MetricAggregate>();
 
@@ -293,6 +299,7 @@ namespace StackifyLib.Internal.Metrics
 
                 DateTime currentMinute = DateTime.UtcNow.Floor(TimeSpan.FromMinutes(1));
 
+                StackifyAPILogger.Log("Calling UploadMetrics " + currentMinute);
                 allSuccess = UploadMetrics(currentMinute);
 
                 PurgeOldMetrics(purgeOlderThan);
@@ -302,6 +309,10 @@ namespace StackifyLib.Internal.Metrics
                     seconds = .1;
                 }
             }
+            else
+            {
+                StackifyAPILogger.Log("Metrics processing canceled because stop was requested");
+            }
 
 
 
@@ -309,17 +320,32 @@ namespace StackifyLib.Internal.Metrics
      
         }
 
-        public static void StopMetricsQueue()
+        
+        public static void StopMetricsQueue(string reason = "Unknown")
         {
+            StackifyAPILogger.Log("StopMetricsQueue called by " + reason, true);
+            
             //don't let t his method run more than once
             if (_StopRequested)
                 return;
 
             _StopRequested = true;
 
-            DateTime currentMinute = DateTime.UtcNow.AddMinutes(2).Floor(TimeSpan.FromMinutes(1));
+            try
+            {
+                DateTime currentMinute = DateTime.UtcNow.AddMinutes(2).Floor(TimeSpan.FromMinutes(1));
 
-            UploadMetrics(currentMinute);
+                UploadMetrics(currentMinute);
+
+            }
+            catch (Exception ex)
+            {
+                StackifyAPILogger.Log("StopMetricsQueue error" + ex.ToString(), true);
+            }
+
+
+            _StopRequested = false;
+            StackifyAPILogger.Log("StopMetricsQueue completed" + reason, true);
         }
 
         public static bool UploadMetrics(DateTime currentMinute)

@@ -46,7 +46,7 @@ namespace StackifyLib.log4net
             try
             {
                 _logClient.Close();
-                StackifyLib.Internal.Metrics.MetricClient.StopMetricsQueue();
+                StackifyLib.Internal.Metrics.MetricClient.StopMetricsQueue("log4net v1.2 OnClose");
 
             }
             catch
