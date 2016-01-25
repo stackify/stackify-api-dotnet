@@ -172,7 +172,7 @@ namespace StackifyLib
         {
             try
             {
-                if (_LogClient.CanQueue() || SasquatchEnabled())
+                if (PrefixEnabled() || _LogClient.CanQueue())
                 {
 
                     if (msg.Ex != null)
@@ -301,12 +301,12 @@ namespace StackifyLib
             return frames;
         }
 
-        private static bool? _SasquatchEnabled = null;
+        private static bool? _PrefixEnabled = null;
 
-        public static bool SasquatchEnabled()
+        public static bool PrefixEnabled()
         {
-            if (_SasquatchEnabled != null)
-                return _SasquatchEnabled.Value;
+            if (_PrefixEnabled != null)
+                return _PrefixEnabled.Value;
 
             var variable = Environment.GetEnvironmentVariable("StackSquatchUpdated");
 
@@ -320,26 +320,26 @@ namespace StackifyLib
                 {
                     if (updated > DateTime.UtcNow.AddHours(-1))
                     {
-                        StackifyLib.Utils.StackifyAPILogger.Log("Sasquatch enabled", true);
-                        _SasquatchEnabled = true;
+                        StackifyLib.Utils.StackifyAPILogger.Log("Prefix enabled", true);
+                        _PrefixEnabled = true;
                     }
                     else
                     {
-                        _SasquatchEnabled = false;
+                        _PrefixEnabled = false;
                     }
                 }
                 else
                 {
-                    _SasquatchEnabled = false;
+                    _PrefixEnabled = false;
                 }
                 
             }
             else
             {
-                _SasquatchEnabled = false;
+                _PrefixEnabled = false;
             }
 
-            return _SasquatchEnabled.Value;
+            return _PrefixEnabled.Value;
         }
     }
 }
