@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Configuration;
+using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Management;
+using System.Net;
 using System.Runtime.Serialization;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Web.Hosting;
 using StackifyLib.Utils;
@@ -92,6 +96,43 @@ namespace StackifyLib.Models
             {
                 StackifyLib.Utils.StackifyAPILogger.Log("Error seeing if the app is an azure cloud service\r\n" + ex.ToString(), true);
             }
+        }
+
+        // http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html#d0e30002
+        const string EC2InstanceIdUrl = "http://169.254.169.254/latest/meta-data/instance-id";
+
+        /// <summary>
+        /// Get the EC2 Instance name if it exists else null
+        /// </summary>
+        public static string GetEC2InstanceId()
+        {
+            try
+            {
+                var request = (HttpWebRequest)WebRequest.Create(EC2InstanceIdUrl);
+                // wait 5 seconds
+                request.Timeout = 5000;
+                using (var response = (HttpWebResponse) request.GetResponse())
+                {
+                    if ((int) response.StatusCode >= 200 && (int) response.StatusCode < 300)
+                    {
+                        var encoding = Encoding.GetEncoding(response.CharacterSet);
+                        using (var responseStream = response.GetResponseStream())
+                        {
+                            using (var reader = new StreamReader(responseStream, encoding))
+                            {
+                                var id = reader.ReadToEnd();
+                                return string.IsNullOrWhiteSpace(id) ? null : id;
+                            }
+                        }
+                    }
+                    return null;
+                }
+            }
+            catch // if not in aws this will timeout
+            {
+                return null;
+            }
+
         }
 
         /// <summary>
@@ -226,7 +267,7 @@ namespace StackifyLib.Models
                     IsWindowService();
                 }
 
-                DeviceName = Environment.MachineName;
+                DeviceName = GetEC2InstanceId() ?? Environment.MachineName;
 
                 if (string.IsNullOrEmpty(AppName) && !isWebRequest)
                 {
