@@ -308,7 +308,7 @@ namespace StackifyLib
             if (_PrefixEnabled != null)
                 return _PrefixEnabled.Value;
 
-            var variable = Environment.GetEnvironmentVariable("StackSquatchUpdated");
+            var variable = Environment.GetEnvironmentVariable("StackSquatchUpdated", EnvironmentVariableTarget.Machine);
 
 
             if (!string.IsNullOrEmpty(variable))
