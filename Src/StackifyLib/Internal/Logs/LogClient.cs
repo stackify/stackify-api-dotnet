@@ -140,7 +140,15 @@ namespace StackifyLib.Internal.Logs
             }
 
             //Used by Stackify profiler only
-            msg.SetLogMsgID(msg.id, isError, msg.Level, msg.Msg, msg.data);
+            if (Logger.PrefixEnabled())
+            {
+                msg.SetLogMsgID(msg.id, isError, msg.Level, msg.Msg, msg.data);
+            }
+            else
+            {
+                msg.SetLogMsgID(msg.id, isError, msg.Level, null, null);
+            }
+            
 
             //We need to do everything up to this point for sasquatch. Even if we aren't uploading the log.
             if (this.CanQueue())

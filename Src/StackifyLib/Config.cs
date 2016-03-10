@@ -27,7 +27,7 @@ namespace StackifyLib
 				if (key != null)
 				{
 					v = ConfigurationManager.AppSettings[key];
-					if (v == null)
+					if (string.IsNullOrEmpty(v))
 						v = Environment.GetEnvironmentVariable(key);
 				}
 			}
