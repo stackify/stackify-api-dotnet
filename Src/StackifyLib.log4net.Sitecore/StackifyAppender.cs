@@ -176,7 +176,6 @@ namespace StackifyLib.log4net.Sitecore
             StackifyError error = null;
             object messageObject = null;
             string errorAdditionalMessage = null;
-
             if (loggingEvent.MessageObject != null && loggingEvent.MessageObject is StackifyError)
             {
                 //Message Object was an exception
@@ -212,12 +211,34 @@ namespace StackifyLib.log4net.Sitecore
             //}
             else
             {
-                messageObject = loggingEvent.MessageObject;
-            }
+				// we try to retrieve the thrown exception but wait to do this check until this last condition
+				// block since we need to use reflection which is an expensive operation
+				Exception thrownException = GetThrownException(loggingEvent);
+
+				if (thrownException == null)
+				{
+					// the thrown exception does not exist, so we use the basic information provided in the message object
+					messageObject = loggingEvent.MessageObject;
+				}
+				else
+				{
+					if (thrownException is StackifyError)
+					{
+						error = thrownException as StackifyError;
+					}
+					else
+					{
+						error = StackifyError.New(thrownException);
+					}
+
+					errorAdditionalMessage = loggingEvent.RenderedMessage;
+					messageObject = loggingEvent.MessageObject;
+				}
+			}
 
 
-            //messageObject is not an object we need to serialize.
-            if (messageObject == null || messageObject is string || messageObject.GetType().FullName == "log4net.Util.SystemStringFormat")
+			//messageObject is not an object we need to serialize.
+			if (messageObject == null || messageObject is string || messageObject.GetType().FullName == "log4net.Util.SystemStringFormat")
             {
                 //passing null to the serialize object since we can't serialize the logged object. We only need to get potential diags.
                 msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(null, false, diags);
@@ -283,7 +304,23 @@ namespace StackifyLib.log4net.Sitecore
             return msg;
         }
 
-        private Dictionary<string, object> GetDiagnosticContextProperties()
+		private Exception GetThrownException(LoggingEvent loggingEvent)
+		{
+			// Since Sitecore's implementation does not expose the ExceptionObject, we need to use reflection to get access
+			// to it, as per Matt Watson from Stackify. We know they store this Exception in a field with the name m_thrownException
+			// so we retrieve the private field based on its name.
+			Exception thrownException = null;
+			Type loggingEventType = loggingEvent.GetType();
+			var thrownExceptionFieldInfo = loggingEventType.GetField("m_thrownException", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+			if (thrownExceptionFieldInfo != null)
+			{
+				thrownException = thrownExceptionFieldInfo.GetValue(loggingEvent) as Exception;
+			}
+
+			return thrownException;
+		}
+
+		private Dictionary<string, object> GetDiagnosticContextProperties()
         {
             if (!_HasContextKeys)
             {
