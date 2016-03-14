@@ -20,7 +20,7 @@ namespace StackifyLib.Models
         {
             if (json != null)
             {
-                return message + " " + JsonConvert.SerializeObject(json);
+                return message + " " + JsonConvert.SerializeObject(json, new JsonSerializerSettings{ReferenceLoopHandling = ReferenceLoopHandling.Serialize});
             }
             else
             {

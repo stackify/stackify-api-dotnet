@@ -26,7 +26,7 @@ namespace StackifyLib.Internal.Logs
 
         public LogClient(string loggerName, string apikey = null, string apiurl = null)
         {
-
+            Config.LoadSettings();
             StackifyAPILogger.Log("Creating new LogClient " + loggerName);
 
             _LoggerName = loggerName;
