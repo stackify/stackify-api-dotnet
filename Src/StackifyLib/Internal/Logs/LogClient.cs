@@ -244,7 +244,7 @@ namespace StackifyLib.Internal.Logs
                 }
                 else
                 {
-                    group.ServerName = Environment.MachineName;
+                    group.ServerName = env.DeviceName;
                 }
             }
 
@@ -261,7 +261,8 @@ namespace StackifyLib.Internal.Logs
 
             group.AppLoc = env.AppLocation;
 
-            if (string.IsNullOrEmpty(group.Env))
+            //override it
+            if (!string.IsNullOrEmpty(env.ConfiguredEnvironmentName))
             {
                 group.Env = env.ConfiguredEnvironmentName;
             }
