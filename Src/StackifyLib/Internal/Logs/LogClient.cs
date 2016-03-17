@@ -67,7 +67,7 @@ namespace StackifyLib.Internal.Logs
 
         public bool CanQueue()
         {
-            if (!_LogQueue.CanQueue())
+            if (_LogQueue == null || !_LogQueue.CanQueue())
             {
                 return false;
             }

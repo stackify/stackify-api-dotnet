@@ -95,6 +95,9 @@ namespace StackifyLib
         /// <returns></returns>
         public static bool CanSend()
         {
+            if (_LogClient == null)
+                return false;
+
             return _LogClient.CanQueue();
         }
 
