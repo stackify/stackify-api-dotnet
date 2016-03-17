@@ -108,7 +108,7 @@ namespace StackifyLib.Utils
                     //To account for our initial release which had a URL just for the error module
 					string workaround = Config.Get("Stackify.Url");
 
-                    if (workaround != null)
+                    if (!string.IsNullOrEmpty(workaround))
                     {
                         workaround = System.Web.VirtualPathUtility.RemoveTrailingSlash(workaround);
 

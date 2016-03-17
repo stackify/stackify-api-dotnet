@@ -18,46 +18,46 @@ namespace StackifyLib
 	    {
 	        try
 	        {
-                CaptureErrorPostdata = Get("Stackify.CaptureErrorPostdata")
+                CaptureErrorPostdata = Get("Stackify.CaptureErrorPostdata", "")
                     .Equals("true", StringComparison.CurrentCultureIgnoreCase);
 
-                CaptureServerVariables = Get("Stackify.CaptureServerVariables")
+                CaptureServerVariables = Get("Stackify.CaptureServerVariables", "")
                     .Equals("true", StringComparison.CurrentCultureIgnoreCase);
-                CaptureSessionVariables = Get("Stackify.CaptureSessionVariables")
-                    .Equals("true", StringComparison.CurrentCultureIgnoreCase);
-
-                CaptureErrorHeaders = Get("Stackify.CaptureErrorHeaders")
+                CaptureSessionVariables = Get("Stackify.CaptureSessionVariables", "")
                     .Equals("true", StringComparison.CurrentCultureIgnoreCase);
 
-                CaptureErrorCookies = Get("Stackify.CaptureErrorCookies")
+                CaptureErrorHeaders = Get("Stackify.CaptureErrorHeaders", "")
                     .Equals("true", StringComparison.CurrentCultureIgnoreCase);
 
-                CaptureErrorHeadersWhitelist = Get("Stackify.CaptureErrorHeadersWhitelist");
+                CaptureErrorCookies = Get("Stackify.CaptureErrorCookies", "")
+                    .Equals("true", StringComparison.CurrentCultureIgnoreCase);
+
+                CaptureErrorHeadersWhitelist = Get("Stackify.CaptureErrorHeadersWhitelist", "");
 
 	            if (!string.IsNullOrEmpty(CaptureErrorHeadersWhitelist))
 	            {
 	                ErrorHeaderGoodKeys = CaptureErrorHeadersWhitelist.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList();
 	            }
 
-                CaptureErrorHeadersBlacklist = Get("Stackify.CaptureErrorHeadersBlacklist");
+                CaptureErrorHeadersBlacklist = Get("Stackify.CaptureErrorHeadersBlacklist", "");
                 if (!string.IsNullOrEmpty(CaptureErrorHeadersBlacklist))
                 {
                     ErrorHeaderBadKeys = CaptureErrorHeadersBlacklist.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList();
                 }
 
-                CaptureErrorCookiesWhitelist = Get("Stackify.CaptureErrorCookiesWhitelist");
+                CaptureErrorCookiesWhitelist = Get("Stackify.CaptureErrorCookiesWhitelist", "");
                 if (!string.IsNullOrEmpty(CaptureErrorCookiesWhitelist))
                 {
                     ErrorCookiesGoodKeys = CaptureErrorCookiesWhitelist.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList();
                 }
 
-                CaptureErrorCookiesBlacklist = Get("Stackify.CaptureErrorCookiesBlacklist");
+                CaptureErrorCookiesBlacklist = Get("Stackify.CaptureErrorCookiesBlacklist", "");
                 if (!string.IsNullOrEmpty(CaptureErrorCookiesBlacklist))
                 {
                     ErrorCookiesBadKeys = CaptureErrorCookiesBlacklist.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList();
                 }
 
-                CaptureErrorSessionWhitelist = Get("Stackify.CaptureErrorSessionWhitelist");
+                CaptureErrorSessionWhitelist = Get("Stackify.CaptureErrorSessionWhitelist", "");
                 if (!string.IsNullOrEmpty(CaptureErrorSessionWhitelist))
                 {
                     ErrorSessionGoodKeys = CaptureErrorSessionWhitelist.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList();
@@ -117,7 +117,7 @@ namespace StackifyLib
 				if (v == null)
 					v = defaultValue;
 			}
-			return v ?? "";
+			return v;
 		}
 	}
 }
