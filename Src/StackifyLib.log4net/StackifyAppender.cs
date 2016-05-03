@@ -234,11 +234,11 @@ namespace StackifyLib.log4net
                 //try to serialize the messageObject since we know its not a string
                 msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(messageObject, false, diags);
                 msg.Msg = loggingEvent.RenderedMessage;
+            }
 
-                if (error != null)
-                {
-                    msg.Msg += "\r\n" + error.ToString();
-                }
+            if (error != null)
+            {
+                msg.Msg += "\r\n" + error.ToString();
             }
 
             if (!string.IsNullOrWhiteSpace(errorAdditionalMessage) && error != null)
