@@ -344,6 +344,11 @@ namespace StackifyLib
             return this;
         }
 
+        public IEnumerable<TraceFrame> GetAllFrames()
+        {
+            return Error.GetAllFrames();
+        }
+
         public override string ToString()
         {
             if (_Exception != null)

@@ -321,7 +321,7 @@ namespace StackifyLib
 
                 if (DateTime.TryParse(variable, out updated))
                 {
-                    if (updated > DateTime.UtcNow.AddHours(-1))
+                    if (updated > DateTime.UtcNow.AddHours(-24))
                     {
                         StackifyLib.Utils.StackifyAPILogger.Log("Prefix enabled", true);
                         _PrefixEnabled = true;

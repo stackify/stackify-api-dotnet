@@ -286,6 +286,19 @@ namespace StackifyLib.Models
             return sb.ToString();
         }
 
+        public IEnumerable<TraceFrame> GetAllFrames()
+        {
+            foreach (var item in this.StackTrace)
+                yield return item;
+
+            if (InnerError != null)
+            {
+                foreach (var item in InnerError.GetAllFrames())
+                    yield return item;
+            }
+        }
+
+
         public string FramesToString()
         {
             StringBuilder sb = new StringBuilder();
