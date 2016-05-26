@@ -112,7 +112,7 @@ namespace StackifyLib
             if (debugData != null)
             {
                 //set json data to pass through as debugging data
-               // msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(debugData, true);
+                msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(debugData, true);
             }
 
             QueueLogObject(msg, null);
@@ -143,7 +143,7 @@ namespace StackifyLib
             if (debugData != null)
             {
                 //set json data to pass through as debugging data
-            //    msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(debugData, true);
+                msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(debugData, true);
             }
 
             QueueLogObject(msg, exceptionObject);

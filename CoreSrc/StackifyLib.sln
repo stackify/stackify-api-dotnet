@@ -5,6 +5,8 @@ VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "StackifyLib", "StackifyLib\StackifyLib.xproj", "{E1A20789-60A0-4C04-8FD8-C6213329CA2C}"
 EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "StackifyLib.NLog", "StackifyLib.NLog\StackifyLib.NLog.xproj", "{55CC4568-242F-40D7-9BD3-23C4F502C161}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{E1A20789-60A0-4C04-8FD8-C6213329CA2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E1A20789-60A0-4C04-8FD8-C6213329CA2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E1A20789-60A0-4C04-8FD8-C6213329CA2C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55CC4568-242F-40D7-9BD3-23C4F502C161}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55CC4568-242F-40D7-9BD3-23C4F502C161}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55CC4568-242F-40D7-9BD3-23C4F502C161}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55CC4568-242F-40D7-9BD3-23C4F502C161}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

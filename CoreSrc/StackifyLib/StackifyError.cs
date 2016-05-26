@@ -315,18 +315,18 @@ namespace StackifyLib
             return this;
         }
 
-        //public StackifyError SetCustomProperties(object customProperties)
-        //{
-        //    if (customProperties == null)
-        //        return this;
+        public StackifyError SetCustomProperties(object customProperties)
+        {
+            if (customProperties == null)
+                return this;
 
-        //    if(_InternalLogMsg == null)
-        //        _InternalLogMsg = new LogMsg();
+            if (_InternalLogMsg == null)
+                _InternalLogMsg = new LogMsg();
 
-        //    _InternalLogMsg.data = HelperFunctions.SerializeDebugData(customProperties, true);
+            _InternalLogMsg.data = HelperFunctions.SerializeDebugData(customProperties, true);
 
-        //    return this;
-        //}
+            return this;
+        }
 
         public StackifyError SetUser(string userName)
         {

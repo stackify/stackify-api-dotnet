@@ -196,7 +196,6 @@ namespace StackifyLib.Models
         {
             if (method == null)
                 return "Unknown";
-          
 
             //if (method.ReflectedType != null)
             //{

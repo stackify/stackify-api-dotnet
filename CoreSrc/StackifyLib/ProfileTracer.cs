@@ -104,21 +104,6 @@ namespace StackifyLib
 
         }
 
-        [Obsolete("Use CreateAsCodeBlock or CreateAsOperation")]
-        public static ProfileTracer Create(string methodDisplayText)
-        {
-            ProfileTracer tracer = new ProfileTracer(methodDisplayText, null, null);
-            return tracer;
-        }
-
-        [Obsolete("Use CreateAsCodeBlock or CreateAsOperation")]
-        public static ProfileTracer Create(string methodDisplayText, string requestLevelReportingCategory, string appLevelReportingCategory = null)
-        {
-            ProfileTracer tracer = new ProfileTracer(methodDisplayText, requestLevelReportingCategory, appLevelReportingCategory);
-            return tracer;
-        }
-
-
         public static ProfileTracer CreateAsCodeBlock(string methodDisplayText)
         {
             ProfileTracer tracer = new ProfileTracer(methodDisplayText, null, null);

@@ -26,7 +26,7 @@ namespace StackifyLib.Utils
         public string DeviceAlias { get; set; }
     }
 
-    public class HttpClient
+    public class StackifyHttpClient
     {
        // public static IWebProxy CustomWebProxy = null;
 
@@ -72,12 +72,12 @@ namespace StackifyLib.Utils
             public Exception Exception { get; set; }
         }
 
-        static HttpClient()
+        static StackifyHttpClient()
         {
             //LoadWebProxyConfig();
         }
 
-        public HttpClient(string apiKey, string apiUrl)
+        public StackifyHttpClient(string apiKey, string apiUrl)
         {
             if (string.IsNullOrEmpty(apiKey))
             {
@@ -94,9 +94,6 @@ namespace StackifyLib.Utils
 
                 if (!string.IsNullOrWhiteSpace(customUrl))
                 {
-                    if (!customUrl.EndsWith("/"))
-                        customUrl += "/";
-
                     BaseAPIUrl = customUrl;
                 }
 
@@ -109,7 +106,8 @@ namespace StackifyLib.Utils
             }
             _LastIdentityAttempt = DateTime.UtcNow.AddMinutes(-15);
 
-            
+              if (!BaseAPIUrl.EndsWith("/"))
+                        BaseAPIUrl += "/";
         }
 
     //    public static void LoadWebProxyConfig()
@@ -543,10 +541,12 @@ namespace StackifyLib.Utils
 
         private HttpWebRequest BuildJsonRequest(string url, string jsonData, bool compress)
         {
-            //if (string.IsNullOrEmpty(_version))
-            //{
-            //    _version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
-            //}
+            if (string.IsNullOrEmpty(_version))
+            {
+                _version = typeof(StackifyHttpClient).GetTypeInfo().Assembly.ImageRuntimeVersion;
+
+//                _version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            }
 
             var request = (HttpWebRequest)WebRequest.Create(url);
 
@@ -599,10 +599,11 @@ namespace StackifyLib.Utils
 
         private HttpWebRequest BuildPOSTRequest(string url, string postdata)
         {
-            //if (string.IsNullOrEmpty(_version))
-            //{
-            //    _version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
-            //}
+            if (string.IsNullOrEmpty(_version))
+            {
+                _version = typeof (StackifyHttpClient).GetTypeInfo().Assembly.ImageRuntimeVersion;
+//                _version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            }
 
             var request = (HttpWebRequest)WebRequest.Create(url);
 
@@ -610,7 +611,7 @@ namespace StackifyLib.Utils
             request.Headers["X-Stackify-Key"] = this.APIKey;
             request.ContentType = "application/x-www-form-urlencoded";
             request.Headers[HttpRequestHeader.UserAgent] = "StackifyLibCore-" + _version;
-
+            
             //if (HttpClient.CustomWebProxy != null)
             //{
             //    request.Proxy = HttpClient.CustomWebProxy;

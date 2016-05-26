@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
@@ -23,195 +24,196 @@ namespace StackifyLib.Utils
         /// <param name="serializeSimpleTypes"></param>
         /// <param name="properties"></param>
         /// <returns></returns>
-        //public static string SerializeDebugData(object logObject, bool serializeSimpleTypes, Dictionary<string, object> properties = null)
-        //{
-        //    Type t = null;
+        public static string SerializeDebugData(object logObject, bool serializeSimpleTypes, Dictionary<string, object> properties = null)
+        {
+            Type t = null;
+            TypeInfo typeInfo = null;
+            JObject jObject = null;
 
-        //    JObject jObject = null;
+            try
+            {
+                if (logObject == null)
+                {
+                }
+                else
+                {
+                    t = logObject.GetType();
+                    typeInfo = t.GetTypeInfo();
+                    if (logObject is string || t.FullName == "log4net.Util.SystemStringFormat")
+                    {
+                        if (serializeSimpleTypes)
+                        {
+                            jObject = new JObject();
+                            jObject.Add("logArg", new JValue(logObject.ToString()));
+                        }
+                    }
+                    else if (typeInfo.IsPrimitive || typeInfo.BaseType == typeof(ValueType))
+                    {
+                        if (serializeSimpleTypes)
+                        {
+                            jObject = new JObject();
+                            try
+                            {
+                                jObject.Add("logArg", new JValue(logObject));
+                            }
+                            catch (ArgumentException)
+                            {
+                                jObject.Add("logArg", new JValue(logObject.ToString()));
+                            }
+                        }
+                    }
+                    //look for some things we don't want to touch
+                    else if (logObject is IDisposable)// || logObject is MarshalByRefObject)
+                    {
 
-        //    try
-        //    {
-        //        if (logObject == null)
-        //        {
-        //        }
-        //        else
-        //        {
-        //            t = logObject.GetType();
+                    }
+                    else if (!_BadTypes.Contains(t.ToString()))
+                    {
+                        var token = JToken.FromObject(logObject, serializer);
 
-        //            if (logObject is string || t.FullName == "log4net.Util.SystemStringFormat" )
-        //            {
-        //                if (serializeSimpleTypes)
-        //                {
-        //                    jObject = new JObject();
-        //                    jObject.Add("logArg", new JValue(logObject.ToString()));
-        //                }
-        //            }
-        //            else if (t.IsPrimitive || t.BaseType == typeof(ValueType))
-        //            {
-        //                if (serializeSimpleTypes)
-        //                {
-        //                    jObject = new JObject();
-        //                    try
-        //                    {
-        //                        jObject.Add("logArg", new JValue(logObject));
-        //                    }
-        //                    catch (ArgumentException)
-        //                    {
-        //                        jObject.Add("logArg", new JValue(logObject.ToString()));
-        //                    }
-        //                }
-        //            }
-        //            //look for some things we don't want to touch
-        //            else if (logObject is IDisposable || logObject is MarshalByRefObject)
-        //            {
+                        if (token is JObject)
+                        {
+                            jObject = (JObject)token;
+                            var type = logObject.GetType();
 
-        //            }
-        //            else if (!_BadTypes.Contains(t.ToString()))
-        //            {
-        //                var token = JToken.FromObject(logObject, serializer);
+                            //do we log the objectType? Not logging it for simple things
+                            if (typeInfo.IsPrimitive || type.Name == "String" || typeInfo.BaseType == typeof(ValueType) || type.Name.Contains("AnonymousType") || type.FullName.Contains("System.Collections.Generic.Dictionary"))
+                            {
 
-        //                if (token is JObject)
-        //                {
-        //                    jObject = (JObject)token;
-        //                    var type = logObject.GetType();
+                            }
+                            else
+                            {
+                                jObject.Add("objectType", type.FullName);
+                            }
+                        }
+                        else if (token is JArray)
+                        {
+                            jObject = new JObject();
+                            jObject.Add("logArg", token);
 
-        //                    //do we log the objectType? Not logging it for simple things
-        //                    if (type.IsPrimitive || type.Name == "String" || type.BaseType == typeof(ValueType) || type.Name.Contains("AnonymousType") || type.FullName.Contains("System.Collections.Generic.Dictionary"))
-        //                    {
+                            var type = logObject.GetType();
 
-        //                    }
-        //                    else
-        //                    {
-        //                        jObject.Add("objectType", type.FullName);
-        //                    }
-        //                }
-        //                else if (token is JArray)
-        //                {
-        //                    jObject = new JObject();
-        //                    jObject.Add("logArg", token);
+                            if (type.IsArray)
+                            {
+                                var array = (Array)logObject;
 
-        //                    var type = logObject.GetType();
+                                if (array.Length > 0)
+                                {
+                                    var child = array.GetValue(0);
 
-        //                    if (type.IsArray)
-        //                    {
-        //                        var array = (Array)logObject;
+                                    var childtype = child.GetType();
+                                    var childtypeinfo = childtype.GetTypeInfo();
+                                    if (childtypeinfo.IsPrimitive || childtype.Name == "String" || childtypeinfo.BaseType == typeof(ValueType))
+                                    {
 
-        //                        if (array.Length > 0)
-        //                        {
-        //                            var child = array.GetValue(0);
+                                    }
+                                    else
+                                    {
+                                        jObject.Add("objectType", childtype.FullName);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                var genericArgs = typeInfo.GetGenericArguments();
 
-        //                            var childtype = child.GetType();
+                                if (genericArgs.Any())
+                                {
+                                    var childtype = genericArgs.First();
+                                    var childtypeinfo = childtype.GetTypeInfo();
+                                    if (childtypeinfo.IsPrimitive || childtype.Name == "String" || childtypeinfo.BaseType == typeof(ValueType))
+                                    {
 
-        //                            if (childtype.IsPrimitive || childtype.Name == "String" || childtype.BaseType == typeof(ValueType))
-        //                            {
+                                    }
+                                    else
+                                    {
+                                        jObject.Add("objectType", childtype.FullName);
+                                    }
+                                }
+                                else
+                                {
+                                    jObject.Add("objectType", type.FullName);
+                                }
+                            }
 
-        //                            }
-        //                            else
-        //                            {
-        //                                jObject.Add("objectType", childtype.FullName);
-        //                            }
-        //                        }
-        //                    }
-        //                    else
-        //                    {
-        //                        var genericArgs = type.GetGenericArguments();
+                        }
+                        else if (token is JValue)
+                        {
+                            if (serializeSimpleTypes)
+                            {
+                                jObject = new JObject();
+                                jObject.Add("logArg", token);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                lock (_BadTypes)
+                {
+                    _BadTypes.Add(t.ToString());
+                }
+                Utils.StackifyAPILogger.Log(ex.ToString());
+            }
 
-        //                        if (genericArgs.Any())
-        //                        {
-        //                            var childtype = genericArgs.First();
-        //                            if (childtype.IsPrimitive || childtype.Name == "String" || childtype.BaseType == typeof(ValueType))
-        //                            {
+            string data = null;
+            if (properties != null && properties.Any())
+            {
 
-        //                            }
-        //                            else
-        //                            {
-        //                                jObject.Add("objectType", childtype.FullName);
-        //                            }
-        //                        }
-        //                        else
-        //                        {
-        //                            jObject.Add("objectType", type.FullName);
-        //                        }
-        //                    }
+                if (jObject == null)
+                {
+                    jObject = new JObject();
+                }
 
-        //                }
-        //                else if (token is JValue)
-        //                {
-        //                    if (serializeSimpleTypes)
-        //                    {
-        //                        jObject = new JObject();
-        //                        jObject.Add("logArg", token);
-        //                    }
-        //                }
-        //            }
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        lock (_BadTypes)
-        //        {
-        //            _BadTypes.Add(t.ToString());
-        //        }
-        //        Utils.StackifyAPILogger.Log(ex.ToString());
-        //    }
+                JObject props = new JObject();
+                foreach (var prop in properties)
+                {
+                    try
+                    {
+                        if (IsValueType(prop.Value))
+                        {
+                            props.Add(prop.Key, new JValue(prop.Value));
+                        }
+                        else
+                        {
+                            props.Add(prop.Key, JObject.FromObject(prop.Value, serializer));
+                        }
 
-        //    string data = null;
-        //    if (properties != null && properties.Any())
-        //    {
+                    }
+                    catch (Exception ex)
+                    {
+                        StackifyAPILogger.Log(ex.ToString());
+                    }
 
-        //        if (jObject == null)
-        //        {
-        //            jObject = new JObject();
-        //        }
+                }
 
-        //        JObject props = new JObject();
-        //        foreach (var prop in properties)
-        //        {
-        //            try
-        //            {
-        //                if (IsValueType(prop.Value))
-        //                {
-        //                    props.Add(prop.Key, new JValue(prop.Value));
-        //                }
-        //                else
-        //                {
-        //                    props.Add(prop.Key, JObject.FromObject(prop.Value,serializer));
-        //                }
+                jObject.Add("context", props);
 
-        //            }
-        //            catch (Exception ex)
-        //            {
-        //                StackifyAPILogger.Log(ex.ToString());
-        //            }
+            }
 
-        //        }
+            if (jObject != null)
+            {
+                return JsonConvert.SerializeObject(jObject,
+                                                   new JsonSerializerSettings()
+                                                   {
+                                                       NullValueHandling = NullValueHandling.Ignore,
+                                                       ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                                                   });
+            }
 
-        //        jObject.Add("context", props);
+            return null;
+        }
 
-        //    }
+        public static bool IsValueType(object obj)
+        {
+            if (obj == null)
+                return false;
 
-        //    if (jObject != null)
-        //    {
-        //        return JsonConvert.SerializeObject(jObject,
-        //                                           new JsonSerializerSettings()
-        //                                               {
-        //                                                   NullValueHandling = NullValueHandling.Ignore,
-        //                                                   ReferenceLoopHandling  = ReferenceLoopHandling.Ignore
-        //                                               });
-        //    }
+            var t = obj.GetType();
 
-        //    return null;
-        //}
-
-        //public static bool IsValueType(object obj)
-        //{
-        //    if (obj == null)
-        //        return false;
-
-        //    var t = obj.GetType();
-
-        //    return t.IsPrimitive || t.Equals(typeof(string));
-        //}
+            return t.GetTypeInfo().IsPrimitive || t.Equals(typeof(string));
+        }
 
 
         //public static dynamic ToDynamic(object value)
