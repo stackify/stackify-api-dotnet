@@ -304,45 +304,16 @@ namespace StackifyLib
             return frames;
         }
 
-        private static bool? _PrefixEnabled = null;
 
         public static bool PrefixEnabled()
         {
-            if (_PrefixEnabled != null)
-                return _PrefixEnabled.Value;
-
-            var variable = Environment.GetEnvironmentVariable("StackSquatchUpdated", EnvironmentVariableTarget.Machine);
-
-
-            if (!string.IsNullOrEmpty(variable))
-            {
-
-                DateTime updated;
-
-                if (DateTime.TryParse(variable, out updated))
-                {
-                    if (updated > DateTime.UtcNow.AddHours(-24))
-                    {
-                        StackifyLib.Utils.StackifyAPILogger.Log("Prefix enabled", true);
-                        _PrefixEnabled = true;
-                    }
-                    else
-                    {
-                        _PrefixEnabled = false;
-                    }
-                }
-                else
-                {
-                    _PrefixEnabled = false;
-                }
-                
-            }
-            else
-            {
-                _PrefixEnabled = false;
-            }
-
-            return _PrefixEnabled.Value;
+            return StackifyLib.Utils.PrefixOrAPM.GetProfilerType() == PrefixOrAPM.ProfilerType.Prefix;
         }
+
+        /// <summary>
+        /// Scans to see if Prefix is running
+        /// </summary>
+        /// <returns></returns>
+      
     }
 }

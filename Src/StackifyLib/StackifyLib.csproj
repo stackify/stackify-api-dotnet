@@ -77,6 +77,7 @@
     <Compile Include="Utils\ErrorGovernor.cs" />
     <Compile Include="Utils\HelperFunctions.cs" />
     <Compile Include="Utils\HttpClient.cs" />
+    <Compile Include="Utils\PrefixOrAPM.cs" />
     <Compile Include="Utils\RegistryHelper.cs" />
     <Compile Include="Utils\SequentialGuid.cs" />
     <Compile Include="Utils\StackifyAPILogger.cs" />
