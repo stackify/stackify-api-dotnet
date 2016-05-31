@@ -79,7 +79,7 @@ namespace StackifyLib.Utils
                 {
                     _LastProfilerType = ProfilerType.Prefix;
                 }
-                else 
+                else if (!string.IsNullOrEmpty(stackifyPath))
                 {
                     _LastProfilerType = ProfilerType.APM;
                 }
