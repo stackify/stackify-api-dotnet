@@ -33,6 +33,24 @@ namespace StackifyLib
             }
         }
 
+        public static bool SetServerEnvironmentForThisDevice(string environmentName)
+        {
+            var deviceid = Logger.Identity()?.DeviceID;
+
+            if(deviceid == null)
+                throw new Exception("Unable to evaluate current device id");
+
+            return SetServerEnvironmentByID(deviceid.Value, environmentName);
+        }
+
+        public static bool SetServerEnvironmentByID(int id, string environmentName)
+        {
+            var response = client.POSTAndGetResponse(System.Web.VirtualPathUtility.AppendTrailingSlash(client.BaseAPIUrl) +
+                                      "API/Device/SetServerEnvironmentByID/?id=" + id + "&environmentName=" + environmentName, null);
+
+            return response.StatusCode == HttpStatusCode.OK;
+        }
+
         public static bool RemoveServerByID(int id, bool uninstallAgent = false)
         {
             var response = client.POSTAndGetResponse(System.Web.VirtualPathUtility.AppendTrailingSlash(client.BaseAPIUrl) +
