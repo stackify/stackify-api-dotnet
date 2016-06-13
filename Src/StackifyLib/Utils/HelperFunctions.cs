@@ -3,8 +3,8 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Dynamic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
@@ -27,7 +27,7 @@ namespace StackifyLib.Utils
         public static string SerializeDebugData(object logObject, bool serializeSimpleTypes, Dictionary<string, object> properties = null)
         {
             Type t = null;
-
+            TypeInfo typeInfo = null;
             JObject jObject = null;
 
             try
@@ -38,8 +38,8 @@ namespace StackifyLib.Utils
                 else
                 {
                     t = logObject.GetType();
-
-                    if (logObject is string || t.FullName == "log4net.Util.SystemStringFormat" )
+                    typeInfo = t.GetTypeInfo();
+                    if (logObject is string || t.FullName == "log4net.Util.SystemStringFormat")
                     {
                         if (serializeSimpleTypes)
                         {
@@ -47,7 +47,7 @@ namespace StackifyLib.Utils
                             jObject.Add("logArg", new JValue(logObject.ToString()));
                         }
                     }
-                    else if (t.IsPrimitive || t.BaseType == typeof(ValueType))
+                    else if (typeInfo.IsPrimitive || typeInfo.BaseType == typeof(ValueType))
                     {
                         if (serializeSimpleTypes)
                         {
@@ -63,7 +63,7 @@ namespace StackifyLib.Utils
                         }
                     }
                     //look for some things we don't want to touch
-                    else if (logObject is IDisposable || logObject is MarshalByRefObject)
+                    else if (logObject is IDisposable)// || logObject is MarshalByRefObject)
                     {
 
                     }
@@ -77,7 +77,7 @@ namespace StackifyLib.Utils
                             var type = logObject.GetType();
 
                             //do we log the objectType? Not logging it for simple things
-                            if (type.IsPrimitive || type.Name == "String" || type.BaseType == typeof(ValueType) || type.Name.Contains("AnonymousType") || type.FullName.Contains("System.Collections.Generic.Dictionary"))
+                            if (typeInfo.IsPrimitive || type.Name == "String" || typeInfo.BaseType == typeof(ValueType) || type.Name.Contains("AnonymousType") || type.FullName.Contains("System.Collections.Generic.Dictionary"))
                             {
 
                             }
@@ -95,15 +95,16 @@ namespace StackifyLib.Utils
 
                             if (type.IsArray)
                             {
-                                var array = (Array)logObject;
+                                var array = (Array) logObject;
 
                                 if (array.Length > 0)
                                 {
                                     var child = array.GetValue(0);
 
                                     var childtype = child.GetType();
-
-                                    if (childtype.IsPrimitive || childtype.Name == "String" || childtype.BaseType == typeof(ValueType))
+                                    var childtypeinfo = childtype.GetTypeInfo();
+                                    if (childtypeinfo.IsPrimitive || childtype.Name == "String" ||
+                                        childtypeinfo.BaseType == typeof (ValueType))
                                     {
 
                                     }
@@ -115,26 +116,38 @@ namespace StackifyLib.Utils
                             }
                             else
                             {
-                                var genericArgs = type.GetGenericArguments();
 
-                                if (genericArgs.Any())
-                                {
-                                    var childtype = genericArgs.First();
-                                    if (childtype.IsPrimitive || childtype.Name == "String" || childtype.BaseType == typeof(ValueType))
-                                    {
-
-                                    }
-                                    else
-                                    {
-                                        jObject.Add("objectType", childtype.FullName);
-                                    }
-                                }
-                                else
+                                if (!typeInfo.ContainsGenericParameters)
                                 {
                                     jObject.Add("objectType", type.FullName);
                                 }
-                            }
+#if NET45 || NET40
+                                else
+                                {
 
+                                    var genericArgs = typeInfo.GetGenericArguments();
+
+                                    if (genericArgs.Any())
+                                    {
+                                        var childtype = genericArgs.First();
+                                        var childtypeinfo = childtype.GetTypeInfo();
+                                        if (childtypeinfo.IsPrimitive || childtype.Name == "String" ||
+                                            childtypeinfo.BaseType == typeof (ValueType))
+                                        {
+
+                                        }
+                                        else
+                                        {
+                                            jObject.Add("objectType", childtype.FullName);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        jObject.Add("objectType", type.FullName);
+                                    }
+                                }
+#endif
+                            }
                         }
                         else if (token is JValue)
                         {
@@ -176,7 +189,7 @@ namespace StackifyLib.Utils
                         }
                         else
                         {
-                            props.Add(prop.Key, JObject.FromObject(prop.Value,serializer));
+                            props.Add(prop.Key, JObject.FromObject(prop.Value, serializer));
                         }
 
                     }
@@ -195,10 +208,10 @@ namespace StackifyLib.Utils
             {
                 return JsonConvert.SerializeObject(jObject,
                                                    new JsonSerializerSettings()
-                                                       {
-                                                           NullValueHandling = NullValueHandling.Ignore,
-                                                           ReferenceLoopHandling  = ReferenceLoopHandling.Ignore
-                                                       });
+                                                   {
+                                                       NullValueHandling = NullValueHandling.Ignore,
+                                                       ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                                                   });
             }
 
             return null;
@@ -211,19 +224,19 @@ namespace StackifyLib.Utils
 
             var t = obj.GetType();
 
-            return t.IsPrimitive || t.Equals(typeof(string));
+            return t.GetTypeInfo().IsPrimitive || t.Equals(typeof(string));
         }
 
 
-        public static dynamic ToDynamic(object value)
-        {
-            IDictionary<string, object> expando = new ExpandoObject();
+        //public static dynamic ToDynamic(object value)
+        //{
+        //    IDictionary<string, object> expando = new ExpandoObject();
 
-            foreach (PropertyDescriptor property in TypeDescriptor.GetProperties(value.GetType()))
-                expando.Add(property.Name, property.GetValue(value));
+        //    foreach (PropertyDescriptor property in TypeDescriptor.GetProperties(value.GetType()))
+        //        expando.Add(property.Name, property.GetValue(value));
 
-            return expando as ExpandoObject;
-        }
+        //    return expando as ExpandoObject;
+        //}
 
 
         public static string CleanPartialUrl(string url)

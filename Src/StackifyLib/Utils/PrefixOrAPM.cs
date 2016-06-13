@@ -1,12 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlTypes;
+//using System.Data.SqlTypes;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
 namespace StackifyLib.Utils
 {
+
+    /*
+     * Used to identify if the current app is running on the same computer as Stackify Prefix or APM
+     */ 
+
     internal class PrefixOrAPM
     {
         internal enum ProfilerType
@@ -49,12 +54,12 @@ namespace StackifyLib.Utils
                                     break;
                                 case "stackifymonitoringservice":
                                 case "monitortestconsole":
-                                    _LastProfilerType = ProfilerType.APM;
+                                    if(_LastProfilerType != ProfilerType.Prefix)
+                                        _LastProfilerType = ProfilerType.APM;
                                     foundProcess = true;
                                     break;
                             }
 
-                            if (foundProcess) break;
                         }
                         catch
                         {
@@ -73,7 +78,7 @@ namespace StackifyLib.Utils
             //fall back to see if this has been set
             if (!foundProcess && _ScanProcessException)
             {
-                var stackifyPath = Environment.GetEnvironmentVariable("StackifyPath", EnvironmentVariableTarget.Machine);
+                var stackifyPath = Environment.GetEnvironmentVariable("StackifyPath");
 
                 if (!string.IsNullOrEmpty(stackifyPath) && (stackifyPath.IndexOf("prefix", StringComparison.CurrentCultureIgnoreCase) > -1 || stackifyPath.IndexOf("devdash", StringComparison.CurrentCultureIgnoreCase) > -1))
                 {

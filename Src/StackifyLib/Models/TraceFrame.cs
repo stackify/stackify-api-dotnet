@@ -1,16 +1,16 @@
 ﻿
 using System.Runtime.Serialization;
+using Newtonsoft.Json;
 
 namespace StackifyLib.Models
 {
-    [DataContract]
     public class TraceFrame
     {
-        [DataMember]
+        [JsonProperty]
         public int? LineNum { get; set; }
-        [DataMember]
+        [JsonProperty]
         public string Method { get; set; }
-        [DataMember]
+        [JsonProperty]
         public string CodeFileName { get; set; }
     }
 }

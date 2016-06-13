@@ -543,7 +543,10 @@ namespace StackifyLib.Utils
         {
             if (string.IsNullOrEmpty(_version))
             {
-                _version = typeof(StackifyHttpClient).GetTypeInfo().Assembly.ImageRuntimeVersion;
+                _version =
+                    typeof (StackifyHttpClient).GetTypeInfo()
+                        .Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+                        .InformationalVersion;
 
 //                _version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
             }
@@ -601,7 +604,11 @@ namespace StackifyLib.Utils
         {
             if (string.IsNullOrEmpty(_version))
             {
-                _version = typeof (StackifyHttpClient).GetTypeInfo().Assembly.ImageRuntimeVersion;
+                _version =
+    typeof(StackifyHttpClient).GetTypeInfo()
+        .Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+        .InformationalVersion;
+
 //                _version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
             }
 

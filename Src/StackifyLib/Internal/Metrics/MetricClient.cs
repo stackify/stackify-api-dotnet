@@ -12,7 +12,7 @@ namespace StackifyLib.Internal.Metrics
 {
     public static class MetricClient
     {
-        private static HttpClient _httpClient = new HttpClient(null, null);
+        private static StackifyHttpClient _httpClient = new StackifyHttpClient(null, null);
 
         private readonly static ConcurrentQueue<Metric> _MetricQueue;
 
@@ -594,7 +594,7 @@ namespace StackifyLib.Internal.Metrics
                 string jsonData = JsonConvert.SerializeObject(records);
 
                 var response = _httpClient.SendJsonAndGetResponse(
-                        System.Web.VirtualPathUtility.AppendTrailingSlash(_httpClient.BaseAPIUrl) +
+                        (_httpClient.BaseAPIUrl) +
                         "Metrics/SubmitMetricsByID",
                         jsonData);
 
@@ -644,7 +644,7 @@ namespace StackifyLib.Internal.Metrics
 
                 var response =
                     _httpClient.SendJsonAndGetResponse(
-                        System.Web.VirtualPathUtility.AppendTrailingSlash(_httpClient.BaseAPIUrl) +
+                        (_httpClient.BaseAPIUrl) +
                         "Metrics/GetMetricInfo",
                         jsonData);
 

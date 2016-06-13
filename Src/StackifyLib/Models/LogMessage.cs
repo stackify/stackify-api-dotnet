@@ -10,7 +10,7 @@ namespace StackifyLib.Models
     /// <summary>
     /// Helper class for logging a message and object both
     /// </summary>
-    [Serializable]
+
     public class LogMessage
     {
         public object json { get; set; }

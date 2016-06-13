@@ -13,7 +13,7 @@ namespace StackifyLib
     public class Logger
     {
         public static int _MaxLogBufferSize = 10000;
-       
+
         private static LogClient _LogClient = null;
 
         static Logger()
@@ -104,10 +104,10 @@ namespace StackifyLib
         public static void Queue(string level, string message, object debugData = null)
         {
             var msg = new LogMsg()
-                {
-                    Level = level,
-                    Msg = message
-                };
+            {
+                Level = level,
+                Msg = message
+            };
 
             if (debugData != null)
             {
@@ -131,7 +131,7 @@ namespace StackifyLib
         {
             QueueException("ERROR", message, exceptionObject, debugData);
         }
-            
+
         public static void QueueException(string level, string message, Exception exceptionObject, object debugData = null)
         {
             var msg = new LogMsg()
@@ -242,7 +242,7 @@ namespace StackifyLib
             {
                 msg.Ex = StackifyError.New(exceptionObject);
             }
- 
+
             QueueLogObject(msg);
         }
 
@@ -258,11 +258,12 @@ namespace StackifyLib
             try
             {
                 //moves to the part of the trace where the declaring method starts then the other loop gets all the frames. This is to remove frames that happen within the logging library itself.
-                StackTrace stackTrace = new StackTrace(true);
+                StackTrace stackTrace = new StackTrace((Exception)null, false);
                 int index1;
-                for (index1 = 0; index1 < stackTrace.FrameCount; ++index1)
+                var stackTraceFrames = stackTrace.GetFrames();
+                for (index1 = 0; index1 < stackTraceFrames.Length; ++index1)
                 {
-                    var frame = stackTrace.GetFrame(index1);
+                    var frame = stackTraceFrames[index1];
 
                     if (frame != null)
                     {
@@ -276,12 +277,12 @@ namespace StackifyLib
 
                 }
 
-                if (index1 < stackTrace.FrameCount)
+                if (index1 < stackTraceFrames.Length)
                 {
 
-                    for (int index2 = index1; index2 < stackTrace.FrameCount; ++index2)
+                    for (int index2 = index1; index2 < stackTraceFrames.Length; ++index2)
                     {
-                        var frame2 = stackTrace.GetFrame(index2);
+                        var frame2 = stackTraceFrames[index2];
                         var f2 = new TraceFrame();
                         f2.CodeFileName = frame2.GetFileName();
                         f2.LineNum = frame2.GetFileLineNumber();
@@ -304,16 +305,45 @@ namespace StackifyLib
             return frames;
         }
 
+        private static bool? _PrefixEnabled = null;
 
         public static bool PrefixEnabled()
         {
-            return StackifyLib.Utils.PrefixOrAPM.GetProfilerType() == PrefixOrAPM.ProfilerType.Prefix;
-        }
+            if (_PrefixEnabled != null)
+                return _PrefixEnabled.Value;
 
-        /// <summary>
-        /// Scans to see if Prefix is running
-        /// </summary>
-        /// <returns></returns>
-      
+            var variable = Environment.GetEnvironmentVariable("StackSquatchUpdated");
+
+
+            if (!string.IsNullOrEmpty(variable))
+            {
+
+                DateTime updated;
+
+                if (DateTime.TryParse(variable, out updated))
+                {
+                    if (updated > DateTime.UtcNow.AddHours(-24))
+                    {
+                        StackifyLib.Utils.StackifyAPILogger.Log("Prefix enabled", true);
+                        _PrefixEnabled = true;
+                    }
+                    else
+                    {
+                        _PrefixEnabled = false;
+                    }
+                }
+                else
+                {
+                    _PrefixEnabled = false;
+                }
+
+            }
+            else
+            {
+                _PrefixEnabled = false;
+            }
+
+            return _PrefixEnabled.Value;
+        }
     }
 }

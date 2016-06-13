@@ -1,76 +1,84 @@
 ﻿using System.Runtime.Serialization;
-using StackifyLib.Web;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
+using Newtonsoft.Json;
+
+#if NET45
 using System.Web;
 using System.Web.Routing;
+using StackifyLib.Web;
 
+#endif
 namespace StackifyLib.Models
 {
-    [DataContract]
+    [JsonObject]
     public class WebRequestDetail
     {
         private StackifyError _Error;
         public WebRequestDetail(StackifyError error)
         {
             _Error = error;
+
+#if NET45
             if (System.Web.HttpContext.Current != null)
             {
                 Load(System.Web.HttpContext.Current);
             }
+#endif
         }
 
-        [DataMember]
+        [JsonProperty]
         public string UserIPAddress { get; set; }
 
-        [DataMember]
+        [JsonProperty]
         public string HttpMethod { get; set; }
 
-        [DataMember]
+        [JsonProperty]
         public string RequestProtocol { get; set; }
 
-        [DataMember]
+        [JsonProperty]
         public string RequestUrl { get; set; }
-        [DataMember]
+        [JsonProperty]
         public string RequestUrlRoot { get; set; }
 
-        [DataMember]
+        [JsonProperty]
         public string ReportingUrl { get; set; }
 
 
-        [DataMember]
+        [JsonProperty]
         public string ReferralUrl { get; set; }
 
-        [DataMember]
+        [JsonProperty]
         public Dictionary<string, string> Headers { get; set; }
 
-        [DataMember]
+        [JsonProperty]
         public Dictionary<string, string> Cookies { get; set; }
 
-        [DataMember]
+        [JsonProperty]
         public Dictionary<string, string> QueryString { get; set; }
 
-        [DataMember]
+        [JsonProperty]
         public Dictionary<string, string> PostData { get; set; }
 
-        [DataMember]
+        [JsonProperty]
         public Dictionary<string, string> SessionData { get; set; }
 
-        [DataMember]
+        [JsonProperty]
         public string PostDataRaw { get; set; }
 
-        [DataMember]
+        [JsonProperty]
         public string MVCAction { get; set; }
 
-        [DataMember]
+        [JsonProperty]
         public string MVCController { get; set; }
 
-        [DataMember]
+        [JsonProperty]
         public string MVCArea { get; set; }
 
+#if NET45
         private void Load(HttpContext context)
         {
             if (context == null || context.Request == null)
@@ -200,7 +208,7 @@ namespace StackifyLib.Models
             {
             }
         }
-
+#endif
         internal static void AddKey(string key, string value, Dictionary<string, string> dictionary, List<string> goodKeys, List<string> badKeys)
         {
             //is this key in the bad key list?
@@ -219,6 +227,7 @@ namespace StackifyLib.Models
             dictionary[key] = value;
         }
 
+        #if NET45
         internal static Dictionary<string, string> ToKeyValues(HttpCookieCollection collection, List<string> goodKeys, List<string> badKeys)
         {
             var keys = collection.AllKeys;
@@ -291,5 +300,6 @@ namespace StackifyLib.Models
 
             return items;
         }
+#endif
     }
 }

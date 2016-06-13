@@ -115,25 +115,31 @@ namespace StackifyLib.Utils
                             }
                             else
                             {
-                                var genericArgs = typeInfo.GetGenericArguments();
 
-                                if (genericArgs.Any())
-                                {
-                                    var childtype = genericArgs.First();
-                                    var childtypeinfo = childtype.GetTypeInfo();
-                                    if (childtypeinfo.IsPrimitive || childtype.Name == "String" || childtypeinfo.BaseType == typeof(ValueType))
-                                    {
-
-                                    }
-                                    else
-                                    {
-                                        jObject.Add("objectType", childtype.FullName);
-                                    }
-                                }
-                                else
+                                if (!typeInfo.ContainsGenericParameters)
                                 {
                                     jObject.Add("objectType", type.FullName);
                                 }
+
+                                //var genericArgs = typeInfo.GetGenericArguments();
+
+                                //if (genericArgs.Any())
+                                //{
+                                //    var childtype = genericArgs.First();
+                                //    var childtypeinfo = childtype.GetTypeInfo();
+                                //    if (childtypeinfo.IsPrimitive || childtype.Name == "String" || childtypeinfo.BaseType == typeof(ValueType))
+                                //    {
+
+                                //    }
+                                //    else
+                                //    {
+                                //        jObject.Add("objectType", childtype.FullName);
+                                //    }
+                                //}
+                                //else
+                                //{
+                                //    jObject.Add("objectType", type.FullName);
+                                //}
                             }
 
                         }

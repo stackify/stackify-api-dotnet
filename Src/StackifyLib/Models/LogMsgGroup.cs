@@ -4,48 +4,47 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace StackifyLib.Models
 {
-    [DataContract]
     public class LogMsgGroup
     {
-        [DataMember]
+        [JsonProperty]
         public int? CDID { get; set; }
-        [DataMember]
+        [JsonProperty]
         public int? CDAppID { get; set; }
-        [DataMember]
+        [JsonProperty]
         public Guid? AppNameID { get; set; }
-        [DataMember]
+        [JsonProperty]
         public Guid? AppEnvID { get; set; }
-        [DataMember]
+        [JsonProperty]
         public short? EnvID { get; set; }
-        [DataMember]
+        [JsonProperty]
         public string Env { get; set; }
-        [DataMember]
+        [JsonProperty]
         public string ServerName { get; set; }
-        [DataMember]
+        [JsonProperty]
         public string AppName { get; set; }
-        [DataMember]
+        [JsonProperty]
         public string AppLoc { get; set; }
-        [DataMember]
+        [JsonProperty]
         public string Logger { get; set; }
 
-        [DataMember]
+        [JsonProperty]
         public string Platform { get; set; }
-    
-        [DataMember]
+
+        [JsonProperty]
         public List<LogMsg> Msgs { get; set; }
 
         public string GetUniqueKey()
         {
-            return (Logger??"") + "" + ServerName + "-" + AppName + "-" + Env + "-" + (EnvID ?? 0) + "-" + (CDID ?? 0) + "-" +
+            return (Logger ?? "") + "" + ServerName + "-" + AppName + "-" + Env + "-" + (EnvID ?? 0) + "-" + (CDID ?? 0) + "-" +
                    (CDAppID ?? 0);
         }
 
     }
 
-    [DataContract]
     public class LogMsg
     {
         private static DateTime _Epoch = new DateTime(1970, 1, 1, 0, 0, 0, 0);
@@ -56,51 +55,51 @@ namespace StackifyLib.Models
             UploadErrors = 0;
         }
 
-        [IgnoreDataMember]
+        [JsonIgnore]
         public int UploadErrors { get; set; }
 
-        [DataMember]
+        [JsonProperty]
         public string Msg { get; set; }
-        [DataMember]
+        [JsonProperty]
         public string data { get; set; } //serialized object as json
-        [DataMember]
+        [JsonProperty]
         public StackifyError Ex { get; set; }
-        [DataMember]
+        [JsonProperty]
         public string Th { get; set; } //thread
-        [DataMember]
+        [JsonProperty]
         public string ThOs { get; set; } //OS thread number
-        [DataMember]
+        [JsonProperty]
         public string TransID { get; set; } //transaction ID
-        [DataMember]
+        [JsonProperty]
         public long EpochMs { get; set; }
-        [DataMember]
+        [JsonProperty]
         public string Level { get; set; }
 
-        [DataMember]
+        [JsonProperty]
         public string UrlRoute { get; set; }
 
 
-        [DataMember]
+        [JsonProperty]
         public string UrlFull { get; set; }
 
 
-        [DataMember]
+        [JsonProperty]
         public string SrcMethod { get; set; }
 
-        [DataMember]
+        [JsonProperty]
         public int? SrcLine { get; set; }
 
-        [DataMember]
+        [JsonProperty]
         public string id { get; set; } //unique id
 
-        [DataMember]
+        [JsonProperty]
         public List<string> Tags { get; set; }
 
-        [IgnoreDataMember]
+        [JsonIgnore]
         public LogMsgGroup AppDetails { get; set; }
 
 
-        [MethodImpl(MethodImplOptions.NoInlining |  MethodImplOptions.PreserveSig | MethodImplOptions.NoOptimization)]
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.PreserveSig | MethodImplOptions.NoOptimization)]
         public void SetLogMsgID(string id, int isError, string logLevel, string logMsg, string logData)
         {
             this.id = id;

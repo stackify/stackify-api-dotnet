@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
-using System.Net.Cache;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -28,9 +26,9 @@ namespace StackifyLib.Utils
         public string DeviceAlias { get; set; }
     }
 
-    public class HttpClient
+    public class StackifyHttpClient
     {
-        public static WebProxy CustomWebProxy = null;
+        // public static IWebProxy CustomWebProxy = null;
 
         public string BaseAPIUrl { get; private set; }
 
@@ -47,7 +45,7 @@ namespace StackifyLib.Utils
                     return Logger.GlobalApiKey;
                 }
             }
-    
+
         }
         private string _APIKey = null;
 
@@ -74,12 +72,12 @@ namespace StackifyLib.Utils
             public Exception Exception { get; set; }
         }
 
-        static HttpClient()
+        static StackifyHttpClient()
         {
-            LoadWebProxyConfig();
+            //LoadWebProxyConfig();
         }
 
-        public HttpClient(string apiKey, string apiUrl)
+        public StackifyHttpClient(string apiKey, string apiUrl)
         {
             if (string.IsNullOrEmpty(apiKey))
             {
@@ -92,34 +90,11 @@ namespace StackifyLib.Utils
 
             if (string.IsNullOrEmpty(apiUrl))
             {
-				string customUrl = Config.Get("Stackify.ApiUrl");
+                string customUrl = Config.Get("Stackify.ApiUrl");
 
                 if (!string.IsNullOrWhiteSpace(customUrl))
                 {
-                    Uri outuri;
-                    if (Uri.TryCreate(customUrl, UriKind.Absolute, out outuri))
-                    {
-                        BaseAPIUrl = System.Web.VirtualPathUtility.AppendTrailingSlash(outuri.ToString());
-                    }
-                }
-
-                if (BaseAPIUrl == null)
-                {
-                    //To account for our initial release which had a URL just for the error module
-					string workaround = Config.Get("Stackify.Url");
-
-                    if (!string.IsNullOrEmpty(workaround))
-                    {
-                        workaround = System.Web.VirtualPathUtility.RemoveTrailingSlash(workaround);
-
-                        int findIt = workaround.IndexOf("Error/V1", StringComparison.InvariantCultureIgnoreCase);
-
-                        if (findIt > 0)
-                        {
-                            workaround = workaround.Substring(0, findIt);
-                            BaseAPIUrl = System.Web.VirtualPathUtility.AppendTrailingSlash(workaround);
-                        }
-                    }
+                    BaseAPIUrl = customUrl;
                 }
 
                 if (BaseAPIUrl == null)
@@ -131,51 +106,52 @@ namespace StackifyLib.Utils
             }
             _LastIdentityAttempt = DateTime.UtcNow.AddMinutes(-15);
 
-            
+            if (!BaseAPIUrl.EndsWith("/"))
+                BaseAPIUrl += "/";
         }
 
-        public static void LoadWebProxyConfig()
-        {
-            try
-            {
-				string val = Config.Get("Stackify.ProxyServer");
+        //    public static void LoadWebProxyConfig()
+        //    {
+        //        try
+        //        {
+        //string val = Config.Get("Stackify.ProxyServer");
 
-                if (!string.IsNullOrEmpty(val))
-                {
+        //            if (!string.IsNullOrEmpty(val))
+        //            {
 
-                    StackifyAPILogger.Log("Setting proxy server based on override config", true);
+        //                StackifyAPILogger.Log("Setting proxy server based on override config", true);
 
-                    var uri = new Uri(val);
+        //                var uri = new Uri(val);
 
-                    var proxy = new WebProxy(uri, false);
+        //                var proxy = new WebProxy(uri, false);
 
-                    if (!string.IsNullOrEmpty(uri.UserInfo) && uri.UserInfo.Contains(":"))
-                    {
-                        string[] pieces = uri.UserInfo.Split(':');
+        //                if (!string.IsNullOrEmpty(uri.UserInfo) && uri.UserInfo.Contains(":"))
+        //                {
+        //                    string[] pieces = uri.UserInfo.Split(':');
 
-                        proxy.Credentials = new NetworkCredential(pieces[0], pieces[1]);
-                    }
-                    else
-                    {
+        //                    proxy.Credentials = new NetworkCredential(pieces[0], pieces[1]);
+        //                }
+        //                else
+        //                {
 
-						string settingUseDefault = Config.Get("Stackify.ProxyUseDefaultCredentials");
+        //		string settingUseDefault = Config.Get("Stackify.ProxyUseDefaultCredentials");
 
-                        bool useDefault;
+        //                    bool useDefault;
 
-                        if (!string.IsNullOrEmpty(settingUseDefault) && bool.TryParse(settingUseDefault, out useDefault))
-                        {
-                            //will make it use the user of the running windows service
-                            proxy.UseDefaultCredentials = useDefault;
-                        }
-                    }
-                    CustomWebProxy = proxy;
-                }
-            }
-            catch (Exception ex)
-            {
-                StackifyAPILogger.Log("Error setting default web proxy " + ex.Message, true);
-            }
-        }
+        //                    if (!string.IsNullOrEmpty(settingUseDefault) && bool.TryParse(settingUseDefault, out useDefault))
+        //                    {
+        //                        //will make it use the user of the running windows service
+        //                        proxy.UseDefaultCredentials = useDefault;
+        //                    }
+        //                }
+        //                CustomWebProxy = proxy;
+        //            }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            StackifyAPILogger.Log("Error setting default web proxy " + ex.Message, true);
+        //        }
+        //    }
 
 
         /// <summary>
@@ -317,11 +293,11 @@ namespace StackifyLib.Utils
                 }
                 StackifyAPILogger.Log("Calling to Identify App");
                 EnvironmentDetail env = EnvironmentDetail.Get(true);
-                string jsonData = JsonConvert.SerializeObject(env, new JsonSerializerSettings() {NullValueHandling = NullValueHandling.Ignore});
+                string jsonData = JsonConvert.SerializeObject(env, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
 
                 var response =
                     SendJsonAndGetResponse(
-                        System.Web.VirtualPathUtility.AppendTrailingSlash(BaseAPIUrl) + "Metrics/IdentifyApp", jsonData);
+                        (BaseAPIUrl) + "Metrics/IdentifyApp", jsonData);
 
                 if (response.Exception == null && response.StatusCode == HttpStatusCode.OK)
                 {
@@ -371,13 +347,13 @@ namespace StackifyLib.Utils
             if (url == null || this.APIKey == null)
             {
                 StackifyAPILogger.Log("unable to send. Missing url or api key");
-                return new StackifyWebResponse() { Exception = new ApplicationException("Missing url or api key") };
+                return new StackifyWebResponse() { Exception = new Exception("Missing url or api key") };
             }
 
             if (!IsAuthorized())
             {
                 StackifyAPILogger.Log("Preventing API call due to unauthorized error");
-                return new StackifyWebResponse() { Exception = new ApplicationException("unauthorized") };
+                return new StackifyWebResponse() { Exception = new Exception("unauthorized") };
             }
 
             StackifyAPILogger.Log("Send to " + url + " key " + this.APIKey + "\r\n" + jsonData);
@@ -390,7 +366,7 @@ namespace StackifyLib.Utils
             {
                 var request = BuildJsonRequest(url, jsonData, compress);
 
-                using (var response = (HttpWebResponse)request.GetResponse())
+                using (var response = (HttpWebResponse)request.GetResponseAsync().GetAwaiter().GetResult())
                 {
                     if (response == null)
                         return null;
@@ -407,7 +383,7 @@ namespace StackifyLib.Utils
                     _LastError = null;
                     LastErrorMessage = null;
 
-                    response.Close();
+                    response.Dispose();
                 }
             }
             catch (WebException ex)
@@ -431,7 +407,7 @@ namespace StackifyLib.Utils
                         result.StatusCode = response.StatusCode;
                         result.ResponseText = GetResponseString(response, started);
 
-                        response.Close();
+                        response.Dispose();
                     }
                 }
             }
@@ -451,13 +427,13 @@ namespace StackifyLib.Utils
             if (url == null || this.APIKey == null)
             {
                 StackifyAPILogger.Log("unable to send. Missing url or api key");
-                return new StackifyWebResponse() { Exception = new ApplicationException("Missing url or api key") };
+                return new StackifyWebResponse() { Exception = new Exception("Missing url or api key") };
             }
 
             if (!IsAuthorized())
             {
                 StackifyAPILogger.Log("Preventing API call due to unauthorized error");
-                return new StackifyWebResponse() { Exception = new ApplicationException("unauthorized") };
+                return new StackifyWebResponse() { Exception = new Exception("unauthorized") };
             }
 
             StackifyAPILogger.Log("Send to " + url + " key " + this.APIKey + "\r\n" + postData);
@@ -470,7 +446,7 @@ namespace StackifyLib.Utils
             {
                 var request = BuildPOSTRequest(url, postData);
 
-                using (var response = (HttpWebResponse)request.GetResponse())
+                using (var response = (HttpWebResponse)request.GetResponseAsync().GetAwaiter().GetResult())
                 {
                     if (response == null)
                         return null;
@@ -486,8 +462,7 @@ namespace StackifyLib.Utils
                     _LastSuccess = DateTime.UtcNow;
                     _LastError = null;
                     LastErrorMessage = null;
-
-                    response.Close();
+                    response.Dispose();
                 }
             }
             catch (WebException ex)
@@ -511,7 +486,7 @@ namespace StackifyLib.Utils
                         result.StatusCode = response.StatusCode;
                         result.ResponseText = GetResponseString(response, started);
 
-                        response.Close();
+                        response.Dispose();
                     }
                 }
             }
@@ -531,10 +506,10 @@ namespace StackifyLib.Utils
         {
             if (response == null)
                 return null;
-            
+
             try
             {
-                
+
                 using (var responseStream = response.GetResponseStream())
                 {
                     if (responseStream == null || !responseStream.CanRead)
@@ -545,7 +520,7 @@ namespace StackifyLib.Utils
                         string responseData = sr.ReadToEnd();
                         long took = (long)DateTime.UtcNow.Subtract(started).TotalMilliseconds;
 
-                        bool forceLog = ((int) response.StatusCode) > 400;
+                        bool forceLog = ((int)response.StatusCode) > 400;
 
                         StackifyAPILogger.Log("GetResponseString HTTP Response: " + ((int)response.StatusCode).ToString() + ", Took: " + took + "ms - " + responseData + " " + response.ResponseUri.ToString(), forceLog);
                         return responseData;
@@ -568,32 +543,34 @@ namespace StackifyLib.Utils
         {
             if (string.IsNullOrEmpty(_version))
             {
-                _version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+                _version =
+                    typeof(StackifyHttpClient).GetTypeInfo()
+                        .Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+                        .InformationalVersion;
+
+                //                _version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
             }
 
             var request = (HttpWebRequest)WebRequest.Create(url);
-            
 
-            request.Headers.Add("X-Stackify-Key", this.APIKey);
-            request.Headers.Add("X-Stackify-PV", "V1");
+            request.Headers["X-Stackify-Key"] = this.APIKey;
             request.ContentType = "application/json";
-            request.KeepAlive = false;
-            request.CachePolicy = new HttpRequestCachePolicy(HttpRequestCacheLevel.NoCacheNoStore);
-            request.UserAgent = "StackifyLib-" + _version;
+            request.Headers[HttpRequestHeader.UserAgent] = "StackifyLibCore-" + _version;
 
-            if (HttpClient.CustomWebProxy != null)
-            {
-                request.Proxy = HttpClient.CustomWebProxy;
-            }
+            //if (HttpClient.CustomWebProxy != null)
+            //{
+
+            //    request.Proxy = HttpClient.CustomWebProxy;
+            //}
 
             if (!string.IsNullOrEmpty(jsonData) && compress)
             {
                 request.Method = "POST";
-                request.Headers.Add(HttpRequestHeader.ContentEncoding, "gzip");
+                request.Headers[HttpRequestHeader.ContentEncoding] = "gzip";
 
                 byte[] payload = Encoding.UTF8.GetBytes(jsonData);
 
-                using (Stream postStream = request.GetRequestStream())
+                using (Stream postStream = request.GetRequestStreamAsync().GetAwaiter().GetResult())
                 {
                     using (var zipStream = new GZipStream(postStream, CompressionMode.Compress))
                     {
@@ -602,14 +579,14 @@ namespace StackifyLib.Utils
                 }
 
             }
-            else if(!string.IsNullOrEmpty(jsonData))
+            else if (!string.IsNullOrEmpty(jsonData))
             {
                 request.Method = "POST";
 
                 byte[] payload = Encoding.UTF8.GetBytes(jsonData);
-                request.ContentLength = payload.Length;
+                request.Headers[HttpRequestHeader.ContentLength] = payload.Length.ToString();
 
-                using (var stream = request.GetRequestStream())
+                using (var stream = request.GetRequestStreamAsync().GetAwaiter().GetResult())
                 {
                     stream.Write(payload, 0, payload.Length);
                 }
@@ -627,32 +604,34 @@ namespace StackifyLib.Utils
         {
             if (string.IsNullOrEmpty(_version))
             {
-                _version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+                _version =
+    typeof(StackifyHttpClient).GetTypeInfo()
+        .Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+        .InformationalVersion;
+
+                //                _version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
             }
 
             var request = (HttpWebRequest)WebRequest.Create(url);
 
 
-            request.Headers.Add("X-Stackify-Key", this.APIKey);
-            request.Headers.Add("X-Stackify-PV", "V1");
+            request.Headers["X-Stackify-Key"] = this.APIKey;
             request.ContentType = "application/x-www-form-urlencoded";
-            request.KeepAlive = false;
-            request.CachePolicy = new HttpRequestCachePolicy(HttpRequestCacheLevel.NoCacheNoStore);
-            request.UserAgent = "StackifyLib-" + _version;
+            request.Headers[HttpRequestHeader.UserAgent] = "StackifyLibCore-" + _version;
 
-            if (HttpClient.CustomWebProxy != null)
-            {
-                request.Proxy = HttpClient.CustomWebProxy;
-            }
+            //if (HttpClient.CustomWebProxy != null)
+            //{
+            //    request.Proxy = HttpClient.CustomWebProxy;
+            //}
 
-           
+
             request.Method = "POST";
-            request.ContentLength = 0;
+            request.Headers[HttpRequestHeader.ContentLength] = "0";
             if (!String.IsNullOrEmpty(postdata))
             {
                 byte[] payload = Encoding.UTF8.GetBytes(postdata);
 
-                using (Stream postStream = request.GetRequestStream())
+                using (Stream postStream = request.GetRequestStreamAsync().GetAwaiter().GetResult())
                 {
                     postStream.Write(payload, 0, payload.Length);
                 }

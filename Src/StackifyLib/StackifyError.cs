@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Web;
 using Newtonsoft.Json;
 using StackifyLib.Utils;
 
+#if NET45 || NET40
+using System.Web;
+#endif
 
 namespace StackifyLib
 {
@@ -14,48 +14,47 @@ namespace StackifyLib
     using StackifyLib.Internal.Logs;
     using System.Threading;
 
-    [DataContract]
     [JsonObject]
-    public class StackifyError : ApplicationException
+    public class StackifyError : Exception
     {
 
-        [DataMember]
+        [JsonProperty]
         public long OccurredEpochMillis { get; set; }
 
         //our version of the error details
-        [DataMember]
+        [JsonProperty]
         public ErrorItem Error { get; set; }
 
         //Details of the device generating the error
-        [DataMember]
+        [JsonProperty]
         public EnvironmentDetail EnvironmentDetail { get; set; }
 
-        [DataMember]
+        [JsonProperty]
         public WebRequestDetail WebRequestDetail { get; set; }
 
-        [DataMember]
+        [JsonProperty]
         public Dictionary<string, string> ServerVariables { get; set; }
 
-        [DataMember]
+        [JsonProperty]
         public string CustomerName { get; set; }
-        [DataMember]
+        [JsonProperty]
         public string UserName { get; set; }
 
         public delegate void CapturDetailHandler(StackifyError ex);
 
         public static event CapturDetailHandler OnCaptureDetail;
-        
+
         //internally kept reference to the exception
-        [IgnoreDataMember]
+        [JsonIgnore]
         private Exception _Exception = null;
-           
-        [IgnoreDataMember]
+
+        [JsonIgnore]
         internal bool _Sent { get; set; }
 
-        [IgnoreDataMember]
+        [JsonIgnore]
         private LogMsg _InternalLogMsg { get; set; }
 
-        [IgnoreDataMember]
+        [JsonIgnore]
         public bool IsUnHandled { get; set; }
 
 
@@ -73,15 +72,15 @@ namespace StackifyLib
             OccurredEpochMillis = (long)ts.TotalMilliseconds;
             this.Error = errorItem;
         }
-        
+
         public StackifyError(Exception exception)
             : this(exception.Message, exception)
         {
-                    
+
         }
 
         public StackifyError(string message, Exception exception)
-            :base(message)
+            : base(message)
         {
             Init();
 
@@ -93,11 +92,13 @@ namespace StackifyLib
                     Error = new ErrorItem(exception.InnerException);
                     _Exception = exception.InnerException;
                 }
+#if NET45 || NET40
                 else if (exception is HttpUnhandledException && exception.InnerException != null)
                 {
                     Error = new ErrorItem(exception.GetBaseException());
                     _Exception = exception.GetBaseException();
                 }
+#endif
                 else
                 {
                     Error = new ErrorItem(exception);
@@ -116,6 +117,7 @@ namespace StackifyLib
             EnvironmentDetail = EnvironmentDetail.Get(false);
             ServerVariables = new Dictionary<string, string>();
 
+#if NET45 || NET40
             if (System.Web.HttpContext.Current != null)
             {
                 // Make sure that the request is available in the current context.
@@ -158,6 +160,7 @@ namespace StackifyLib
                 }
             }
 
+#endif
             //Fire event
             if (OnCaptureDetail != null)
             {
@@ -172,7 +175,7 @@ namespace StackifyLib
                 if (!String.IsNullOrEmpty(Error.Message))
                 {
                     if (!String.IsNullOrEmpty(message) &&
-                        !Error.Message.Equals(message, StringComparison.InvariantCultureIgnoreCase))
+                        !Error.Message.Equals(message, StringComparison.CurrentCultureIgnoreCase))
                     {
                         Error.Message = Error.Message + " (" + message + ")";
                     }
@@ -186,7 +189,7 @@ namespace StackifyLib
             return this;
         }
 
-        
+
 
 
         public static StackifyError New(Exception ex)
@@ -205,10 +208,10 @@ namespace StackifyLib
 
             try
             {
-                if (ex._Exception is System.Threading.ThreadAbortException)
-                {
-                    ignore = true;
-                }
+                //if (ex._Exception is System.Threading.ThreadAbortException)
+                //{
+                //    ignore = true;
+                //}
             }
             catch (Exception)
             {
@@ -230,15 +233,15 @@ namespace StackifyLib
 
             try
             {
-                if (ex is System.Threading.ThreadAbortException)
-                {
-                    ignore = true;
-                }
+                //if (ex is System.Threading.ThreadAbortException)
+                //{
+                //    ignore = true;
+                //}
             }
             catch (Exception)
             {
-                
-                
+
+
             }
 
             return ignore;
@@ -288,9 +291,9 @@ namespace StackifyLib
                     msg.Ex = this;
                     msg.Msg = this.ToString();
 
-               
+
                     Logger.QueueLogObject(msg, null);
-              
+
                     _Sent = true;
                 }
             }
@@ -324,7 +327,7 @@ namespace StackifyLib
             if (customProperties == null)
                 return this;
 
-            if(_InternalLogMsg == null)
+            if (_InternalLogMsg == null)
                 _InternalLogMsg = new LogMsg();
 
             _InternalLogMsg.data = HelperFunctions.SerializeDebugData(customProperties, true);

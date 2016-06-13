@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.Remoting.Messaging;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace StackifyLib
@@ -35,7 +30,7 @@ namespace StackifyLib
             _appReportingCategory = appLevelReportingCategory;
 
 
-
+#if NET45
             try
             {
                 if (System.Web.HttpContext.Current != null)
@@ -50,7 +45,7 @@ namespace StackifyLib
 
                 if (string.IsNullOrEmpty(_RequestID))
                 {
-                    Object correltionManagerId = CallContext.LogicalGetData("Stackify-RequestID");
+                    Object correltionManagerId = System.Runtime.Remoting.Messaging.CallContext.LogicalGetData("Stackify-RequestID");
 
                     if (correltionManagerId != null)
                     {
@@ -62,13 +57,14 @@ namespace StackifyLib
             {
 
             }
-
+#endif
          
         }
 
         [MethodImpl(MethodImplOptions.PreserveSig | MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public static void SetReportingUrl(string reportingUrl)
         {
+#if NET45
             try
             {
                 if (System.Web.HttpContext.Current != null)
@@ -80,7 +76,7 @@ namespace StackifyLib
             {
                 
             }
-     
+#endif
         }
 
 

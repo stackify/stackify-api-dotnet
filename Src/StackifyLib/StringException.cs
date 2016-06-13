@@ -13,7 +13,7 @@ namespace StackifyLib
     /// <summary>
     /// Used when someone logs an error but only logs a string with no exception
     /// </summary>
-    public class StringException : ApplicationException
+    public class StringException : Exception
     {
         public StringException(string message)
             : base(message)
