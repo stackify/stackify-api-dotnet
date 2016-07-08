@@ -106,7 +106,7 @@ namespace StackifyLib
 			{
 				if (key != null)
 				{
-#if NET45
+#if NET45 || NET40
                     v = System.Configuration.ConfigurationManager.AppSettings[key];
 #endif
 					if (string.IsNullOrEmpty(v))

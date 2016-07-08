@@ -10,10 +10,10 @@ namespace StackifyLib
 {
     public class API
     {
-        private static Utils.StackifyHttpClient client;
+        private static Utils.HttpClient client;
         static API()
         {
-         client = new StackifyHttpClient(null, null);   
+         client = new HttpClient(null, null);   
         }
 
         public static Models.Device[] GetDeviceList()

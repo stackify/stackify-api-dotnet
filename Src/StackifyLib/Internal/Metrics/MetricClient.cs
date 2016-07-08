@@ -12,7 +12,7 @@ namespace StackifyLib.Internal.Metrics
 {
     public static class MetricClient
     {
-        private static StackifyHttpClient _httpClient = new StackifyHttpClient(null, null);
+        private static HttpClient _httpClient = new HttpClient(null, null);
 
         private readonly static ConcurrentQueue<Metric> _MetricQueue;
 

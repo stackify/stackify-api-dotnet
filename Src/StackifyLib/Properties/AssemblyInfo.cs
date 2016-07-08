@@ -19,8 +19,10 @@ using System.Runtime.InteropServices;
 // COM, set the ComVisible attribute to true on that type.
 [assembly: ComVisible(false)]
 
+#if NET45 || NET40
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("67aae97f-aa9f-4c35-b611-b68af22b9712")]
+#endif
 
 // Version information for an assembly consists of the following four values:
 //

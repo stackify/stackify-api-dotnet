@@ -1,0 +1,36 @@
+{
+  "version": "1.23.1-beta2",
+
+  "title": "Stackify NLog",
+
+  "packOptions": {
+    "owners": [ "stackify_matt", "jtaylorstackify" ],
+    "tags": [ "stackify", "errors", "logs" ],
+    "summary": "NLog target to send errors and logs to Stackify and Prefix"
+
+  },
+
+  "dependencies": {
+    "StackifyLib": "1.23.1-beta2"
+  },
+
+  "frameworks": {
+    "netstandard1.3": {
+      "dependencies": {
+        "NLog": "4.4.0-beta13"
+      }
+    },
+    "net40": {
+      "dependencies": {
+        "NLog": "4.0.1"
+      }
+
+    },
+    "net45": {
+      "dependencies": {
+        "NLog": "4.0.1"
+      }
+
+    }
+  }
+}

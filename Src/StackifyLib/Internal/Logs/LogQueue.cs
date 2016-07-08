@@ -490,7 +490,11 @@ namespace StackifyLib.Internal.Logs
                 //wait for it to finish up to 5 seconds
                 while (_UploadingNow && DateTime.UtcNow < stopWaiting)
                 {
+#if NET45 || NET40
+                    System.Threading.Thread.Sleep(10);
+#else
                     Task.Delay(10).Wait();
+#endif
                 }
 
             }

@@ -26,7 +26,7 @@ namespace StackifyLib.Utils
         public string DeviceAlias { get; set; }
     }
 
-    public class StackifyHttpClient
+    public class HttpClient
     {
         // public static IWebProxy CustomWebProxy = null;
 
@@ -72,12 +72,12 @@ namespace StackifyLib.Utils
             public Exception Exception { get; set; }
         }
 
-        static StackifyHttpClient()
+        static HttpClient()
         {
             //LoadWebProxyConfig();
         }
 
-        public StackifyHttpClient(string apiKey, string apiUrl)
+        public HttpClient(string apiKey, string apiUrl)
         {
             if (string.IsNullOrEmpty(apiKey))
             {
@@ -366,7 +366,11 @@ namespace StackifyLib.Utils
             {
                 var request = BuildJsonRequest(url, jsonData, compress);
 
+#if NET45 || NET40
+                using (var response = (HttpWebResponse)request.GetResponse())
+#else
                 using (var response = (HttpWebResponse)request.GetResponseAsync().GetAwaiter().GetResult())
+#endif
                 {
                     if (response == null)
                         return null;
@@ -383,7 +387,11 @@ namespace StackifyLib.Utils
                     _LastError = null;
                     LastErrorMessage = null;
 
+#if NET40
+                    response.Close();
+#else
                     response.Dispose();
+#endif
                 }
             }
             catch (WebException ex)
@@ -407,7 +415,11 @@ namespace StackifyLib.Utils
                         result.StatusCode = response.StatusCode;
                         result.ResponseText = GetResponseString(response, started);
 
-                        response.Dispose();
+#if NET40
+                        response.Close();
+#else
+                    response.Dispose();
+#endif
                     }
                 }
             }
@@ -446,7 +458,11 @@ namespace StackifyLib.Utils
             {
                 var request = BuildPOSTRequest(url, postData);
 
+#if NET45 || NET40
+                using (var response = (HttpWebResponse)request.GetResponse())
+#else
                 using (var response = (HttpWebResponse)request.GetResponseAsync().GetAwaiter().GetResult())
+#endif
                 {
                     if (response == null)
                         return null;
@@ -462,7 +478,11 @@ namespace StackifyLib.Utils
                     _LastSuccess = DateTime.UtcNow;
                     _LastError = null;
                     LastErrorMessage = null;
+#if NET40
+                    response.Close();
+#else
                     response.Dispose();
+#endif
                 }
             }
             catch (WebException ex)
@@ -486,7 +506,11 @@ namespace StackifyLib.Utils
                         result.StatusCode = response.StatusCode;
                         result.ResponseText = GetResponseString(response, started);
 
-                        response.Dispose();
+#if NET40
+                        response.Close();
+#else
+                    response.Dispose();
+#endif
                     }
                 }
             }
@@ -543,12 +567,15 @@ namespace StackifyLib.Utils
         {
             if (string.IsNullOrEmpty(_version))
             {
+
+#if NET45 || NET40
+                _version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+#else
                 _version =
-                    typeof(StackifyHttpClient).GetTypeInfo()
+                    typeof(HttpClient).GetTypeInfo()
                         .Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
                         .InformationalVersion;
-
-                //                _version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+#endif
             }
 
             var request = (HttpWebRequest)WebRequest.Create(url);
@@ -570,7 +597,11 @@ namespace StackifyLib.Utils
 
                 byte[] payload = Encoding.UTF8.GetBytes(jsonData);
 
+#if NET45 || NET40
+                using (Stream postStream = request.GetRequestStream())
+#else
                 using (Stream postStream = request.GetRequestStreamAsync().GetAwaiter().GetResult())
+#endif
                 {
                     using (var zipStream = new GZipStream(postStream, CompressionMode.Compress))
                     {
@@ -586,7 +617,11 @@ namespace StackifyLib.Utils
                 byte[] payload = Encoding.UTF8.GetBytes(jsonData);
                 request.Headers[HttpRequestHeader.ContentLength] = payload.Length.ToString();
 
-                using (var stream = request.GetRequestStreamAsync().GetAwaiter().GetResult())
+#if NET45 || NET40
+                using (Stream stream = request.GetRequestStream())
+#else
+                using (Stream stream = request.GetRequestStreamAsync().GetAwaiter().GetResult())
+#endif
                 {
                     stream.Write(payload, 0, payload.Length);
                 }
@@ -604,12 +639,14 @@ namespace StackifyLib.Utils
         {
             if (string.IsNullOrEmpty(_version))
             {
+#if NET45 || NET40
+                _version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+#else
                 _version =
-    typeof(StackifyHttpClient).GetTypeInfo()
-        .Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
-        .InformationalVersion;
-
-                //                _version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+                    typeof(HttpClient).GetTypeInfo()
+                        .Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+                        .InformationalVersion;
+#endif
             }
 
             var request = (HttpWebRequest)WebRequest.Create(url);
@@ -631,7 +668,11 @@ namespace StackifyLib.Utils
             {
                 byte[] payload = Encoding.UTF8.GetBytes(postdata);
 
+#if NET45 || NET40
+                using (Stream postStream = request.GetRequestStream())
+#else
                 using (Stream postStream = request.GetRequestStreamAsync().GetAwaiter().GetResult())
+#endif
                 {
                     postStream.Write(payload, 0, payload.Length);
                 }

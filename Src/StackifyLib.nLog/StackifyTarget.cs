@@ -4,13 +4,14 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+#if NET45 || NET40
 using System.Runtime.Remoting.Messaging;
+#endif
 using System.Security;
 using System.Text;
 using System.Threading.Tasks;
 using NLog;
 using NLog.Targets;
-using System.ComponentModel.DataAnnotations;
 using StackifyLib;
 using System.Diagnostics;
 using StackifyLib.Internal.Logs;
@@ -150,6 +151,7 @@ namespace StackifyLib.nLog
                     }
                 }
             }
+            #if NET45 || NET40
 
             foreach (string key in _CallContextKeys)
             {
@@ -160,7 +162,7 @@ namespace StackifyLib.nLog
                     properties[key.ToLower()] = value;
                 }
             }
-
+#endif
             return properties;
 
         }
