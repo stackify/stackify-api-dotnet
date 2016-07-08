@@ -28,7 +28,7 @@ namespace StackifyLib.Utils
 
     public class HttpClient
     {
-        // public static IWebProxy CustomWebProxy = null;
+         public static IWebProxy CustomWebProxy = null;
 
         public string BaseAPIUrl { get; private set; }
 
@@ -74,7 +74,9 @@ namespace StackifyLib.Utils
 
         static HttpClient()
         {
-            //LoadWebProxyConfig();
+#if NET45 || NET40
+            LoadWebProxyConfig();
+#endif
         }
 
         public HttpClient(string apiKey, string apiUrl)
@@ -110,49 +112,50 @@ namespace StackifyLib.Utils
                 BaseAPIUrl += "/";
         }
 
-        //    public static void LoadWebProxyConfig()
-        //    {
-        //        try
-        //        {
-        //string val = Config.Get("Stackify.ProxyServer");
+#if NET45 || NET40
+        public static void LoadWebProxyConfig()
+        {
+            try
+            {
+                string val = Config.Get("Stackify.ProxyServer");
 
-        //            if (!string.IsNullOrEmpty(val))
-        //            {
+                if (!string.IsNullOrEmpty(val))
+                {
 
-        //                StackifyAPILogger.Log("Setting proxy server based on override config", true);
+                    StackifyAPILogger.Log("Setting proxy server based on override config", true);
 
-        //                var uri = new Uri(val);
+                    var uri = new Uri(val);
 
-        //                var proxy = new WebProxy(uri, false);
+                    var proxy = new WebProxy(uri, false);
 
-        //                if (!string.IsNullOrEmpty(uri.UserInfo) && uri.UserInfo.Contains(":"))
-        //                {
-        //                    string[] pieces = uri.UserInfo.Split(':');
+                    if (!string.IsNullOrEmpty(uri.UserInfo) && uri.UserInfo.Contains(":"))
+                    {
+                        string[] pieces = uri.UserInfo.Split(':');
 
-        //                    proxy.Credentials = new NetworkCredential(pieces[0], pieces[1]);
-        //                }
-        //                else
-        //                {
+                        proxy.Credentials = new NetworkCredential(pieces[0], pieces[1]);
+                    }
+                    else
+                    {
 
-        //		string settingUseDefault = Config.Get("Stackify.ProxyUseDefaultCredentials");
+                        string settingUseDefault = Config.Get("Stackify.ProxyUseDefaultCredentials");
 
-        //                    bool useDefault;
+                        bool useDefault;
 
-        //                    if (!string.IsNullOrEmpty(settingUseDefault) && bool.TryParse(settingUseDefault, out useDefault))
-        //                    {
-        //                        //will make it use the user of the running windows service
-        //                        proxy.UseDefaultCredentials = useDefault;
-        //                    }
-        //                }
-        //                CustomWebProxy = proxy;
-        //            }
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            StackifyAPILogger.Log("Error setting default web proxy " + ex.Message, true);
-        //        }
-        //    }
-
+                        if (!string.IsNullOrEmpty(settingUseDefault) && bool.TryParse(settingUseDefault, out useDefault))
+                        {
+                            //will make it use the user of the running windows service
+                            proxy.UseDefaultCredentials = useDefault;
+                        }
+                    }
+                    CustomWebProxy = proxy;
+                }
+            }
+            catch (Exception ex)
+            {
+                StackifyAPILogger.Log("Error setting default web proxy " + ex.Message, true);
+            }
+        }
+#endif
 
         /// <summary>
         /// This method does some throttling when errors happen to control when it should try again. Error backoff logic
@@ -582,7 +585,7 @@ namespace StackifyLib.Utils
 
             request.Headers["X-Stackify-Key"] = this.APIKey;
             request.ContentType = "application/json";
-            request.Headers[HttpRequestHeader.UserAgent] = "StackifyLibCore-" + _version;
+            request.Headers[HttpRequestHeader.UserAgent] = "StackifyLib-" + _version;
 
             //if (HttpClient.CustomWebProxy != null)
             //{
