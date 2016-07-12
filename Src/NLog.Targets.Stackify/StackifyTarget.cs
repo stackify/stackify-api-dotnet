@@ -10,15 +10,15 @@ using System.Runtime.Remoting.Messaging;
 using System.Security;
 using System.Text;
 using System.Threading.Tasks;
-using NLog;
-using NLog.Targets;
 using StackifyLib;
 using System.Diagnostics;
 using StackifyLib.Internal.Logs;
 using StackifyLib.Models;
 using StackifyLib.Utils;
+using NLog.Targets;
+using NLog;
 
-namespace StackifyLib.nLog
+namespace NLog.Targets.Stackify
 {
     [Target("StackifyTarget")]
     public class StackifyTarget : TargetWithLayout 
@@ -42,19 +42,19 @@ namespace StackifyLib.nLog
         {
             try
             {
-                Utils.StackifyAPILogger.Log("NLog target closing");
+                StackifyLib.Utils.StackifyAPILogger.Log("NLog target closing");
                 _logClient.Close();
                 StackifyLib.Internal.Metrics.MetricClient.StopMetricsQueue("NLog CloseTarget");
             }
             catch (Exception ex)
             {
-                Utils.StackifyAPILogger.Log("NLog target closing error: " + ex.ToString());
+                StackifyLib.Utils.StackifyAPILogger.Log("NLog target closing error: " + ex.ToString());
             }
         }
 
         protected override void InitializeTarget()
         {
-            Utils.StackifyAPILogger.Log("NLog InitializeTarget");
+            StackifyLib.Utils.StackifyAPILogger.Log("NLog InitializeTarget");
 
             _logClient = new LogClient("StackifyLib.net-nlog", apiKey, uri);
             if (!String.IsNullOrEmpty(globalContextKeys))
@@ -82,7 +82,7 @@ namespace StackifyLib.nLog
             {
                 //make sure the buffer isn't overflowing
                 //if it is skip since we can't do anything with the message
-                if (Logger.PrefixEnabled() || _logClient.CanQueue())
+                if (StackifyLib.Logger.PrefixEnabled() || _logClient.CanQueue())
                 {
                     var logMsg = Translate(logEvent);
                     if (logMsg != null)

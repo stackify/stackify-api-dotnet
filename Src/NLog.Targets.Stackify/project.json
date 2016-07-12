@@ -1,10 +1,11 @@
 {
-  "version": "1.23.1-beta2",
+  "version": "1.23.1",
 
-  "title": "Stackify NLog",
+  "title": "NLog.Targets.Stackify",
 
   "packOptions": {
     "owners": [ "stackify_matt", "jtaylorstackify" ],
+    "author": "Matt Watson",
     "tags": [ "stackify", "errors", "logs" ],
     "summary": "NLog target to send errors and logs to Stackify and Prefix"
 
@@ -17,18 +18,18 @@
   "frameworks": {
     "netstandard1.3": {
       "dependencies": {
-        "NLog": "4.4.0-beta13"
+        "NLog": "4.4.0-*"
       }
     },
     "net40": {
       "dependencies": {
-        "NLog": "4.0.1"
+        "NLog": "4.2.3"
       }
 
     },
     "net45": {
       "dependencies": {
-        "NLog": "4.0.1"
+        "NLog": "4.2.3"
       }
 
     }

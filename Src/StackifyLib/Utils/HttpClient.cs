@@ -657,7 +657,7 @@ namespace StackifyLib.Utils
 
             request.Headers["X-Stackify-Key"] = this.APIKey;
             request.ContentType = "application/x-www-form-urlencoded";
-            request.Headers[HttpRequestHeader.UserAgent] = "StackifyLibCore-" + _version;
+            request.Headers[HttpRequestHeader.UserAgent] = "StackifyLib-" + _version;
 
             //if (HttpClient.CustomWebProxy != null)
             //{
