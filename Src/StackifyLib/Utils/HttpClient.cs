@@ -581,11 +581,16 @@ namespace StackifyLib.Utils
 #endif
             }
 
-            var request = (HttpWebRequest)WebRequest.Create(url);
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+
+#if NET45 || NET40
+            request.UserAgent = "StackifyLib-" + _version;
+#else
+            request.Headers[HttpRequestHeader.UserAgent] = "StackifyLib-" + _version;
+#endif
 
             request.Headers["X-Stackify-Key"] = this.APIKey;
             request.ContentType = "application/json";
-            request.Headers[HttpRequestHeader.UserAgent] = "StackifyLib-" + _version;
 
             //if (HttpClient.CustomWebProxy != null)
             //{
@@ -657,7 +662,12 @@ namespace StackifyLib.Utils
 
             request.Headers["X-Stackify-Key"] = this.APIKey;
             request.ContentType = "application/x-www-form-urlencoded";
+
+#if NET45 || NET40
+            request.UserAgent = "StackifyLib-" + _version;
+#else
             request.Headers[HttpRequestHeader.UserAgent] = "StackifyLib-" + _version;
+#endif
 
             //if (HttpClient.CustomWebProxy != null)
             //{
