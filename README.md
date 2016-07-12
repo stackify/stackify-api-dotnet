@@ -79,21 +79,14 @@ If you log an object with the message, Stackify's log viewer makes it easy to se
 
 **Install via NuGet package**
 ```
-PM> Install-Package StackifyLib.NLog
+PM> Install-Package NLog.Targets.Stackify
 ```
-
-Nuget packages are compiled against 2.0.1.2 but any newer version (including v3) will work with a valid assembly binding redirect.
-  
-       <dependentAssembly>
-        <assemblyIdentity name="NLog" publicKeyToken="5120e14c03d0593c" culture="neutral" />
-        <bindingRedirect oldVersion="0.0.0.0-3.1.0.0" newVersion="3.1.0.0" />
-      </dependentAssembly>
 
 Sample config:
 
       <nlog>
         <extensions>
-          <add assembly="StackifyLib.nLog"/>
+          <add assembly="NLog.Targets.Stackify"/>
         </extensions>
         <targets>
           <target name="stackify" type="StackifyTarget" globalContextKeys="examplekey1,key2" 
