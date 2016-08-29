@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if NET45 || NET40
+using System;
 using System.Linq;
 using System.Text;
 using System.Web;
@@ -184,3 +185,4 @@ namespace StackifyLib.Web
         }
     }
 }
+#endif

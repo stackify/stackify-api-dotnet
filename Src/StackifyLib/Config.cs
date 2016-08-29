@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Configuration;
 using System.Diagnostics;
 using Newtonsoft.Json;
 
@@ -107,7 +106,9 @@ namespace StackifyLib
 			{
 				if (key != null)
 				{
-					v = ConfigurationManager.AppSettings[key];
+#if NET45 || NET40
+                    v = System.Configuration.ConfigurationManager.AppSettings[key];
+#endif
 					if (string.IsNullOrEmpty(v))
 						v = Environment.GetEnvironmentVariable(key);
 				}

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web.Configuration;
+//using System.Web.Configuration;
 using Newtonsoft.Json;
 using StackifyLib.Models;
 using StackifyLib.Utils;
@@ -289,14 +289,14 @@ namespace StackifyLib.Internal.Logs
                 if (_HttpClient.IsRecentError())
                 {
                     var tcs = new TaskCompletionSource<HttpClient.StackifyWebResponse>();
-                    tcs.SetResult(new HttpClient.StackifyWebResponse() { Exception = new ApplicationException("Unable to send logs at this time due to recent error: " + (_HttpClient.LastErrorMessage ?? "")) });
+                    tcs.SetResult(new HttpClient.StackifyWebResponse() { Exception = new Exception("Unable to send logs at this time due to recent error: " + (_HttpClient.LastErrorMessage ?? "")) });
                     return tcs.Task;
                 }
 
                 if (!identified)
                 {
                     var tcs = new TaskCompletionSource<HttpClient.StackifyWebResponse>();
-                    tcs.SetResult(new HttpClient.StackifyWebResponse() { Exception = new ApplicationException("Unable to send logs at this time. Unable to identify app") });
+                    tcs.SetResult(new HttpClient.StackifyWebResponse() { Exception = new Exception("Unable to send logs at this time. Unable to identify app") });
                     return tcs.Task;
                 }
 
@@ -305,12 +305,14 @@ namespace StackifyLib.Internal.Logs
                 string jsonData = JsonConvert.SerializeObject(groups, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
 
                 
-                string urlToUse = System.Web.VirtualPathUtility.AppendTrailingSlash(_HttpClient.BaseAPIUrl) + "Log/SaveMultipleGroups";
+                string urlToUse = (_HttpClient.BaseAPIUrl) + "Log/SaveMultipleGroups";
 
 
                 if (!_ServicePointSet)
                 {
+#if NET45 || NET40
                     ServicePointManager.FindServicePoint(urlToUse, null).ConnectionLimit = 10;
+#endif
                     _ServicePointSet = true;
                 }
 

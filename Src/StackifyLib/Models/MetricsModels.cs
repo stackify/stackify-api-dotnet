@@ -40,7 +40,7 @@ namespace StackifyLib.Models
         public string Name { get; set; }
         public MetricType MetricType { get; set; }
         public double Value { get; set; }
-        
+
         public DateTime Occurred { get; internal set; }
 
         public string AggregateKey { get; set; }
@@ -100,7 +100,7 @@ namespace StackifyLib.Models
         public string Category { get; private set; }
         public string Name { get; private set; }
         public double Value { get; set; }
-        
+
         public DateTime OccurredUtc { get; set; }
         public int? MonitorID { get; set; }
         public MetricType MetricType { get; private set; }
@@ -122,7 +122,7 @@ namespace StackifyLib.Models
         public int? DeviceAppID { get; set; }
         public Guid? AppNameID { get; set; }
 
-        public int MetricTypeID { get; set; } 
+        public int MetricTypeID { get; set; }
     }
 
     internal class GetMetricResponse

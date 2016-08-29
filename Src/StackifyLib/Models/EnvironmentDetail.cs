@@ -1,20 +1,19 @@
 ﻿using System;
-using System.Configuration;
+using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Management;
 using System.Net;
-using System.Runtime.Serialization;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Web.Hosting;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
 using StackifyLib.Utils;
-using System.Web;
-
+#if NET45 || NET40
+using System.Linq;
+using System.Web.Hosting;
+using System.Management;
+#endif
 namespace StackifyLib.Models
 {
-    [DataContract]
     public class EnvironmentDetail
     {
 
@@ -37,6 +36,7 @@ namespace StackifyLib.Models
         /// </summary>
         private void GetAzureInfo()
         {
+#if NET45 || NET40
             if (registryAccessFailure)
                 return;
 
@@ -57,7 +57,7 @@ namespace StackifyLib.Models
                             if (deployments.Any())
                             {
                                 string deploymentID = deployments.First();
-                                
+
                                 Guid g;
                                 bool validDeploymentID = Guid.TryParse(deploymentID, out g);
                                 if (!validDeploymentID)
@@ -96,6 +96,7 @@ namespace StackifyLib.Models
             {
                 StackifyLib.Utils.StackifyAPILogger.Log("Error seeing if the app is an azure cloud service\r\n" + ex.ToString(), true);
             }
+#endif
         }
 
         // http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html#d0e30002
@@ -104,6 +105,7 @@ namespace StackifyLib.Models
         /// <summary>
         /// Get the EC2 Instance name if it exists else null
         /// </summary>
+#if NET45 || NET40
         public static string GetEC2InstanceId()
         {
             try
@@ -111,9 +113,9 @@ namespace StackifyLib.Models
                 var request = (HttpWebRequest)WebRequest.Create(EC2InstanceIdUrl);
                 // wait 5 seconds
                 request.Timeout = 5000;
-                using (var response = (HttpWebResponse) request.GetResponse())
+                using (var response = (HttpWebResponse)request.GetResponse())
                 {
-                    if ((int) response.StatusCode >= 200 && (int) response.StatusCode < 300)
+                    if ((int)response.StatusCode >= 200 && (int)response.StatusCode < 300)
                     {
                         var encoding = Encoding.GetEncoding(response.CharacterSet);
                         using (var responseStream = response.GetResponseStream())
@@ -134,12 +136,41 @@ namespace StackifyLib.Models
             }
 
         }
+#else
+        public static async Task<string> GetEC2InstanceId()
+        {
+            try
+            {
 
+                using (var client = new System.Net.Http.HttpClient())
+                {
+                    client.Timeout = TimeSpan.FromSeconds(5);
+                    var content = await client.GetAsync(EC2InstanceIdUrl);
+
+                    int statusCode = (int)content.StatusCode;
+
+                    if (statusCode >= 200 && statusCode < 300)
+                    {
+                        string id = await content.Content.ReadAsStringAsync();
+                        return string.IsNullOrWhiteSpace(id) ? null : id;
+                    }
+                }
+
+            }
+            catch // if not in aws this will timeout
+            {
+                return null;
+            }
+
+            return null;
+        }
+#endif
         /// <summary>
         /// Get the display name of the windows service if it is a windows service
         /// </summary>
         private void IsWindowService()
         {
+#if NET45 || NET40
             try
             {
                 string query = "select DisplayName from Win32_Service WHERE ProcessID='" + System.Diagnostics.Process.GetCurrentProcess().Id + "'";
@@ -169,10 +200,11 @@ namespace StackifyLib.Models
             {
                 StackifyLib.Utils.StackifyAPILogger.Log("Unable to get windows service name\r\n" + ex.ToString(), true);
             }
+#endif
         }
 
-        
-        
+
+
 
         public EnvironmentDetail(bool loadDetails)
         {
@@ -180,7 +212,7 @@ namespace StackifyLib.Models
                 return;
 
             bool isWebRequest = false;
-
+#if NET45 || NET40
             try
             {
                 isWebRequest = AppDomain.CurrentDomain.FriendlyName.Contains("W3SVC");
@@ -230,7 +262,7 @@ namespace StackifyLib.Models
                 StackifyLib.Utils.StackifyAPILogger.Log("Error figuring out app environment details\r\n" + ex.ToString(), true);
             }
 
-    
+#endif
 
             try
             {
@@ -244,7 +276,7 @@ namespace StackifyLib.Models
                 }
                 else
                 {
-					ConfiguredAppName = Config.Get("Stackify.AppName");
+                    ConfiguredAppName = Config.Get("Stackify.AppName");
                 }
 
 
@@ -254,21 +286,32 @@ namespace StackifyLib.Models
                 }
                 else
                 {
-					ConfiguredEnvironmentName = Config.Get("Stackify.Environment");
+                    ConfiguredEnvironmentName = Config.Get("Stackify.Environment");
                 }
 
                 //might be azure server. If it is, get the AppName from that
                 GetAzureInfo();
-                
 
+
+#if NET45 || NET40
                 //Not a web app, check for windows service
                 if (!Environment.UserInteractive && !AppDomain.CurrentDomain.FriendlyName.Contains("W3SVC"))
                 {
                     IsWindowService();
                 }
+#endif
+
+
+#if NET45 || NET40
 
                 DeviceName = GetEC2InstanceId() ?? Environment.MachineName;
+#else
+                var instanceID_task = GetEC2InstanceId();
+                instanceID_task.Wait();
+                DeviceName = instanceID_task.Result ?? Process.GetCurrentProcess().MachineName;
+#endif
 
+#if NET45 || NET40
                 if (string.IsNullOrEmpty(AppName) && !isWebRequest)
                 {
                     AppName = AppDomain.CurrentDomain.FriendlyName;
@@ -287,16 +330,21 @@ namespace StackifyLib.Models
                 {
                     AppLocation += "\\" + AppDomain.CurrentDomain.FriendlyName; //add the file name on the end
                 }
+#else
+                AppLocation = AppContext.BaseDirectory;
+#endif
+
             }
             catch (Exception ex)
             {
                 StackifyLib.Utils.StackifyAPILogger.Log("Error figuring out app environment details\r\n" + ex.ToString(), true);
             }
 
+#if NET45 || NET40
             try
             {
-                
-                
+
+
                 //if we do not have an appname still, use the app path or folder name
                 if (string.IsNullOrEmpty(AppName) && isWebRequest && HostingEnvironment.ApplicationVirtualPath != null)
                 {
@@ -318,25 +366,26 @@ namespace StackifyLib.Models
             {
                 StackifyLib.Utils.StackifyAPILogger.Log("Error figuring out app environment details\r\n" + ex.ToString(), true);
             }
-           
+#endif
         }
 
-        [DataMember]
+        [JsonProperty]
         public string DeviceName { get; set; }
-        [DataMember]
+        [JsonProperty]
         public string AppLocation { get; set; }
-        [DataMember]
+        [JsonProperty]
         public string AppName { get; set; }
-        [DataMember]
+        [JsonProperty]
         public string WebAppID { get; set; }
-        [DataMember]
+        [JsonProperty]
         public string ConfiguredAppName { get; set; }
-        [DataMember]
+        [JsonProperty]
         public string ConfiguredEnvironmentName { get; set; }
-        [DataMember]
+
+        [JsonProperty]
         public bool IsAzureWorkerRole { get; set; }
 
-        [IgnoreDataMember]
+        [JsonIgnore]
         public string AzureInstanceName { get; set; }
 
         public string AppNameToUse()

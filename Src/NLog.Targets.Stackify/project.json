@@ -1,0 +1,39 @@
+{
+  "version": "1.23.3",
+
+  "title": "NLog.Targets.Stackify",
+
+  "packOptions": {
+    "owners": [ "stackify_matt", "jtaylorstackify" ],
+    "author": "Matt Watson",
+    "tags": [ "stackify", "errors", "logs" ],
+    "summary": "NLog target to send errors and logs to Stackify and Prefix"
+
+  },
+
+  "dependencies": {
+  },
+
+  "frameworks": {
+    "netstandard1.3": {
+      "dependencies": {
+        "NLog": "4.4.0-*",
+        "StackifyLib": "1.23.3"
+      }
+    },
+    "net40": {
+      "dependencies": {
+        "NLog": "4.2.3",
+        "StackifyLib": "1.23.3"
+      }
+
+    },
+    "net45": {
+      "dependencies": {
+        "NLog": "4.2.3",
+        "StackifyLib": "1.23.3"
+      }
+
+    }
+  }
+}

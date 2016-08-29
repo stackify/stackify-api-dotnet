@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Text;
@@ -257,8 +258,8 @@ namespace StackifyLib.Models
 
                 var instanceID_task = GetEC2InstanceId();
                 instanceID_task.Wait();
-                DeviceName = instanceID_task.Result ?? Environment.MachineName;
-
+                DeviceName = instanceID_task.Result ?? Process.GetCurrentProcess().MachineName;
+                
                 //if (string.IsNullOrEmpty(AppName) && !isWebRequest)
                 //{
                 //    AppName = AppDomain.CurrentDomain.FriendlyName;

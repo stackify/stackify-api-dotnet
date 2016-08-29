@@ -1,12 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlTypes;
+//using System.Data.SqlTypes;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
 namespace StackifyLib.Utils
 {
+
+    /*
+     * Used to identify if the current app is running on the same computer as Stackify Prefix or APM
+     */ 
+
     internal class PrefixOrAPM
     {
         internal enum ProfilerType
@@ -27,6 +32,16 @@ namespace StackifyLib.Utils
             }
             _LastCheck = DateTime.UtcNow;
             bool foundProcess = false;
+
+            string instanceID = Left(Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID"), 6);
+            string siteName = (Environment.GetEnvironmentVariable("WEBSITE_IIS_SITE_NAME") ?? "").TrimStart('~', '1');
+
+            //is azure app service?
+            if (!string.IsNullOrEmpty(instanceID) && !string.IsNullOrEmpty(siteName))
+            {
+                _LastProfilerType = ProfilerType.APM;
+                return _LastProfilerType;
+            }
 
             if (!_ScanProcessException)
             {
@@ -49,12 +64,12 @@ namespace StackifyLib.Utils
                                     break;
                                 case "stackifymonitoringservice":
                                 case "monitortestconsole":
-                                    _LastProfilerType = ProfilerType.APM;
+                                    if(_LastProfilerType != ProfilerType.Prefix)
+                                        _LastProfilerType = ProfilerType.APM;
                                     foundProcess = true;
                                     break;
                             }
 
-                            if (foundProcess) break;
                         }
                         catch
                         {
@@ -73,7 +88,7 @@ namespace StackifyLib.Utils
             //fall back to see if this has been set
             if (!foundProcess && _ScanProcessException)
             {
-                var stackifyPath = Environment.GetEnvironmentVariable("StackifyPath", EnvironmentVariableTarget.Machine);
+                var stackifyPath = Environment.GetEnvironmentVariable("StackifyPath");
 
                 if (!string.IsNullOrEmpty(stackifyPath) && (stackifyPath.IndexOf("prefix", StringComparison.CurrentCultureIgnoreCase) > -1 || stackifyPath.IndexOf("devdash", StringComparison.CurrentCultureIgnoreCase) > -1))
                 {
@@ -87,6 +102,24 @@ namespace StackifyLib.Utils
             }
 
             return _LastProfilerType;
+        }
+
+        private static string Left(string sValue, int iMaxLength)
+        {
+            //Check if the value is valid
+            if (string.IsNullOrEmpty(sValue))
+            {
+                //Set valid empty string as string could be null
+                sValue = string.Empty;
+            }
+            else if (sValue.Length > iMaxLength)
+            {
+                //Make the string no longer than the max length
+                sValue = sValue.Substring(0, iMaxLength);
+            }
+
+            //Return the string
+            return sValue;
         }
     }
 }

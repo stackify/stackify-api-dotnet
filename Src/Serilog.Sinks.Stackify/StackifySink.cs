@@ -1,81 +1,54 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.Remoting.Messaging;
-using System.Security;
-using System.Text;
-using System.Threading.Tasks;
-using NLog;
-using NLog.Targets;
-using System.ComponentModel.DataAnnotations;
+﻿
+using System;
+using System.IO;
+using Serilog.Core;
+using Serilog.Events;
 using StackifyLib;
-using System.Diagnostics;
 using StackifyLib.Internal.Logs;
 using StackifyLib.Models;
 using StackifyLib.Utils;
 
-namespace StackifyLib.nLog
+namespace Serilog.Sinks.Stackify
 {
-    [Target("StackifyTarget")]
-    public class StackifyTarget : TargetWithLayout 
+    public class StackifySink : ILogEventSink, IDisposable
     {
-        private bool _HasContextKeys = false;
-        public string apiKey { get; set; }
-        public string uri { get; set; }
-        public string globalContextKeys { get; set; }
-        public string mappedContextKeys { get; set; }
-        public string callContextKeys { get; set; }
-        public bool? logMethodNames { get; set; }
-        public bool? logAllParams { get; set; }
-
-        private List<string> _GlobalContextKeys = new List<string>();
-        private List<string> _MappedContextKeys = new List<string>();
-        private List<string> _CallContextKeys = new List<string>();
+        private readonly IFormatProvider _formatProvider;
+        private readonly JsonDataFormatter _dataFormatter;
 
         private LogClient _logClient = null;
 
-        protected override void CloseTarget()
+
+        /// <summary>
+        /// Construct a sink that saves logs to the specified storage account.
+        /// </summary>
+        public StackifySink(IFormatProvider formatProvider)
         {
-            try
-            {
-                Utils.StackifyAPILogger.Log("NLog target closing");
-                _logClient.Close();
-                StackifyLib.Internal.Metrics.MetricClient.StopMetricsQueue("NLog CloseTarget");
-            }
-            catch (Exception ex)
-            {
-                Utils.StackifyAPILogger.Log("NLog target closing error: " + ex.ToString());
-            }
+            _formatProvider = formatProvider;
+
+            _dataFormatter = new JsonDataFormatter();
+
+            _logClient = new LogClient("StackifyLib.net-serilog", null, null);
+
+
+            AppDomain.CurrentDomain.DomainUnload += OnAppDomainUnloading;
+            AppDomain.CurrentDomain.ProcessExit += OnAppDomainUnloading;
+            AppDomain.CurrentDomain.UnhandledException += OnAppDomainUnloading;
         }
 
-        protected override void InitializeTarget()
+        private void OnAppDomainUnloading(object sender, EventArgs args)
         {
-            Utils.StackifyAPILogger.Log("NLog InitializeTarget");
-
-            _logClient = new LogClient("StackifyLib.net-nlog", apiKey, uri);
-            if (!String.IsNullOrEmpty(globalContextKeys))
-            {
-                _GlobalContextKeys = globalContextKeys.Split(',').Select(s => s.Trim()).ToList();
-            }
-
-            if (!String.IsNullOrEmpty(mappedContextKeys))
-            {
-                _MappedContextKeys = mappedContextKeys.Split(',').Select(s => s.Trim()).ToList();
-            }
-
-            if (!String.IsNullOrEmpty(callContextKeys))
-            {
-                _CallContextKeys = callContextKeys.Split(',').Select(s => s.Trim()).ToList();
-            }
-
-
-            _HasContextKeys = _GlobalContextKeys.Any() || _MappedContextKeys.Any() || _CallContextKeys.Any();
+            var exceptionEventArgs = args as UnhandledExceptionEventArgs;
+            if (exceptionEventArgs != null && !exceptionEventArgs.IsTerminating)
+                return;
+            CloseAndFlush();
         }
 
-        protected override void Write(LogEventInfo logEvent)
+
+        /// <summary>
+        /// Emit the provided log event to the sink.
+        /// </summary>
+        /// <param name="logEvent">The log event to write.</param>
+        public void Emit(LogEvent logEvent)
         {
             try
             {
@@ -98,74 +71,9 @@ namespace StackifyLib.nLog
             {
                 StackifyAPILogger.Log(ex.ToString());
             }
-
         }
 
-
-        private Dictionary<string, object> GetDiagnosticContextProperties()
-        {
-
-
-            Dictionary<string, object> properties = new Dictionary<string, object>();
-
-
-            string ndc = NLog.NestedDiagnosticsContext.TopMessage;
-
-            if (!String.IsNullOrEmpty(ndc))
-            {
-                properties["ndc"] = ndc;
-            }
-
-
-            if (!_HasContextKeys)
-            {
-                return properties;
-            }
-
-            // GlobalDiagnosticsContext
-
-            foreach (string gdcKey in _GlobalContextKeys)
-            {
-                if (NLog.GlobalDiagnosticsContext.Contains(gdcKey))
-                {
-                    string gdcValue = NLog.GlobalDiagnosticsContext.Get(gdcKey);
-
-                    if (gdcValue != null)
-                    {
-                        properties.Add(gdcKey.ToLower(), gdcValue);
-                    }
-                }
-            }
-            // MappedDiagnosticsContext
-
-            foreach (string mdcKey in _MappedContextKeys)
-            {
-                if (NLog.MappedDiagnosticsContext.Contains(mdcKey))
-                {
-                    string mdcValue = NLog.MappedDiagnosticsContext.Get(mdcKey);
-
-                    if (mdcValue != null)
-                    {
-                        properties.Add(mdcKey.ToLower(), mdcValue);
-                    }
-                }
-            }
-
-            foreach (string key in _CallContextKeys)
-            {
-                object value = CallContext.LogicalGetData(key);
-
-                if (value != null)
-                {
-                    properties[key.ToLower()] = value;
-                }
-            }
-
-            return properties;
-
-        }
-
-        internal LogMsg Translate(LogEventInfo loggingEvent)
+        internal LogMsg Translate(LogEvent loggingEvent)
         {
 
             if (loggingEvent == null)
@@ -183,16 +91,16 @@ namespace StackifyLib.nLog
                 msg.Level = loggingEvent.Level.Name;
             }
 
-         
+
 
             if (loggingEvent.HasStackTrace && loggingEvent.UserStackFrame != null)
             {
                 var frame = loggingEvent.UserStackFrame;
 
                 MethodBase method = frame.GetMethod();
-                if (method != (MethodBase) null && method.DeclaringType != (Type) null)
+                if (method != (MethodBase)null && method.DeclaringType != (Type)null)
                 {
-                    if (method.DeclaringType != (Type) null)
+                    if (method.DeclaringType != (Type)null)
                     {
                         msg.SrcMethod = method.DeclaringType.FullName + "." + method.Name;
                         msg.SrcLine = frame.GetFileLineNumber();
@@ -283,7 +191,7 @@ namespace StackifyLib.nLog
 
             if (loggingEvent.Exception != null && loggingEvent.Exception is StackifyError)
             {
-                error = (StackifyError) loggingEvent.Exception;
+                error = (StackifyError)loggingEvent.Exception;
             }
             else if (loggingEvent.Exception != null)
             {
@@ -298,7 +206,7 @@ namespace StackifyLib.nLog
             }
 
 
-     
+
 
 
 
@@ -312,7 +220,7 @@ namespace StackifyLib.nLog
             {
                 msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(null, false, diags);
             }
-          
+
 
             if (msg.Msg != null && error != null)
             {
@@ -359,6 +267,64 @@ namespace StackifyLib.nLog
         }
 
 
-    
+        private string PropertiesToData(LogEvent logEvent)
+        {
+            var payload = new StringWriter();
+            _dataFormatter.FormatData(logEvent, payload);
+
+            return payload.ToString();
+        }
+
+
+
+        static string LevelToSeverity(LogEvent logEvent)
+        {
+            switch (logEvent.Level)
+            {
+                case LogEventLevel.Debug:
+                    return "DEBUG";
+                case LogEventLevel.Error:
+                    return "ERROR";
+                case LogEventLevel.Fatal:
+                    return "FATAL";
+                case LogEventLevel.Verbose:
+                    return "VERBOSE";
+                case LogEventLevel.Warning:
+                    return "WARNING";
+                default:
+                    return "INFORMATION";
+            }
+        }
+
+        private void CloseAndFlush()
+        {
+            try
+            {
+                StackifyLib.Utils.StackifyAPILogger.Log("Serilog target closing");
+                _logClient.Close();
+                StackifyLib.Internal.Metrics.MetricClient.StopMetricsQueue("Serilog CloseTarget");
+            }
+            catch (Exception ex)
+            {
+                StackifyLib.Utils.StackifyAPILogger.Log("Serilog target closing error: " + ex.ToString());
+            }
+
+            AppDomain.CurrentDomain.DomainUnload -= OnAppDomainUnloading;
+            AppDomain.CurrentDomain.ProcessExit -= OnAppDomainUnloading;
+            AppDomain.CurrentDomain.UnhandledException -= OnAppDomainUnloading;
+
+           
+        }
+
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+
+            CloseAndFlush();
+            _disposed = true;
+        }
     }
 }

@@ -369,7 +369,7 @@ namespace StackifyLib.Internal.Metrics
                 if (!_httpClient.MatchedClientDeviceApp())
                 {
                    // purgeOlderThan = DateTime.UtcNow;
-                    StackifyAPILogger.Log("Upload metrics skipped due to being disabled");
+                    StackifyAPILogger.Log("Upload metrics skipped because we were unable to match the app to an app in Stackify");
                 }
                 else if (!_httpClient.IsAuthorized())
                 {
@@ -594,7 +594,7 @@ namespace StackifyLib.Internal.Metrics
                 string jsonData = JsonConvert.SerializeObject(records);
 
                 var response = _httpClient.SendJsonAndGetResponse(
-                        System.Web.VirtualPathUtility.AppendTrailingSlash(_httpClient.BaseAPIUrl) +
+                        (_httpClient.BaseAPIUrl) +
                         "Metrics/SubmitMetricsByID",
                         jsonData);
 
@@ -644,7 +644,7 @@ namespace StackifyLib.Internal.Metrics
 
                 var response =
                     _httpClient.SendJsonAndGetResponse(
-                        System.Web.VirtualPathUtility.AppendTrailingSlash(_httpClient.BaseAPIUrl) +
+                        (_httpClient.BaseAPIUrl) +
                         "Metrics/GetMetricInfo",
                         jsonData);
 

@@ -3,22 +3,21 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace StackifyLib.Models
 {
-    [DataContract]
     public class ErrorItem
     {
         public ErrorItem()
         {
-            
+
         }
 
         public ErrorItem(Exception ex)
         {
-          
+
             try
             {
                 var keys = ex.Data.Keys;
@@ -33,7 +32,7 @@ namespace StackifyLib.Models
                 }
 
                 Message = ex.Message;
-
+#if NET45 || NET40
                 if (ex is System.Data.SqlClient.SqlException)
                 {
                     System.Data.SqlClient.SqlException sql = ex as System.Data.SqlClient.SqlException;
@@ -55,8 +54,8 @@ namespace StackifyLib.Models
                 {
                     ErrorTypeCode = Marshal.GetHRForException(ex).ToString();
                 }
+#endif
 
-                
                 //this is the default HResult. Ignore it?
                 //Leave it since we are already using it. Would cause unique errors to reset on people
                 //if (!string.IsNullOrEmpty(ErrorTypeCode) && ErrorTypeCode == "-2146233088")
@@ -71,7 +70,7 @@ namespace StackifyLib.Models
 
                 if (ex is StringException)
                 {
-                    AddTraceFrames((StringException)ex);                    
+                    AddTraceFrames((StringException)ex);
                 }
                 else
                 {
@@ -90,19 +89,19 @@ namespace StackifyLib.Models
             }
         }
 
-        [DataMember]
+        [JsonProperty]
         public ErrorItem InnerError { get; set; }
-        [DataMember]
+        [JsonProperty]
         public List<TraceFrame> StackTrace { get; set; }
-        [DataMember]
+        [JsonProperty]
         public string Message { get; set; }
-        [DataMember]
+        [JsonProperty]
         public string ErrorType { get; set; }
-        [DataMember]
+        [JsonProperty]
         public string ErrorTypeCode { get; set; }
-        [DataMember]
-        public Dictionary<string, string> Data { get; set; } 
-        [DataMember]
+        [JsonProperty]
+        public Dictionary<string, string> Data { get; set; }
+        [JsonProperty]
         public string SourceMethod { get; set; }
 
         private void AddTraceFrames(StringException ex)
@@ -118,9 +117,6 @@ namespace StackifyLib.Models
         private void AddTraceFrames(Exception ex)
         {
             this.StackTrace = new List<TraceFrame>();
-            var stackTrace2 = new StackTrace(true);
-            var allFrames = stackTrace2.GetFrames();
-
             var stackTrace = new StackTrace(ex, true);
 
             var errorframes = stackTrace.GetFrames();
@@ -135,7 +131,7 @@ namespace StackifyLib.Models
 
                     var fullName = GetMethodFullName(method);
 
-                    bool isSource = (ex.TargetSite != null && ex.TargetSite == method);
+                    bool isSource = false;//(ex.TargetSite != null && ex.TargetSite == method);
 
                     if (isSource)
                     {
@@ -143,15 +139,20 @@ namespace StackifyLib.Models
                     }
 
                     StackTrace.Add(new TraceFrame()
-                        {
-                            CodeFileName = frame.GetFileName(),
-                            LineNum = frame.GetFileLineNumber(),
-                            Method = fullName
-                        });
+                    {
+                        CodeFileName = frame.GetFileName(),
+                        LineNum = frame.GetFileLineNumber(),
+                        Method = fullName
+                    });
 
                     lastErrorFrameMethodName = fullName;
                 }
             }
+
+#if NET45 || NET40
+            var stackTrace2 = new StackTrace(true);
+            var allFrames = stackTrace2.GetFrames();
+
 
             //logic to add missing frames not showing up in the normal exception stack trace some times
             if (allFrames != null && (lastErrorFrameMethodName != null || this.SourceMethod == null))
@@ -188,7 +189,7 @@ namespace StackifyLib.Models
 
                 }
             }
-
+#endif
 
 
         }
@@ -198,11 +199,7 @@ namespace StackifyLib.Models
             if (method == null)
                 return "Unknown";
 
-
-
-
-          
-
+#if NET45 || NET40
             if (method.ReflectedType != null)
             {
                 if (simpleMethodNames)
@@ -226,6 +223,7 @@ namespace StackifyLib.Models
                 {
                 }
             }
+#endif
 
             StringBuilder sb = new StringBuilder();
 
