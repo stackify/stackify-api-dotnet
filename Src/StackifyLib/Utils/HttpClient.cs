@@ -623,11 +623,12 @@ namespace StackifyLib.Utils
                 request.Method = "POST";
 
                 byte[] payload = Encoding.UTF8.GetBytes(jsonData);
-                request.Headers[HttpRequestHeader.ContentLength] = payload.Length.ToString();
 
 #if NET45 || NET40
+                request.ContentLength= payload.Length;
                 using (Stream stream = request.GetRequestStream())
 #else
+                request.Headers[HttpRequestHeader.ContentLength] = payload.Length.ToString();
                 using (Stream stream = request.GetRequestStreamAsync().GetAwaiter().GetResult())
 #endif
                 {
@@ -665,8 +666,10 @@ namespace StackifyLib.Utils
 
 #if NET45 || NET40
             request.UserAgent = "StackifyLib-" + _version;
+            request.ContentLength = 0;
 #else
             request.Headers[HttpRequestHeader.UserAgent] = "StackifyLib-" + _version;
+            request.Headers[HttpRequestHeader.ContentLength] = "0";
 #endif
 
             //if (HttpClient.CustomWebProxy != null)
@@ -676,7 +679,7 @@ namespace StackifyLib.Utils
 
 
             request.Method = "POST";
-            request.Headers[HttpRequestHeader.ContentLength] = "0";
+            
             if (!String.IsNullOrEmpty(postdata))
             {
                 byte[] payload = Encoding.UTF8.GetBytes(postdata);

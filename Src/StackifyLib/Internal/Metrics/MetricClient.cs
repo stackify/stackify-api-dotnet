@@ -369,7 +369,7 @@ namespace StackifyLib.Internal.Metrics
                 if (!_httpClient.MatchedClientDeviceApp())
                 {
                    // purgeOlderThan = DateTime.UtcNow;
-                    StackifyAPILogger.Log("Upload metrics skipped due to being disabled");
+                    StackifyAPILogger.Log("Upload metrics skipped because we were unable to match the app to an app in Stackify");
                 }
                 else if (!_httpClient.IsAuthorized())
                 {

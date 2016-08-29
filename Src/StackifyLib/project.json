@@ -1,13 +1,12 @@
 {
-  "version": "1.23.1-beta3",
+  "version": "1.24.0",
 
   "title":  "Stackify API", 
 
   "packOptions": {
     "owners": [ "stackify_matt", "jtaylorstackify" ],
     "tags": [ "stackify", "metrics", "errors", "logs" ],
-    "summary": "Library for accessing the Stackify API",
-
+    "summary": "Library for accessing the Stackify API"
   },
 
   "dependencies": {

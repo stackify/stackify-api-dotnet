@@ -33,6 +33,16 @@ namespace StackifyLib.Utils
             _LastCheck = DateTime.UtcNow;
             bool foundProcess = false;
 
+            string instanceID = Left(Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID"), 6);
+            string siteName = (Environment.GetEnvironmentVariable("WEBSITE_IIS_SITE_NAME") ?? "").TrimStart('~', '1');
+
+            //is azure app service?
+            if (!string.IsNullOrEmpty(instanceID) && !string.IsNullOrEmpty(siteName))
+            {
+                _LastProfilerType = ProfilerType.APM;
+                return _LastProfilerType;
+            }
+
             if (!_ScanProcessException)
             {
                 try
@@ -92,6 +102,24 @@ namespace StackifyLib.Utils
             }
 
             return _LastProfilerType;
+        }
+
+        private static string Left(string sValue, int iMaxLength)
+        {
+            //Check if the value is valid
+            if (string.IsNullOrEmpty(sValue))
+            {
+                //Set valid empty string as string could be null
+                sValue = string.Empty;
+            }
+            else if (sValue.Length > iMaxLength)
+            {
+                //Make the string no longer than the max length
+                sValue = sValue.Substring(0, iMaxLength);
+            }
+
+            //Return the string
+            return sValue;
         }
     }
 }
