@@ -1,5 +1,5 @@
 {
-  "version": "1.24.0",
+  "version": "1.24.2",
 
   "title":  "Stackify API", 
 
@@ -37,7 +37,6 @@
         "Newtonsoft.Json": "6.0.4"
       },
       "frameworkAssemblies": {
-        "System.Runtime.Serialization": "4.0.0.0",
         "System.Configuration": "4.0.0.0",
         "System.Management": "4.0.0.0",
         "System.Web": "4.0.0.0",
@@ -49,15 +48,10 @@
         "Newtonsoft.Json": "6.0.4"
       },
       "frameworkAssemblies": {
-        "System.Runtime.Serialization": "4.0.0.0",
         "System.Configuration": "4.0.0.0",
         "System.Management": "4.0.0.0",
         "System.Web": "4.0.0.0",
-        "System.Data": "4.0.0.0",
-        "System.Collections.Concurrent": "4.0.0",
-        "System.Net.Requests": "4.0.0",
-        "System.Reflection": "4.0.0",
-        "System.Runtime.Extensions": "4.0.0"
+        "System.Data": "4.0.0.0"
 
       }
     }
