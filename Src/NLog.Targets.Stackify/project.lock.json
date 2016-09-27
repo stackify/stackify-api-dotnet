@@ -21,7 +21,7 @@
           "lib/net40/NLog.dll": {}
         }
       },
-      "StackifyLib/1.23.1-beta2": {
+      "StackifyLib/1.24.1": {
         "type": "project",
         "framework": ".NETFramework,Version=v4.0",
         "dependencies": {
@@ -31,7 +31,6 @@
           "System.Configuration",
           "System.Data",
           "System.Management",
-          "System.Runtime.Serialization",
           "System.Web"
         ],
         "compile": {
@@ -61,21 +60,16 @@
           "lib/net45/NLog.dll": {}
         }
       },
-      "StackifyLib/1.23.1-beta2": {
+      "StackifyLib/1.24.1": {
         "type": "project",
         "framework": ".NETFramework,Version=v4.5",
         "dependencies": {
           "Newtonsoft.Json": "6.0.4"
         },
         "frameworkAssemblies": [
-          "System.Collections.Concurrent",
           "System.Configuration",
           "System.Data",
           "System.Management",
-          "System.Net.Requests",
-          "System.Reflection",
-          "System.Runtime.Extensions",
-          "System.Runtime.Serialization",
           "System.Web"
         ],
         "compile": {
@@ -242,7 +236,7 @@
           "lib/netstandard1.0/Newtonsoft.Json.dll": {}
         }
       },
-      "NLog/4.4.0-betav14": {
+      "NLog/4.4.0-betav15": {
         "type": "package",
         "dependencies": {
           "Microsoft.Extensions.PlatformAbstractions": "1.0.0",
@@ -1496,7 +1490,7 @@
           "lib/netstandard1.3/System.Xml.XmlDocument.dll": {}
         }
       },
-      "StackifyLib/1.23.1-beta2": {
+      "StackifyLib/1.24.1": {
         "type": "project",
         "framework": ".NETStandard,Version=v1.3",
         "dependencies": {
@@ -1736,13 +1730,15 @@
         "lib/sl5/NLog.xml"
       ]
     },
-    "NLog/4.4.0-betav14": {
-      "sha512": "y8GjvgJKprs9vPb/4M2O7VPJuHNXC5XYwmWiclAPdZuJ+s/js2i2Z8nSZ6HVaLJ9s28ZxAGFX1jCCf86qR+Dag==",
+    "NLog/4.4.0-betav15": {
+      "sha512": "LDRcdjv5VG9EWz+mnFqdSolUci+j+DBPIPjm7Xdam3xa1F9Rt7o0UpYoCnNRulqHzpKbU704o7Ad4ck9WxDhnw==",
       "type": "package",
-      "path": "NLog/4.4.0-betav14",
+      "path": "NLog/4.4.0-betav15",
       "files": [
-        "NLog.4.4.0-betav14.nupkg.sha512",
+        "NLog.4.4.0-betav15.nupkg.sha512",
         "NLog.nuspec",
+        "lib/monoandroid23/NLog.dll",
+        "lib/monoandroid23/NLog.xml",
         "lib/net35/NLog.dll",
         "lib/net35/NLog.xml",
         "lib/net40/NLog.dll",
@@ -1758,7 +1754,9 @@
         "lib/sl50/NLog.dll",
         "lib/sl50/NLog.xml",
         "lib/wp80/NLog.dll",
-        "lib/wp80/NLog.xml"
+        "lib/wp80/NLog.xml",
+        "lib/xamarinios10/NLog.dll",
+        "lib/xamarinios10/NLog.xml"
       ]
     },
     "runtime.native.System/4.0.0": {
@@ -5531,24 +5529,25 @@
         "ref/xamarinwatchos10/_._"
       ]
     },
-    "StackifyLib/1.23.1-beta2": {
+    "StackifyLib/1.24.1": {
       "type": "project",
       "path": "../StackifyLib/project.json",
       "msbuildProject": "../StackifyLib/StackifyLib.xproj"
     }
   },
   "projectFileDependencyGroups": {
-    "": [
-      "StackifyLib >= 1.23.1-beta2"
-    ],
+    "": [],
     ".NETFramework,Version=v4.0": [
-      "NLog >= 4.2.3"
+      "NLog >= 4.2.3",
+      "StackifyLib >= 1.23.3"
     ],
     ".NETFramework,Version=v4.5": [
-      "NLog >= 4.2.3"
+      "NLog >= 4.2.3",
+      "StackifyLib >= 1.23.3"
     ],
     ".NETStandard,Version=v1.3": [
-      "NLog >= 4.4.0-*"
+      "NLog >= 4.4.0-*",
+      "StackifyLib >= 1.23.3"
     ]
   },
   "tools": {},

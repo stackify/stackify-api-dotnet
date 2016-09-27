@@ -1,5 +1,6 @@
-﻿################################################################################
+################################################################################
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
 /CoreSrc/StackifyLib/bin/Debug/netcoreapp1.0/StackifyLib.pdb
+Src/StackifyLib.log4net/project.lock.json
