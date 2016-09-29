@@ -255,10 +255,11 @@ namespace StackifyLib
         {
             List<TraceFrame> frames = new List<TraceFrame>();
 
+#if NET45 || NET40
             try
             {
                 //moves to the part of the trace where the declaring method starts then the other loop gets all the frames. This is to remove frames that happen within the logging library itself.
-                StackTrace stackTrace = new StackTrace((Exception)null, false);
+                StackTrace stackTrace = new StackTrace(true);
                 int index1;
                 var stackTraceFrames = stackTrace.GetFrames();
                 for (index1 = 0; index1 < stackTraceFrames.Length; ++index1)
@@ -301,7 +302,7 @@ namespace StackifyLib
             {
 
             }
-
+#endif
             return frames;
         }
 
