@@ -108,7 +108,7 @@ namespace StackifyLib.Utils
             }
             _LastIdentityAttempt = DateTime.UtcNow.AddMinutes(-15);
 
-            if (!BaseAPIUrl.EndsWith("/"))
+            if (BaseAPIUrl != null && !BaseAPIUrl.EndsWith("/"))
                 BaseAPIUrl += "/";
         }
 

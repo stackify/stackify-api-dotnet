@@ -13,8 +13,6 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "NLog.Targets.Stackify", "NL
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StackifyLib.ELMAH", "StackifyLib.ELMAH\StackifyLib.ELMAH.csproj", "{D0E1AABD-6397-4CC7-9737-4904A4BF5BCD}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Serilog.Sinks.Stackify", "Serilog.Sinks.Stackify\Serilog.Sinks.Stackify.xproj", "{5A144848-A7C9-4D61-A4F0-E3DAF7FBF994}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,10 +39,6 @@ Global
 		{D0E1AABD-6397-4CC7-9737-4904A4BF5BCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D0E1AABD-6397-4CC7-9737-4904A4BF5BCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D0E1AABD-6397-4CC7-9737-4904A4BF5BCD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5A144848-A7C9-4D61-A4F0-E3DAF7FBF994}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5A144848-A7C9-4D61-A4F0-E3DAF7FBF994}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5A144848-A7C9-4D61-A4F0-E3DAF7FBF994}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5A144848-A7C9-4D61-A4F0-E3DAF7FBF994}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

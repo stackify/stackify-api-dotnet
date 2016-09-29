@@ -48,28 +48,25 @@ namespace StackifyLib.Utils
 
         public static void Log(string message, bool logAnyways = false)
         {
-            if (logAnyways || (_LogEnabled ?? false))
+            try
             {
-                if (OnLogMessage != null)
+                if (logAnyways || (_LogEnabled ?? false))
                 {
-                    try
-                    {
-                        OnLogMessage("StackifyLib: " + message);
-                    }
-                    catch (Exception)
-                    {
-                        
-                    }
-                }
+                    OnLogMessage?.Invoke("StackifyLib: " + message);
 
-                if (_Logger != null)
-                {
-                    _Logger.Write("StackifyLib: " + message);
+                    if (_Logger != null)
+                    {
+                        _Logger.Write("StackifyLib: " + message);
+                    }
+                    else
+                    {
+                        Debug.WriteLine("StackifyLib: " + message);
+                    }
                 }
-                else
-                {
-                    Debug.WriteLine("StackifyLib: " + message);
-                }
+            }
+            catch 
+            {
+
             }
             
         }

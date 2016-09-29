@@ -323,20 +323,24 @@ namespace StackifyLib.Internal.Metrics
         
         public static void StopMetricsQueue(string reason = "Unknown")
         {
-            StackifyAPILogger.Log("StopMetricsQueue called by " + reason, true);
-            
-            //don't let t his method run more than once
-            if (_StopRequested)
-                return;
 
-            _StopRequested = true;
 
             try
             {
+                StackifyAPILogger.Log("StopMetricsQueue called by " + reason, true);
+
+                //don't let t his method run more than once
+                if (_StopRequested)
+                    return;
+
+                _StopRequested = true;
+
                 DateTime currentMinute = DateTime.UtcNow.AddMinutes(2).Floor(TimeSpan.FromMinutes(1));
 
                 UploadMetrics(currentMinute);
 
+                _StopRequested = false;
+                StackifyAPILogger.Log("StopMetricsQueue completed" + reason, true);
             }
             catch (Exception ex)
             {
@@ -344,8 +348,6 @@ namespace StackifyLib.Internal.Metrics
             }
 
 
-            _StopRequested = false;
-            StackifyAPILogger.Log("StopMetricsQueue completed" + reason, true);
         }
 
         public static bool UploadMetrics(DateTime currentMinute)
