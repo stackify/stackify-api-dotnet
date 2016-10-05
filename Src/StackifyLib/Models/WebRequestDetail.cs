@@ -168,6 +168,11 @@ namespace StackifyLib.Models
                         Config.ErrorHeaderBadKeys.Add("cookie");
                     }
 
+                    if (!Config.ErrorHeaderBadKeys.Contains("authorization"))
+                    {
+                        Config.ErrorHeaderBadKeys.Add("authorization");
+                    }
+
                     Headers = ToKeyValues(request.Headers, Config.ErrorHeaderGoodKeys, Config.ErrorHeaderBadKeys);
                 }
 

@@ -25,8 +25,7 @@ namespace StackifyLib
                 CaptureSessionVariables = Get("Stackify.CaptureSessionVariables", "")
                     .Equals("true", StringComparison.CurrentCultureIgnoreCase);
 
-                CaptureErrorHeaders = Get("Stackify.CaptureErrorHeaders", "")
-                    .Equals("true", StringComparison.CurrentCultureIgnoreCase);
+                CaptureErrorHeaders = Get("Stackify.CaptureErrorHeaders", "true").Equals("true", StringComparison.CurrentCultureIgnoreCase);
 
                 CaptureErrorCookies = Get("Stackify.CaptureErrorCookies", "")
                     .Equals("true", StringComparison.CurrentCultureIgnoreCase);
