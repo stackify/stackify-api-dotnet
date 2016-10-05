@@ -12,7 +12,7 @@ namespace StackifyLib.Internal.Metrics
 {
     public static class MetricClient
     {
-        private static HttpClient _HttpClient = new HttpClient(null, null);
+        private static HttpClient _HttpClient = null;
 
         private static HttpClient HttpClient
         {
