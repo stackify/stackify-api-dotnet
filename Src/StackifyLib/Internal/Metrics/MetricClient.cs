@@ -12,7 +12,18 @@ namespace StackifyLib.Internal.Metrics
 {
     public static class MetricClient
     {
-        private static HttpClient _httpClient = new HttpClient(null, null);
+        private static HttpClient _HttpClient = new HttpClient(null, null);
+
+        private static HttpClient HttpClient
+        {
+            get
+            {
+                if(_HttpClient == null)
+                    _HttpClient = new HttpClient(null, null);
+
+                return _HttpClient;
+            }
+        }
 
         private readonly static ConcurrentQueue<Metric> _MetricQueue;
 
@@ -24,6 +35,8 @@ namespace StackifyLib.Internal.Metrics
         private static ConcurrentDictionary<string, MetricSetting> _MetricSettings = new ConcurrentDictionary<string, MetricSetting>();
 
         private static bool _StopRequested = false;
+
+        private static bool _MetricsEverUsed = false;
 
         static MetricClient()
         {
@@ -147,6 +160,7 @@ namespace StackifyLib.Internal.Metrics
 
         public static void QueueMetric(Metric metric)
         {
+            _MetricsEverUsed = true;
             try
             {
                 //set a sanity cap
@@ -323,7 +337,8 @@ namespace StackifyLib.Internal.Metrics
         
         public static void StopMetricsQueue(string reason = "Unknown")
         {
-
+            if (!_MetricsEverUsed)
+                return;
 
             try
             {
@@ -367,18 +382,21 @@ namespace StackifyLib.Internal.Metrics
 
                 SetLatestAggregates(getForRecent);
 
+                //skip messing with HttpClient if nothing to do
+                if (_AggregateMetrics.Count == 0)
+                    return true;
 
-                if (!_httpClient.MatchedClientDeviceApp())
+                if (!HttpClient.MatchedClientDeviceApp())
                 {
                    // purgeOlderThan = DateTime.UtcNow;
                     StackifyAPILogger.Log("Upload metrics skipped because we were unable to match the app to an app in Stackify");
                 }
-                else if (!_httpClient.IsAuthorized())
+                else if (!HttpClient.IsAuthorized())
                 {
                     // purgeOlderThan = DateTime.UtcNow;
                     StackifyAPILogger.Log("Upload metrics skipped authorization failure");
                 }
-                else if (!_httpClient.IsRecentError())
+                else if (!HttpClient.IsRecentError())
                 {
 
                     //If something happens at 2:39:45. The OccurredUtc is a rounded down value to 2:39. So we add a minute to ensure the minute has fully elapsed
@@ -480,10 +498,12 @@ namespace StackifyLib.Internal.Metrics
         {
             bool allSuccess = true;
 
+            if (metrics.Count == 0)
+                return true;
 
-            bool identifyResult = _httpClient.IdentifyApp();
+            bool identifyResult = HttpClient.IdentifyApp();
 
-            if (identifyResult && _httpClient.MatchedClientDeviceApp() && !_httpClient.IsRecentError() && _httpClient.IsAuthorized())
+            if (identifyResult && HttpClient.MatchedClientDeviceApp() && !HttpClient.IsRecentError() && HttpClient.IsAuthorized())
             {
                 StackifyAPILogger.Log("Uploading Aggregate Metrics: " + metrics.Count);
 
@@ -493,7 +513,7 @@ namespace StackifyLib.Internal.Metrics
 
                     //in case the appid changes on the server side somehow and we need to update the monitorids we are adding the appid to the key
                     //calling IdentifyApp() above will sometimes cause the library to sync with the server with the appid
-                    string keyWithAppID = string.Format("{0}-{1}", keyValuePair.Value.NameKey, _httpClient.AppIdentity.DeviceAppID);
+                    string keyWithAppID = string.Format("{0}-{1}", keyValuePair.Value.NameKey, HttpClient.AppIdentity.DeviceAppID);
                     
                     if (!_MontorIDList.ContainsKey(keyWithAppID))
                     {
@@ -550,7 +570,7 @@ namespace StackifyLib.Internal.Metrics
             }
             else 
             {
-                StackifyAPILogger.Log("Metrics not uploaded. Identify Result: " + identifyResult + ", Metrics API Enabled: " + _httpClient.MatchedClientDeviceApp());
+                StackifyAPILogger.Log("Metrics not uploaded. Identify Result: " + identifyResult + ", Metrics API Enabled: " + HttpClient.MatchedClientDeviceApp());
 
                 //if there was an issue trying to identify the app we could end up here and will want to try again later
                 allSuccess = false;
@@ -581,9 +601,9 @@ namespace StackifyLib.Internal.Metrics
                     model.Count = metric.Count;
                     model.MonitorTypeID = (short)metric.MetricType;
 
-                    if (_httpClient.AppIdentity != null)
+                    if (HttpClient.AppIdentity != null)
                     {
-                        model.ClientDeviceID = _httpClient.AppIdentity.DeviceID;
+                        model.ClientDeviceID = HttpClient.AppIdentity.DeviceID;
                     }
 
                     records.Add(model);
@@ -595,8 +615,8 @@ namespace StackifyLib.Internal.Metrics
 
                 string jsonData = JsonConvert.SerializeObject(records);
 
-                var response = _httpClient.SendJsonAndGetResponse(
-                        (_httpClient.BaseAPIUrl) +
+                var response = HttpClient.SendJsonAndGetResponse(
+                        (HttpClient.BaseAPIUrl) +
                         "Metrics/SubmitMetricsByID",
                         jsonData);
 
@@ -624,18 +644,18 @@ namespace StackifyLib.Internal.Metrics
         {
             try
             {
-                if (_httpClient.IsRecentError() || !_httpClient.MatchedClientDeviceApp())
+                if (HttpClient.IsRecentError() || !HttpClient.MatchedClientDeviceApp())
                 {
                     return null;
                 }
 
                 GetMetricRequest request = new GetMetricRequest();
 
-                if (_httpClient.AppIdentity != null)
+                if (HttpClient.AppIdentity != null)
                 {
-                    request.DeviceAppID = _httpClient.AppIdentity.DeviceAppID;
-                    request.DeviceID = _httpClient.AppIdentity.DeviceID;
-                    request.AppNameID = _httpClient.AppIdentity.AppNameID;
+                    request.DeviceAppID = HttpClient.AppIdentity.DeviceAppID;
+                    request.DeviceID = HttpClient.AppIdentity.DeviceID;
+                    request.AppNameID = HttpClient.AppIdentity.AppNameID;
                 }
                 request.MetricName = metric.Name;
                 request.MetricTypeID = (short)metric.MetricType;
@@ -645,8 +665,8 @@ namespace StackifyLib.Internal.Metrics
 
 
                 var response =
-                    _httpClient.SendJsonAndGetResponse(
-                        (_httpClient.BaseAPIUrl) +
+                    HttpClient.SendJsonAndGetResponse(
+                        (HttpClient.BaseAPIUrl) +
                         "Metrics/GetMetricInfo",
                         jsonData);
 
