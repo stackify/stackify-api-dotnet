@@ -47,9 +47,11 @@ namespace StackifyLib.Models
         [JsonProperty]
         public string ReportingUrl { get; set; }
 
-
         [JsonProperty]
         public string ReferralUrl { get; set; }
+
+        [JsonProperty]
+        public string UserAgent { get; set; }
 
         [JsonProperty]
         public Dictionary<string, string> Headers { get; set; }
@@ -90,6 +92,7 @@ namespace StackifyLib.Models
             {
                 HttpMethod = request.RequestType;
                 UserIPAddress = request.UserHostAddress;
+                UserAgent = request.UserAgent;
 
                 if (context.Items != null && context.Items.Contains("Stackify.ReportingUrl"))
                 {
