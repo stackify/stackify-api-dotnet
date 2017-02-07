@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 //using System.Web.Configuration;
 using Newtonsoft.Json;
@@ -123,6 +124,13 @@ namespace StackifyLib.Internal.Logs
             return governor.ErrorShouldBeSent(error);
         }
 
+
+
+        private long? LastEpochMs = 0;
+        private object locker = new object();
+        private int count;
+
+
         public void QueueMessage(LogMsg msg)
         {
             if (msg == null) return;
@@ -137,6 +145,23 @@ namespace StackifyLib.Internal.Logs
             if (msg.Ex != null)
             {
                 isError = 1;
+            }
+
+            // works on the assumption that the epochMS will always be incrementing as it reaches this point
+            if (LastEpochMs < msg.EpochMs)
+            {
+                // reset counter if we are no longer in the same ms
+                lock (locker)
+                {
+                    //https://msdn.microsoft.com/en-us/library/system.threading.interlocked_methods(v=vs.110).aspx
+                    LastEpochMs = msg.EpochMs;
+                    Interlocked.Exchange(ref count, 0);
+                    msg.Order = 0;
+                }
+            }
+            else
+            {
+                msg.Order = Interlocked.Increment(ref count);
             }
 
             //Used by Stackify profiler only
