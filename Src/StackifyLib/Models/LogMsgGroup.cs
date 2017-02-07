@@ -95,7 +95,7 @@ namespace StackifyLib.Models
         [JsonProperty]
         public List<string> Tags { get; set; }
 
-        [JsonProperty(PropertyName = "order")]
+        [JsonProperty]
         public int Order { get; set; }
 
         [JsonIgnore]
