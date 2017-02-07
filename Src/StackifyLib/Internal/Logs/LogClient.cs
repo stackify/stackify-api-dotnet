@@ -126,10 +126,8 @@ namespace StackifyLib.Internal.Logs
 
 
 
-        private long? LastEpochMs = 0;
-        private object locker = new object();
-        private int count;
-
+        private static long _lastEpochMs = 0;
+        private static int _millisecondCount = 0;
 
         public void QueueMessage(LogMsg msg)
         {
@@ -148,21 +146,19 @@ namespace StackifyLib.Internal.Logs
             }
 
             // works on the assumption that the epochMS will always be incrementing as it reaches this point
-            if (LastEpochMs < msg.EpochMs)
+            if (_lastEpochMs < msg.EpochMs)
             {
                 // reset counter if we are no longer in the same ms
-                lock (locker)
-                {
-                    //https://msdn.microsoft.com/en-us/library/system.threading.interlocked_methods(v=vs.110).aspx
-                    LastEpochMs = msg.EpochMs;
-                    Interlocked.Exchange(ref count, 0);
-                    msg.Order = 0;
-                }
+                //https://msdn.microsoft.com/en-us/library/system.threading.interlocked_methods(v=vs.110).aspx
+                Interlocked.Exchange(ref _lastEpochMs, msg.EpochMs);
+                Interlocked.Exchange(ref _millisecondCount, 0);
+                msg.Order = 0;
             }
-            else
+            else if (_lastEpochMs == msg.EpochMs)
             {
-                msg.Order = Interlocked.Increment(ref count);
+                msg.Order = Interlocked.Increment(ref _millisecondCount);
             }
+            // else defaulted to 0
 
             //Used by Stackify profiler only
             if (Logger.PrefixEnabled())
