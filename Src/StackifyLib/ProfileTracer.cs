@@ -90,6 +90,14 @@ namespace StackifyLib
 
         }
 
+        [Obsolete("Just used for testing", false)]
+        [MethodImpl(MethodImplOptions.PreserveSig | MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        public static void NoOp()
+        {
+            
+        }
+
+
 
         [MethodImpl(MethodImplOptions.PreserveSig | MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public static void TraceString(string logMsg)

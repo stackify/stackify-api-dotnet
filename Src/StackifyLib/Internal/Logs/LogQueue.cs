@@ -84,17 +84,17 @@ namespace StackifyLib.Internal.Logs
                 }
 
 
-                //try
-                //{
+                try
+                {
 
-                //    if (string.IsNullOrEmpty(msg.Th))
-                //    {
-                //        msg.Th = System.Threading.Thread.CurrentThread.ManagedThreadId.ToString();
-                //    }
-                //}
-                //catch
-                //{
-                //}
+                    if (string.IsNullOrEmpty(msg.Th))
+                    {
+                        msg.Th = System.Threading.Thread.CurrentThread.ManagedThreadId.ToString();
+                    }
+                }
+                catch
+                {
+                }
 
 #if NET45 || NET40
                 try

@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Text;
 using Newtonsoft.Json;
+using StackifyLib.Utils;
 
 namespace StackifyLib.Models
 {
@@ -51,7 +52,10 @@ namespace StackifyLib.Models
 
         public LogMsg()
         {
-            EpochMs = (long)DateTime.UtcNow.Subtract(_Epoch).TotalMilliseconds;
+            EpochMs = (long)HighPrecisionTime.UtcNow.Subtract(_Epoch).TotalMilliseconds;
+
+            //Switched to high precision timer
+            //EpochMs = (long)DateTime.UtcNow.Subtract(_Epoch).TotalMilliseconds;
             UploadErrors = 0;
         }
 

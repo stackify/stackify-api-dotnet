@@ -57,6 +57,7 @@ namespace StackifyLib.Utils
                             switch (process?.ProcessName?.ToLower().Replace(".vshost", ""))
                             {
                                 case "devdashservice":
+                                case "stackifytracerservice":
                                 case "stackifytracernotifier":
                                 case "devdashtestconsole":
                                     _LastProfilerType = ProfilerType.Prefix;
