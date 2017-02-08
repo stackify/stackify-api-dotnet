@@ -95,6 +95,9 @@ namespace StackifyLib.Models
         [JsonProperty]
         public List<string> Tags { get; set; }
 
+        [JsonProperty]
+        public int Order { get; set; }
+
         [JsonIgnore]
         public LogMsgGroup AppDetails { get; set; }
 
