@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
+
 using Newtonsoft.Json;
 
 #if NET45 || NET40
@@ -12,11 +13,17 @@ using System.Web.Routing;
 using StackifyLib.Web;
 
 #endif
+
 namespace StackifyLib.Models
 {
     [JsonObject]
     public class WebRequestDetail
     {
+
+        public delegate void SetWebRequestDetailEventHandler(WebRequestDetail detail);
+
+        public static event SetWebRequestDetailEventHandler SetWebRequestDetail;
+
         private StackifyError _Error;
         public WebRequestDetail(StackifyError error)
         {
@@ -28,6 +35,9 @@ namespace StackifyLib.Models
                 Load(System.Web.HttpContext.Current);
             }
 #endif
+
+            //if something has subscribed to this, like our AspNetCore library
+            SetWebRequestDetail?.Invoke(this);
         }
 
         [JsonProperty]
@@ -50,6 +60,9 @@ namespace StackifyLib.Models
 
         [JsonProperty]
         public string ReferralUrl { get; set; }
+
+        [JsonProperty]
+        public string UserAgent { get; set; }
 
         [JsonProperty]
         public Dictionary<string, string> Headers { get; set; }
@@ -78,6 +91,8 @@ namespace StackifyLib.Models
         [JsonProperty]
         public string MVCArea { get; set; }
 
+
+
 #if NET45 || NET40
         private void Load(HttpContext context)
         {
@@ -90,6 +105,7 @@ namespace StackifyLib.Models
             {
                 HttpMethod = request.RequestType;
                 UserIPAddress = request.UserHostAddress;
+                UserAgent = request.UserAgent;
 
                 if (context.Items != null && context.Items.Contains("Stackify.ReportingUrl"))
                 {
@@ -232,7 +248,7 @@ namespace StackifyLib.Models
             dictionary[key] = value;
         }
 
-        #if NET45 || NET40
+#if NET45 || NET40
         internal static Dictionary<string, string> ToKeyValues(HttpCookieCollection collection, List<string> goodKeys, List<string> badKeys)
         {
             var keys = collection.AllKeys;

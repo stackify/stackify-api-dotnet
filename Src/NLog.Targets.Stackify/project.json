@@ -1,5 +1,5 @@
 {
-  "version": "1.23.3",
+  "version": "1.25.4",
 
   "title": "NLog.Targets.Stackify",
 
@@ -12,26 +12,24 @@
   },
 
   "dependencies": {
+  "StackifyLib": "1.25.4"
   },
 
   "frameworks": {
     "netstandard1.3": {
       "dependencies": {
-        "NLog": "4.4.0-*",
-        "StackifyLib": "1.23.3"
-      }
+        "NLog": "5.0.0-beta05"
+      } 
     },
     "net40": {
       "dependencies": {
-        "NLog": "4.2.3",
-        "StackifyLib": "1.23.3"
+        "NLog": "4.3.11"
       }
 
     },
     "net45": {
       "dependencies": {
-        "NLog": "4.2.3",
-        "StackifyLib": "1.23.3"
+        "NLog": "4.3.11"
       }
 
     }

@@ -13,7 +13,16 @@ namespace StackifyLib
 	/// </summary>
 	public class Config
 	{
-	    public static void LoadSettings()
+
+#if NETSTANDARD1_3
+        private static Microsoft.Extensions.Configuration.IConfigurationRoot _Configuration = null;
+
+	    public static void SetConfiguration(Microsoft.Extensions.Configuration.IConfigurationRoot configuration)
+	    {
+	        _Configuration = configuration;
+	    }
+#endif
+        public static void LoadSettings()
 	    {
 	        try
 	        {
@@ -29,6 +38,12 @@ namespace StackifyLib
 
                 CaptureErrorCookies = Get("Stackify.CaptureErrorCookies", "")
                     .Equals("true", StringComparison.CurrentCultureIgnoreCase);
+
+                ApiKey = Get("Stackify.ApiKey", "");
+
+                AppName = Get("Stackify.AppName", "");
+
+                Environment = Get("Stackify.Environment", "");
 
                 CaptureErrorHeadersWhitelist = Get("Stackify.CaptureErrorHeadersWhitelist", "");
 
@@ -68,6 +83,11 @@ namespace StackifyLib
 	        }
         }
 
+        public static string ApiKey { get; set; }
+        public static string Environment { get; set; }
+
+        public static string AppName { get; set; }
+
         public static List<string> ErrorHeaderGoodKeys = new List<string>();
         public static List<string> ErrorHeaderBadKeys = new List<string>();
         public static List<string> ErrorCookiesGoodKeys = new List<string>();
@@ -105,13 +125,24 @@ namespace StackifyLib
 			{
 				if (key != null)
 				{
-#if NET45 || NET40
+
+
+#if NETSTANDARD1_3
+                    if (_Configuration != null)
+                    {
+                        var appSettings = _Configuration.GetSection("Stackify");
+                        v = appSettings[key.Replace("Stackify.", "")];
+                    }
+#endif
+
+#if NET45 || NET40s
                     v = System.Configuration.ConfigurationManager.AppSettings[key];
 #endif
-					if (string.IsNullOrEmpty(v))
-						v = Environment.GetEnvironmentVariable(key);
-				}
-			}
+
+                    if (string.IsNullOrEmpty(v))
+                        v = System.Environment.GetEnvironmentVariable(key);
+                }
+            }
 			finally
 			{
 				if (v == null)

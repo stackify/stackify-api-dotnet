@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using StackifyLib.Models;
 using StackifyLib.Utils;
@@ -485,7 +486,7 @@ namespace StackifyLib.Internal.Logs
             }
             else
             {
-                DateTime stopWaiting = DateTime.UtcNow.AddSeconds(5);
+                DateTime stopWaiting = DateTime.UtcNow.AddSeconds(15);
 
                 //wait for it to finish up to 5 seconds
                 while (_UploadingNow && DateTime.UtcNow < stopWaiting)

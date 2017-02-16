@@ -269,10 +269,10 @@ namespace StackifyLib.Models
                 this.IsAzureWorkerRole = false;
 
                 //Logger global properties would override everything
-
-                if (!string.IsNullOrEmpty(Logger.GlobalAppName))
+                
+                if (!string.IsNullOrEmpty(Config.AppName))
                 {
-                    ConfiguredAppName = Logger.GlobalAppName;
+                    ConfiguredAppName = Config.AppName;
                 }
                 else
                 {
@@ -280,9 +280,9 @@ namespace StackifyLib.Models
                 }
 
 
-                if (!string.IsNullOrEmpty(Logger.GlobalEnvironment))
+                if (!string.IsNullOrEmpty(Config.Environment))
                 {
-                    ConfiguredEnvironmentName = Logger.GlobalEnvironment;
+                    ConfiguredEnvironmentName = Config.Environment;
                 }
                 else
                 {

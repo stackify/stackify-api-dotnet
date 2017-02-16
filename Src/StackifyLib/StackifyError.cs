@@ -159,12 +159,18 @@ namespace StackifyLib
                     }
                 }
             }
-
+#elif NETSTANDARD1_3
+            WebRequestDetail = new WebRequestDetail(this);
 #endif
+
+
+
             //Fire event
-            if (OnCaptureDetail != null)
+            OnCaptureDetail?.Invoke(this);
+
+            if (WebRequestDetail != null && WebRequestDetail.HttpMethod == null)
             {
-                OnCaptureDetail(this);
+                WebRequestDetail = null;
             }
         }
 

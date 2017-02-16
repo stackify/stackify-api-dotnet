@@ -13,6 +13,16 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "NLog.Targets.Stackify", "NL
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StackifyLib.ELMAH", "StackifyLib.ELMAH\StackifyLib.ELMAH.csproj", "{D0E1AABD-6397-4CC7-9737-4904A4BF5BCD}"
 EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "CoreConsoleApp", "CoreConsoleApp\CoreConsoleApp.xproj", "{2B832B34-BA30-4B5A-8E78-D6DC78AF16FB}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "CoreWebApp", "CoreWebApp\CoreWebApp.xproj", "{BC6FDF2B-E063-4F8B-ABBA-6BD9425D4C64}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "StackifyLib.CoreLogger", "StackifyLib.CoreLogger\StackifyLib.CoreLogger.xproj", "{CB09D719-F393-413D-B5CD-E0125543AD24}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "StackifyLib.AspNetCore", "StackifyLib.AspNetCore\StackifyLib.AspNetCore.xproj", "{E141CDE4-501C-4533-8A2E-344522B1991E}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "StackifyLib.StackifyTraceListener", "StackifyLib.StackifyTraceListener\StackifyLib.StackifyTraceListener.xproj", "{28A61379-B316-480F-B45E-C622C42CAE8D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +49,26 @@ Global
 		{D0E1AABD-6397-4CC7-9737-4904A4BF5BCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D0E1AABD-6397-4CC7-9737-4904A4BF5BCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D0E1AABD-6397-4CC7-9737-4904A4BF5BCD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B832B34-BA30-4B5A-8E78-D6DC78AF16FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B832B34-BA30-4B5A-8E78-D6DC78AF16FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B832B34-BA30-4B5A-8E78-D6DC78AF16FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B832B34-BA30-4B5A-8E78-D6DC78AF16FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC6FDF2B-E063-4F8B-ABBA-6BD9425D4C64}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC6FDF2B-E063-4F8B-ABBA-6BD9425D4C64}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC6FDF2B-E063-4F8B-ABBA-6BD9425D4C64}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC6FDF2B-E063-4F8B-ABBA-6BD9425D4C64}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CB09D719-F393-413D-B5CD-E0125543AD24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CB09D719-F393-413D-B5CD-E0125543AD24}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CB09D719-F393-413D-B5CD-E0125543AD24}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CB09D719-F393-413D-B5CD-E0125543AD24}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E141CDE4-501C-4533-8A2E-344522B1991E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E141CDE4-501C-4533-8A2E-344522B1991E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E141CDE4-501C-4533-8A2E-344522B1991E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E141CDE4-501C-4533-8A2E-344522B1991E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{28A61379-B316-480F-B45E-C622C42CAE8D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{28A61379-B316-480F-B45E-C622C42CAE8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{28A61379-B316-480F-B45E-C622C42CAE8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{28A61379-B316-480F-B45E-C622C42CAE8D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

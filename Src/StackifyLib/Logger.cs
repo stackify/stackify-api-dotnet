@@ -25,22 +25,26 @@ namespace StackifyLib
         /// <summary>
         /// Used to override the appname being used by any and all logging appenders. Be it this Logger class, log4net, NLog, etc
         /// </summary>
+        [Obsolete("Use StackifyLib.Config instead", true)]
         public static string GlobalAppName = null;
 
         /// <summary>
         /// Used to override the environment being used by any and all logging appenders. Be it this Logger class, log4net, NLog, etc
         /// </summary>
+        [Obsolete("Use StackifyLib.Config instead", true)]
         public static string GlobalEnvironment = null;
 
         /// <summary>
         /// Used to override the api key being used by any and all logging appenders. Be it this Logger class, log4net, NLog, etc
         /// </summary>
+        [Obsolete("Use StackifyLib.Config instead", true)]
         public static string GlobalApiKey = null;
 
 
         /// <summary>
         /// Used to get/set the api key used by this logger class, not appenders like log4net, NLog, etc. Set GlobalApiKey to change it for those
         /// </summary>
+        [Obsolete("Use StackifyLib.Config instead", true)]
         public static string ApiKey
         {
             get

@@ -36,5 +36,14 @@ namespace StackifyLib
                 throw;
             }
         }
+
+#if NETSTANDARD1_3
+        public static void ConfigureStackifyLogging(this Microsoft.Extensions.Configuration.IConfigurationRoot configuration)
+        {
+            Config.SetConfiguration(configuration);
+            //tell it to load all the settings since we now have the config
+            Config.LoadSettings();
+        }
+#endif
     }
 }

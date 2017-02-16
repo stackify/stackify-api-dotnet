@@ -36,13 +36,13 @@ namespace StackifyLib.Utils
         {
             get
             {
-                if (string.IsNullOrEmpty(Logger.GlobalApiKey))
+                if (string.IsNullOrEmpty(Config.ApiKey))
                 {
                     return _APIKey;
                 }
                 else
                 {
-                    return Logger.GlobalApiKey;
+                    return Config.ApiKey;
                 }
             }
 
