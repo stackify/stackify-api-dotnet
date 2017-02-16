@@ -127,7 +127,7 @@ namespace StackifyLib.Internal.Logs
 
 
         private static long _lastEpochMs = 0;
-        private static int _millisecondCount = 0;
+        private static int _millisecondCount = 1;
 
         public void QueueMessage(LogMsg msg)
         {
@@ -151,8 +151,8 @@ namespace StackifyLib.Internal.Logs
                 // reset counter if we are no longer in the same ms
                 //https://msdn.microsoft.com/en-us/library/system.threading.interlocked_methods(v=vs.110).aspx
                 Interlocked.Exchange(ref _lastEpochMs, msg.EpochMs);
-                Interlocked.Exchange(ref _millisecondCount, 0);
-                msg.Order = 0;
+                Interlocked.Exchange(ref _millisecondCount, 1);
+                msg.Order = 1;
             }
             else if (_lastEpochMs == msg.EpochMs)
             {
