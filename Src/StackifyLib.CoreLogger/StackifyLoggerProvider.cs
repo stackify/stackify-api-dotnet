@@ -8,18 +8,21 @@ namespace StackifyLib.CoreLogger
 {
     public class StackifyLoggerProvider : ILoggerProvider, IDisposable
     {
-        public StackifyLoggerProvider()
-        {
-        }
-
+        private StackifyLogger _StackifyLogger = null;
 
         public Microsoft.Extensions.Logging.ILogger CreateLogger(string name)
         {
-            return (Microsoft.Extensions.Logging.ILogger)new StackifyLogger();
+            if (_StackifyLogger == null)
+            {
+                _StackifyLogger = new StackifyLogger();
+            }
+
+            return _StackifyLogger;
         }
 
         public void Dispose()
         {
+            _StackifyLogger?.Close();
         }
     }
 }

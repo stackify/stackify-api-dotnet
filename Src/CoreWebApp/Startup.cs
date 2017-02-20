@@ -61,11 +61,16 @@ namespace CoreWebApp
         /// <param name="loggerFactory"></param>
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-            loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-            loggerFactory.AddDebug(LogLevel.Debug);
-            loggerFactory.ConfigureNLog("nlog.config");
-      //      app.ApplicationServices.GetService()
-            loggerFactory.AddStackify();
+            ApplicationLogging.ConfigureLogger(loggerFactory);
+            ApplicationLogging.LoggerFactory = loggerFactory;
+
+            //Debug.WriteLine(Environment.StackTrace);
+            //loggerFactory.AddConsole(Configuration.GetSection("Logging"));
+            //loggerFactory.AddDebug(LogLevel.None);
+            //loggerFactory.AddFile("mylogfile.log", LogLevel.Debug);
+            ////loggerFactory.ConfigureNLog("nlog.config");
+            ////      app.ApplicationServices.GetService()
+            //loggerFactory.AddStackify();
           //  loggerFactory.AddNLog();
         //    loggerFactory.AddSerilog();
             

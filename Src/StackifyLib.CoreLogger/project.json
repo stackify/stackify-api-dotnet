@@ -1,10 +1,18 @@
 ﻿{
-  "version": "1.0.0-*",
+  "version": "2.0.0-*",
+
+  "title": "Stackify .NET Core LoggerFactory",
+
+  "packOptions": {
+    "owners": [ "stackify_matt", "jtaylorstackify" ],
+    "tags": [ "stackify", "metrics", "errors", "logs" ],
+    "summary": "Provider for built-in .NET Core logging implementing ILoggerFactory"
+  },
 
   "dependencies": {
-    "NETStandard.Library": "1.6.0",
+    "NETStandard.Library": "1.6.1",
     "Microsoft.Extensions.Logging": "1.0.0",
-    "StackifyLib": "1.24.2"
+    "StackifyLib": "2-*"
   },
 
   "frameworks": {

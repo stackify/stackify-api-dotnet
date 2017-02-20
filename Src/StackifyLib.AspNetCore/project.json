@@ -1,8 +1,16 @@
 ﻿{
-  "version": "1.0.0-*",
+  "version": "2.0.0-beta1",
+
+  "title": "StackifyLib for AspNetCore",
+
+  "packOptions": {
+    "owners": [ "stackify_matt", "jtaylorstackify" ],
+    "tags": [ "stackify", "metrics", "errors", "logs" ],
+    "summary": "Needed to append ASP.NET Core web request details on .NET exceptions"
+  },
 
   "dependencies": {
-    "NETStandard.Library": "1.6.0",
+    "NETStandard.Library": "1.6.1",
     "Microsoft.Extensions.Configuration": "1.1.0",
     "System.ComponentModel": "4.3.0",
     "Microsoft.AspNetCore.Http.Abstractions": "1.0.0",
@@ -10,7 +18,7 @@
     "Microsoft.AspNetCore.Hosting": "1.0.0",
     "Microsoft.AspNetCore.Hosting.Abstractions": "1.0.0",
     "Microsoft.AspNetCore.Routing": "1.0.0",
-    "StackifyLib": "1.25.4"
+    "StackifyLib": "2-*"
   },
 
   "frameworks": {

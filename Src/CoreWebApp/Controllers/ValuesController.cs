@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using NLog;
 
 namespace CoreWebApp.Controllers
@@ -11,11 +13,15 @@ namespace CoreWebApp.Controllers
     public class ValuesController : Controller
     {
         static NLog.Logger nlog = LogManager.GetCurrentClassLogger();
-        // GET api/values
+
+        private static ILogger<ValuesController> _Logger = ApplicationLogging.CreateLogger<ValuesController>();
+
         [HttpGet]
         public IEnumerable<string> Get()
         {
-            nlog.Debug("Callng Get() method");
+          //  nlog.Debug("Callng Get() method");
+
+            _Logger.LogError("From helper method");
 
             try
             {
@@ -25,6 +31,9 @@ namespace CoreWebApp.Controllers
             {
                 nlog.Error(ex, "Uh oh");
             }
+
+            SomeOtherClass soc = new SomeOtherClass();
+            soc.DoBadWebRequest();
 
             return new string[] { "value1", "value2" };
         }

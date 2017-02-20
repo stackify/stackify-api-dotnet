@@ -18,12 +18,13 @@
     "NLog": "5.0.0-beta05",
     "NLog.Extensions.Logging": "1.0.0-rtm-beta2",
     "Serilog": "2.4.0",
-    "StackifyLib": "1.25.4",
+    "StackifyLib": "2-*",
     "StackifyLib.CoreLogger": "1.0.0-*",
-    "NLog.Targets.Stackify": "1.25.4",
-    "StackifyLib.log4net": "1.25.4",
+    "NLog.Targets.Stackify": "2-*",
+    "StackifyLib.log4net": "2-*",
     "Serilog.Extensions.Logging": "1.4.0",
-    "StackifyLib.AspNetCore": "1.0.0-*"
+    "StackifyLib.AspNetCore": "2-*",
+    "Serilog.Extensions.Logging.File": "1.0.0"
   },
 
   "tools": {

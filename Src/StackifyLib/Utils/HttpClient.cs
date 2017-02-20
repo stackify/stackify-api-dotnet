@@ -26,7 +26,7 @@ namespace StackifyLib.Utils
         public string DeviceAlias { get; set; }
     }
 
-    public class HttpClient
+    internal class HttpClient
     {
          public static IWebProxy CustomWebProxy = null;
 

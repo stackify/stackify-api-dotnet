@@ -19,7 +19,8 @@ namespace StackifyLib.CoreLogger
             return true;
         }
 
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception,
+            Func<TState, Exception, string> formatter)
         {
             if (formatter == null)
                 throw new ArgumentNullException("formatter");
@@ -34,6 +35,18 @@ namespace StackifyLib.CoreLogger
             };
 
             StackifyLib.Logger.QueueLogObject(msg, exception);
+        }
+
+        public void Close()
+        {
+            try
+            {
+                StackifyLib.Logger.Shutdown();
+            }
+            catch (Exception)
+            {
+                
+            }
         }
     }
 }

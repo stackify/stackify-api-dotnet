@@ -1,7 +1,7 @@
 {
-  "version": "1.25.4",
+  "version": "2.0.0-beta1",
 
-  "title":  "Stackify API", 
+  "title": "Stackify API",
 
   "packOptions": {
     "owners": [ "stackify_matt", "jtaylorstackify" ],
@@ -14,30 +14,19 @@
   "frameworks": {
     "netstandard1.3": {
       "dependencies": {
-        "System.Diagnostics.StackTrace": "4.0.1",
+        "System.Diagnostics.StackTrace": "4.3.0",
         "Newtonsoft.Json": "9.0.1",
-        "System.Diagnostics.Process": "4.1.0",
-        "System.Dynamic.Runtime": "4.0.11",
-        "System.Reflection.TypeExtensions": "4.1.0",
-        "System.Security.Cryptography.Algorithms": "4.2.0",
-        "System.Collections.Concurrent": "4.0.12",
-        "System.Threading.Timer": "4.0.1",
-        "System.IO.Compression": "4.1.0",
-        "System.AppContext": "4.1.0",
-        "System.Net.Requests": "4.0.11",
-        "System.Reflection": "4.1.0",
-        "System.Runtime.Extensions": "4.1.0",
-        "System.Net.Http": "4.1.0",
-        "System.Diagnostics.Tracing": "4.1.0",
-        "System.Threading.Thread": "4.0.0",
-        //"System.Runtime.InteropServices": "4.3.0",
-        "Microsoft.Extensions.Configuration": "1.1.0"
+        "System.Diagnostics.Process": "4.3.0" ,
+        "System.Net.Requests": "4.3.0",
+        "System.Threading.Thread": "4.3.0",
+        "Microsoft.Extensions.Configuration": "1.1.0",
+        "NETStandard.Library": "1.6.1"
       }
 
     },
     "net40": {
       "dependencies": {
-        "Newtonsoft.Json": "6.0.4"
+        "Newtonsoft.Json": "6.0.8"
       },
       "frameworkAssemblies": {
         "System.Configuration": "4.0.0.0",
@@ -48,7 +37,7 @@
     },
     "net45": {
       "dependencies": {
-        "Newtonsoft.Json": "6.0.4"
+        "Newtonsoft.Json": "6.0.8"
       },
       "frameworkAssemblies": {
         "System.Configuration": "4.0.0.0",

@@ -1,15 +1,24 @@
 {
-  "version": "1.0.0-*",
+  "version": "2.0.0-beta1",
 
   "dependencies": {
-    "NETStandard.Library": "1.6.0",
-    "StackifyLib": "1.25.4",
-    "System.Diagnostics.TraceSource": "4.0.0"
+    "StackifyLib": "2.*"
   },
 
   "frameworks": {
-    "netstandard1.6": {
-      "imports": "dnxcore50"
+    "netstandard1.3": {
+      "imports": "dnxcore50",
+      "dependencies": {
+        "System.Diagnostics.TraceSource": "4.0.0"
+      }
+    },
+    "net45": {
+      "dependencies": {
+      },
+      "frameworkAssemblies": {
+
+      }
     }
+
   }
 }
