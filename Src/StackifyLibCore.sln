@@ -1,27 +1,27 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26228.4
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "StackifyLib", "StackifyLib\StackifyLib.xproj", "{03CF7411-65E2-4998-A157-9224ECA6199B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StackifyLib", "StackifyLib\StackifyLib.csproj", "{03CF7411-65E2-4998-A157-9224ECA6199B}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "StackifyLib.log4net", "StackifyLib.log4net\StackifyLib.log4net.xproj", "{7D98E5E3-A3E7-4613-8BB7-80A60D86A5E8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StackifyLib.log4net", "StackifyLib.log4net\StackifyLib.log4net.csproj", "{7D98E5E3-A3E7-4613-8BB7-80A60D86A5E8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StackifyLib.log4net.v1_2_10", "StackifyLib.log4net.v1_2_10\StackifyLib.log4net.v1_2_10.csproj", "{0353F536-CC16-4008-8C7C-31CE123F3D10}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "NLog.Targets.Stackify", "NLog.Targets.Stackify\NLog.Targets.Stackify.xproj", "{55CC4568-242F-40D7-9BD3-23C4F502C161}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NLog.Targets.Stackify", "NLog.Targets.Stackify\NLog.Targets.Stackify.csproj", "{55CC4568-242F-40D7-9BD3-23C4F502C161}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StackifyLib.ELMAH", "StackifyLib.ELMAH\StackifyLib.ELMAH.csproj", "{D0E1AABD-6397-4CC7-9737-4904A4BF5BCD}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "CoreConsoleApp", "CoreConsoleApp\CoreConsoleApp.xproj", "{2B832B34-BA30-4B5A-8E78-D6DC78AF16FB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreConsoleApp", "CoreConsoleApp\CoreConsoleApp.csproj", "{2B832B34-BA30-4B5A-8E78-D6DC78AF16FB}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "CoreWebApp", "CoreWebApp\CoreWebApp.xproj", "{BC6FDF2B-E063-4F8B-ABBA-6BD9425D4C64}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWebApp", "CoreWebApp\CoreWebApp.csproj", "{BC6FDF2B-E063-4F8B-ABBA-6BD9425D4C64}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "StackifyLib.CoreLogger", "StackifyLib.CoreLogger\StackifyLib.CoreLogger.xproj", "{CB09D719-F393-413D-B5CD-E0125543AD24}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StackifyLib.CoreLogger", "StackifyLib.CoreLogger\StackifyLib.CoreLogger.csproj", "{CB09D719-F393-413D-B5CD-E0125543AD24}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "StackifyLib.AspNetCore", "StackifyLib.AspNetCore\StackifyLib.AspNetCore.xproj", "{E141CDE4-501C-4533-8A2E-344522B1991E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StackifyLib.AspNetCore", "StackifyLib.AspNetCore\StackifyLib.AspNetCore.csproj", "{E141CDE4-501C-4533-8A2E-344522B1991E}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "StackifyLib.StackifyTraceListener", "StackifyLib.StackifyTraceListener\StackifyLib.StackifyTraceListener.xproj", "{28A61379-B316-480F-B45E-C622C42CAE8D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StackifyLib.StackifyTraceListener", "StackifyLib.StackifyTraceListener\StackifyLib.StackifyTraceListener.csproj", "{28A61379-B316-480F-B45E-C622C42CAE8D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

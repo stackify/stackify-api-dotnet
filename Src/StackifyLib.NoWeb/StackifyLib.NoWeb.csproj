@@ -1,0 +1,145 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{E0F58633-C6F1-4E4F-910A-97633D8AFCFF}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>StackifyLib.NoWeb</RootNamespace>
+    <AssemblyName>StackifyLib.NoWeb</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+	<Reference Include="System.Net.Http" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\StackifyLib\API.cs">
+      <Link>API.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\Config.cs">
+      <Link>Config.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\Extensions.cs">
+      <Link>Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\Internal\Logs\ILogClient.cs">
+      <Link>ILogClient.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\Internal\Logs\LogClient.cs">
+      <Link>LogClient.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\Internal\Logs\LogQueue.cs">
+      <Link>LogQueue.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\Internal\Metrics\MetricClient.cs">
+      <Link>MetricClient.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\Logger.cs">
+      <Link>Logger.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\Metrics.cs">
+      <Link>Metrics.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\Models\EnvironmentDetail.cs">
+      <Link>EnvironmentDetail.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\Models\ErrorItem.cs">
+      <Link>ErrorItem.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\Models\LogMessage.cs">
+      <Link>LogMessage.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\Models\LogMsgGroup.cs">
+      <Link>LogMsgGroup.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\Models\MetricsModels.cs">
+      <Link>MetricsModels.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\Models\MonitorModels.cs">
+      <Link>MonitorModels.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\Models\TraceFrame.cs">
+      <Link>TraceFrame.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\Models\WebRequestDetail.cs">
+      <Link>WebRequestDetail.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\ProfileTracer.cs">
+      <Link>ProfileTracer.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\StackifyError.cs">
+      <Link>StackifyError.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\StringException.cs">
+      <Link>StringException.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\Utils\DateExtensions.cs">
+      <Link>DateExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\Utils\ErrorGovernor.cs">
+      <Link>ErrorGovernor.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\Utils\EtwEventListener.cs">
+      <Link>EtwEventListener.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\Utils\HelperFunctions.cs">
+      <Link>HelperFunctions.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\Utils\HighPrecisionTime.cs">
+      <Link>HighPrecisionTime.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\Utils\HttpClient.cs">
+      <Link>HttpClient.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\Utils\PrefixOrAPM.cs">
+      <Link>PrefixOrAPM.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\Utils\RegistryHelper.cs">
+      <Link>RegistryHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\Utils\SequentialGuid.cs">
+      <Link>SequentialGuid.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\Utils\StackifyAPILogger.cs">
+      <Link>StackifyAPILogger.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\Utils\StringExtensions.cs">
+      <Link>StringExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\StackifyLib\Utils\UniqueIdGenerator.cs">
+      <Link>UniqueIdGenerator.cs</Link>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

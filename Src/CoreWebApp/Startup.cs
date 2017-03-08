@@ -22,6 +22,8 @@ namespace CoreWebApp
 {
     public class Startup
     {
+        public IConfigurationRoot Configuration { get; }
+
         public Startup(IHostingEnvironment env)
         {
             StackifyLib.Utils.StackifyAPILogger.OnLogMessage += StackifyAPILogger_OnLogMessage;
@@ -33,6 +35,7 @@ namespace CoreWebApp
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
                 .AddEnvironmentVariables();
             Configuration = builder.Build();
+            Configuration.ConfigureStackifyLogging();
 
             StackifyLib.Config.Environment = env.EnvironmentName;
         }
@@ -42,7 +45,7 @@ namespace CoreWebApp
            Debug.WriteLine(data);
         }
 
-        public IConfigurationRoot Configuration { get; }
+
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -61,6 +64,8 @@ namespace CoreWebApp
         /// <param name="loggerFactory"></param>
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
+            loggerFactory.AddStackify();
+
             ApplicationLogging.ConfigureLogger(loggerFactory);
             ApplicationLogging.LoggerFactory = loggerFactory;
 
