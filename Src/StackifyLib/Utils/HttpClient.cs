@@ -74,7 +74,7 @@ namespace StackifyLib.Utils
 
         static HttpClient()
         {
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
             LoadWebProxyConfig();
 #endif
         }
@@ -112,7 +112,7 @@ namespace StackifyLib.Utils
                 BaseAPIUrl += "/";
         }
 
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
         public static void LoadWebProxyConfig()
         {
             try
@@ -369,7 +369,7 @@ namespace StackifyLib.Utils
             {
                 var request = BuildJsonRequest(url, jsonData, compress);
 
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
                 using (var response = (HttpWebResponse)request.GetResponse())
 #else
                 using (var response = (HttpWebResponse)request.GetResponseAsync().GetAwaiter().GetResult())
@@ -461,7 +461,7 @@ namespace StackifyLib.Utils
             {
                 var request = BuildPOSTRequest(url, postData);
 
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
                 using (var response = (HttpWebResponse)request.GetResponse())
 #else
                 using (var response = (HttpWebResponse)request.GetResponseAsync().GetAwaiter().GetResult())
@@ -571,7 +571,7 @@ namespace StackifyLib.Utils
             if (string.IsNullOrEmpty(_version))
             {
 
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
                 _version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
 #else
                 _version =
@@ -583,7 +583,7 @@ namespace StackifyLib.Utils
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
 
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
             request.UserAgent = "StackifyLib-" + _version;
 #else
             request.Headers[HttpRequestHeader.UserAgent] = "StackifyLib-" + _version;
@@ -605,7 +605,7 @@ namespace StackifyLib.Utils
 
                 byte[] payload = Encoding.UTF8.GetBytes(jsonData);
 
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
                 using (Stream postStream = request.GetRequestStream())
 #else
                 using (Stream postStream = request.GetRequestStreamAsync().GetAwaiter().GetResult())
@@ -624,7 +624,7 @@ namespace StackifyLib.Utils
 
                 byte[] payload = Encoding.UTF8.GetBytes(jsonData);
 
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
                 request.ContentLength= payload.Length;
                 using (Stream stream = request.GetRequestStream())
 #else
@@ -648,7 +648,7 @@ namespace StackifyLib.Utils
         {
             if (string.IsNullOrEmpty(_version))
             {
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
                 _version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
 #else
                 _version =
@@ -664,7 +664,7 @@ namespace StackifyLib.Utils
             request.Headers["X-Stackify-Key"] = this.APIKey;
             request.ContentType = "application/x-www-form-urlencoded";
 
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
             request.UserAgent = "StackifyLib-" + _version;
             request.ContentLength = 0;
 #else
@@ -684,7 +684,7 @@ namespace StackifyLib.Utils
             {
                 byte[] payload = Encoding.UTF8.GetBytes(postdata);
 
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
                 using (Stream postStream = request.GetRequestStream())
 #else
                 using (Stream postStream = request.GetRequestStreamAsync().GetAwaiter().GetResult())

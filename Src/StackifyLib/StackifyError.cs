@@ -4,7 +4,7 @@ using System.Reflection;
 using Newtonsoft.Json;
 using StackifyLib.Utils;
 
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
 using System.Web;
 #endif
 
@@ -92,7 +92,7 @@ namespace StackifyLib
                     Error = new ErrorItem(exception.InnerException);
                     _Exception = exception.InnerException;
                 }
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
                 else if (exception is HttpUnhandledException && exception.InnerException != null)
                 {
                     Error = new ErrorItem(exception.GetBaseException());
@@ -117,7 +117,7 @@ namespace StackifyLib
             EnvironmentDetail = EnvironmentDetail.Get(false);
             ServerVariables = new Dictionary<string, string>();
 
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
             if (System.Web.HttpContext.Current != null)
             {
                 // Make sure that the request is available in the current context.

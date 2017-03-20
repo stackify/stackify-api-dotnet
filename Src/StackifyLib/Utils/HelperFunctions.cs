@@ -131,7 +131,7 @@ namespace StackifyLib.Utils
                                 {
                                     jObject.Add("objectType", type.FullName);
                                 }
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
                                 else
                                 {
 

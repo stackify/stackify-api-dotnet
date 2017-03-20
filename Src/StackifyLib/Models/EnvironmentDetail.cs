@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using StackifyLib.Utils;
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
 using System.Linq;
 using System.Web.Hosting;
 using System.Management;
@@ -36,7 +36,7 @@ namespace StackifyLib.Models
         /// </summary>
         private void GetAzureInfo()
         {
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
             if (registryAccessFailure)
                 return;
 
@@ -105,7 +105,7 @@ namespace StackifyLib.Models
         /// <summary>
         /// Get the EC2 Instance name if it exists else null
         /// </summary>
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
         public static string GetEC2InstanceId()
         {
             try
@@ -170,7 +170,7 @@ namespace StackifyLib.Models
         /// </summary>
         private void IsWindowService()
         {
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
             try
             {
                 string query = "select DisplayName from Win32_Service WHERE ProcessID='" + System.Diagnostics.Process.GetCurrentProcess().Id + "'";
@@ -212,7 +212,7 @@ namespace StackifyLib.Models
                 return;
 
             bool isWebRequest = false;
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
             try
             {
                 isWebRequest = AppDomain.CurrentDomain.FriendlyName.Contains("W3SVC");
@@ -293,7 +293,7 @@ namespace StackifyLib.Models
                 GetAzureInfo();
 
 
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
                 //Not a web app, check for windows service
                 if (!Environment.UserInteractive && !AppDomain.CurrentDomain.FriendlyName.Contains("W3SVC"))
                 {
@@ -302,7 +302,7 @@ namespace StackifyLib.Models
 #endif
 
 
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
 
                 DeviceName = GetEC2InstanceId() ?? Environment.MachineName;
 #else
@@ -311,7 +311,7 @@ namespace StackifyLib.Models
                 DeviceName = instanceID_task.Result ?? Process.GetCurrentProcess().MachineName;
 #endif
 
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
                 if (string.IsNullOrEmpty(AppName) && !isWebRequest)
                 {
                     AppName = AppDomain.CurrentDomain.FriendlyName;
@@ -340,7 +340,7 @@ namespace StackifyLib.Models
                 StackifyLib.Utils.StackifyAPILogger.Log("Error figuring out app environment details\r\n" + ex.ToString(), true);
             }
 
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
             try
             {
 

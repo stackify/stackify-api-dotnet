@@ -32,7 +32,7 @@ namespace StackifyLib.Models
                 }
 
                 Message = ex.Message;
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
                 if (ex is System.Data.SqlClient.SqlException)
                 {
                     System.Data.SqlClient.SqlException sql = ex as System.Data.SqlClient.SqlException;
@@ -149,7 +149,7 @@ namespace StackifyLib.Models
                 }
             }
 
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
             var stackTrace2 = new StackTrace(true);
             var allFrames = stackTrace2.GetFrames();
 
@@ -199,7 +199,7 @@ namespace StackifyLib.Models
             if (method == null)
                 return "Unknown";
 
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
             if (method.ReflectedType != null)
             {
                 if (simpleMethodNames)

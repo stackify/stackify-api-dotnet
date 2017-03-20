@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
-using Newtonsoft.Json;
 
 namespace StackifyLib
 {
@@ -14,7 +13,7 @@ namespace StackifyLib
 	public class Config
 	{
 
-#if NETSTANDARD1_3
+#if NETSTANDARD1_3 || NET451
         private static Microsoft.Extensions.Configuration.IConfigurationRoot _Configuration = null;
 
 	    public static void SetConfiguration(Microsoft.Extensions.Configuration.IConfigurationRoot configuration)
@@ -135,7 +134,7 @@ namespace StackifyLib
                     }
 #endif
 
-#if NET45 || NET40s
+#if NET451 || NET45 || NET40s
                     v = System.Configuration.ConfigurationManager.AppSettings[key];
 #endif
 

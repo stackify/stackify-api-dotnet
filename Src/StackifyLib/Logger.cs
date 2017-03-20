@@ -259,7 +259,7 @@ namespace StackifyLib
         {
             List<TraceFrame> frames = new List<TraceFrame>();
 
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
             try
             {
                 //moves to the part of the trace where the declaring method starts then the other loop gets all the frames. This is to remove frames that happen within the logging library itself.

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using StackifyLib.Models;
 using StackifyLib.Utils;
 
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
 using System.Runtime.Remoting.Messaging;
 using StackifyLib.Web;
 #endif
@@ -97,7 +97,7 @@ namespace StackifyLib.Internal.Logs
                 {
                 }
 
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
                 try
                 {
                     if (string.IsNullOrEmpty(msg.TransID))
@@ -491,7 +491,7 @@ namespace StackifyLib.Internal.Logs
                 //wait for it to finish up to 5 seconds
                 while (_UploadingNow && DateTime.UtcNow < stopWaiting)
                 {
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
                     System.Threading.Thread.Sleep(10);
 #else
                     Task.Delay(10).Wait();
