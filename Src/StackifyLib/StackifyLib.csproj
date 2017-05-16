@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <AssemblyTitle>Stackify API</AssemblyTitle>
-    <VersionPrefix>2.0.0-beta1</VersionPrefix>
+    <VersionPrefix>2.0.0</VersionPrefix>
     <TargetFrameworks>netstandard1.3;net40;net45;net451</TargetFrameworks>
     <AssemblyName>StackifyLib</AssemblyName>
     <PackageId>StackifyLib</PackageId>
