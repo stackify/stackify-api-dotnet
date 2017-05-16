@@ -1,17 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using StackifyLib.AspNetCore;
 
-namespace StackifyLib
+namespace StackifyLib.AspNetCore
 {
     public static class Extensions
     {
-
-
-
         public static void ConfigureStackifyLogging(this Microsoft.AspNetCore.Builder.IApplicationBuilder app,
                 Microsoft.Extensions.Configuration.IConfigurationRoot configuration)
         {

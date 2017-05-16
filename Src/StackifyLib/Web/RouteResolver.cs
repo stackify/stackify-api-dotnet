@@ -1,4 +1,4 @@
-﻿#if NET451 || NET45 || NET40
+﻿#if NET451 || NET45
 using System;
 using System.Linq;
 using System.Text;

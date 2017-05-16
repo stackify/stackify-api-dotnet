@@ -1,22 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using NLog;
-using NLog.Config;
-using NLog.Extensions.Logging;
-using LogLevel = Microsoft.Extensions.Logging.LogLevel;
-using Serilog;
 using StackifyLib;
-using StackifyLib.CoreLogger;
+using StackifyLib.AspNetCore;
 
 namespace CoreWebApp
 {
@@ -45,43 +35,21 @@ namespace CoreWebApp
            Debug.WriteLine(data);
         }
 
-
-
-        // This method gets called by the runtime. Use this method to add services to the container.
+        
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            // Add framework services.
+
             services.AddMvc();
         }
-
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="app"></param>
-        /// <param name="env"></param>
-        /// <param name="loggerFactory"></param>
+        
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             loggerFactory.AddStackify();
 
             ApplicationLogging.ConfigureLogger(loggerFactory);
             ApplicationLogging.LoggerFactory = loggerFactory;
-
-            //Debug.WriteLine(Environment.StackTrace);
-            //loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-            //loggerFactory.AddDebug(LogLevel.None);
-            //loggerFactory.AddFile("mylogfile.log", LogLevel.Debug);
-            ////loggerFactory.ConfigureNLog("nlog.config");
-            ////      app.ApplicationServices.GetService()
-            //loggerFactory.AddStackify();
-          //  loggerFactory.AddNLog();
-        //    loggerFactory.AddSerilog();
             
-            // var path = Path.Combine(Directory.GetCurrentDirectory(), "nlog.config");
-            //  NLog.LogManager.Configuration = new XmlLoggingConfiguration(path, true);
-        //    app.AddNLogWeb();
             app.ConfigureStackifyLogging(Configuration);
 
 

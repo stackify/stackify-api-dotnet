@@ -14,9 +14,9 @@ namespace StackifyLib
 	{
 
 #if NETSTANDARD1_3 || NET451
-        private static Microsoft.Extensions.Configuration.IConfigurationRoot _Configuration = null;
+        private static Microsoft.Extensions.Configuration.IConfiguration _Configuration = null;
 
-	    public static void SetConfiguration(Microsoft.Extensions.Configuration.IConfigurationRoot configuration)
+	    public static void SetConfiguration(Microsoft.Extensions.Configuration.IConfiguration configuration)
 	    {
 	        _Configuration = configuration;
 	    }
@@ -75,6 +75,9 @@ namespace StackifyLib
                     ErrorSessionGoodKeys = CaptureErrorSessionWhitelist.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList();
                 }
 	            
+                ApiHost = Get("Stackify.ApiHost", "https://api.stackify.net");
+                AuthTokenUrl = Get("Stackify.AuthTokenUrl", "https://auth.stackify.net/oauth2/token");
+                LogUri = Get("Stackify.LogUri", "api/v1/logs");
             }
             catch (Exception ex)
 	        {
@@ -82,9 +85,12 @@ namespace StackifyLib
 	        }
         }
 
+        public static string AuthTokenUrl { get; set; }
+        public static string ApiHost { get; set; }
+        public static string LogUri { get; set; }
+
         public static string ApiKey { get; set; }
         public static string Environment { get; set; }
-
         public static string AppName { get; set; }
 
         public static List<string> ErrorHeaderGoodKeys = new List<string>();
@@ -109,6 +115,11 @@ namespace StackifyLib
 
         public static string CaptureErrorCookiesBlacklist { get; set; } = ".ASPXAUTH";
 
+        /// <summary>
+        /// Global setting for any log appenders for how big the log queue size can be in memory 
+        /// before messages are lost if there are problems uploading or we can't upload fast enough
+        /// </summary>
+        public static int MaxLogBufferSize { get; set; }  = 10000;
 
         /// <summary>
         /// Attempts to fetch a setting value given the key.
@@ -125,8 +136,7 @@ namespace StackifyLib
 				if (key != null)
 				{
 
-
-#if NETSTANDARD1_3
+#if NETSTANDARD1_3 || NET451
                     if (_Configuration != null)
                     {
                         var appSettings = _Configuration.GetSection("Stackify");
@@ -134,12 +144,10 @@ namespace StackifyLib
                     }
 #endif
 
-#if NET451 || NET45 || NET40s
-                    v = System.Configuration.ConfigurationManager.AppSettings[key];
+#if NET451 || NET45
+                    v = string.IsNullOrEmpty(v) ? System.Configuration.ConfigurationManager.AppSettings[key] : v;
 #endif
-
-                    if (string.IsNullOrEmpty(v))
-                        v = System.Environment.GetEnvironmentVariable(key);
+                    v = string.IsNullOrEmpty(v) ? System.Environment.GetEnvironmentVariable(key) : v;
                 }
             }
 			finally

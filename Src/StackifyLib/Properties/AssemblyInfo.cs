@@ -14,12 +14,18 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
+// expose internal methods to test assemblies
+[assembly: InternalsVisibleTo("StackifyLibTests")]
+[assembly: InternalsVisibleTo("NLog.Targets.Stackify")]
+[assembly: InternalsVisibleTo("StackifyLib.log4net")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
+
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 
 // COM, set the ComVisible attribute to true on that type.
 [assembly: ComVisible(false)]
 
-#if NET451 || NET45 || NET40
+#if NET451 || NET45
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("67aae97f-aa9f-4c35-b611-b68af22b9712")]
 #endif

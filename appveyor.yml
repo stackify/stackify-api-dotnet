@@ -7,6 +7,7 @@ pull_requests:
 branches:
   only:
   - develop
+  - /feature*/
 
 nuget:
   disable_publish_on_pr: true
@@ -27,7 +28,7 @@ deploy:
 - provider: NuGet
   server: https://www.myget.org/F/stackify-private/api/v2
   api_key:
-    secure: Txfu3efySdQMNgs/NF4N3dXvnMckOkQXNRL0ILka6BwQc3mUX4Isn8/r17N1J7l6
-  skip_symbols: true
+    secure: UOvRrTDVcxyLUJYZVWZJUIrBCxTeaW5UCOKWHOWgaWaV8g+mupAamSPY5yHaJa0b
+  skip_symbols: false
   on:
     branch: develop

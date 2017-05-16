@@ -1,31 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using StackifyLib.Models;
 using Newtonsoft.Json;
+using StackifyLib.Internal.Auth.Claims;
 
 namespace StackifyLib.Utils
 {
-    public class AppIdentityInfo
-    {
-        public int? DeviceID { get; set; }
-        public int? DeviceAppID { get; set; }
-        public Guid? AppNameID { get; set; }
-        public short? EnvID { get; set; }
-        public string AppName { get; set; }
-        public string Env { get; set; }
-        public Guid? AppEnvID { get; set; }
-        public string DeviceAlias { get; set; }
-    }
-
     internal class HttpClient
     {
          public static IWebProxy CustomWebProxy = null;
@@ -74,7 +58,7 @@ namespace StackifyLib.Utils
 
         static HttpClient()
         {
-#if NET451 || NET45 || NET40
+#if NET451 || NET45
             LoadWebProxyConfig();
 #endif
         }
@@ -112,7 +96,7 @@ namespace StackifyLib.Utils
                 BaseAPIUrl += "/";
         }
 
-#if NET451 || NET45 || NET40
+#if NET451 || NET45
         public static void LoadWebProxyConfig()
         {
             try
@@ -295,7 +279,7 @@ namespace StackifyLib.Utils
                     return false;
                 }
                 StackifyAPILogger.Log("Calling to Identify App");
-                EnvironmentDetail env = EnvironmentDetail.Get(true);
+                var env = AppClaimsManager.Get();
                 string jsonData = JsonConvert.SerializeObject(env, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
 
                 var response =
@@ -369,7 +353,7 @@ namespace StackifyLib.Utils
             {
                 var request = BuildJsonRequest(url, jsonData, compress);
 
-#if NET451 || NET45 || NET40
+#if NET451 || NET45
                 using (var response = (HttpWebResponse)request.GetResponse())
 #else
                 using (var response = (HttpWebResponse)request.GetResponseAsync().GetAwaiter().GetResult())
@@ -390,11 +374,7 @@ namespace StackifyLib.Utils
                     _LastError = null;
                     LastErrorMessage = null;
 
-#if NET40
-                    response.Close();
-#else
                     response.Dispose();
-#endif
                 }
             }
             catch (WebException ex)
@@ -418,11 +398,7 @@ namespace StackifyLib.Utils
                         result.StatusCode = response.StatusCode;
                         result.ResponseText = GetResponseString(response, started);
 
-#if NET40
-                        response.Close();
-#else
-                    response.Dispose();
-#endif
+                        response.Dispose();
                     }
                 }
             }
@@ -461,7 +437,7 @@ namespace StackifyLib.Utils
             {
                 var request = BuildPOSTRequest(url, postData);
 
-#if NET451 || NET45 || NET40
+#if NET451 || NET45
                 using (var response = (HttpWebResponse)request.GetResponse())
 #else
                 using (var response = (HttpWebResponse)request.GetResponseAsync().GetAwaiter().GetResult())
@@ -481,11 +457,7 @@ namespace StackifyLib.Utils
                     _LastSuccess = DateTime.UtcNow;
                     _LastError = null;
                     LastErrorMessage = null;
-#if NET40
-                    response.Close();
-#else
                     response.Dispose();
-#endif
                 }
             }
             catch (WebException ex)
@@ -509,11 +481,7 @@ namespace StackifyLib.Utils
                         result.StatusCode = response.StatusCode;
                         result.ResponseText = GetResponseString(response, started);
 
-#if NET40
-                        response.Close();
-#else
-                    response.Dispose();
-#endif
+                        response.Dispose();
                     }
                 }
             }
@@ -571,7 +539,7 @@ namespace StackifyLib.Utils
             if (string.IsNullOrEmpty(_version))
             {
 
-#if NET451 || NET45 || NET40
+#if NET451 || NET45
                 _version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
 #else
                 _version =
@@ -583,7 +551,7 @@ namespace StackifyLib.Utils
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
 
-#if NET451 || NET45 || NET40
+#if NET451 || NET45
             request.UserAgent = "StackifyLib-" + _version;
 #else
             request.Headers[HttpRequestHeader.UserAgent] = "StackifyLib-" + _version;
@@ -605,7 +573,7 @@ namespace StackifyLib.Utils
 
                 byte[] payload = Encoding.UTF8.GetBytes(jsonData);
 
-#if NET451 || NET45 || NET40
+#if NET451 || NET45
                 using (Stream postStream = request.GetRequestStream())
 #else
                 using (Stream postStream = request.GetRequestStreamAsync().GetAwaiter().GetResult())
@@ -624,7 +592,7 @@ namespace StackifyLib.Utils
 
                 byte[] payload = Encoding.UTF8.GetBytes(jsonData);
 
-#if NET451 || NET45 || NET40
+#if NET451 || NET45
                 request.ContentLength= payload.Length;
                 using (Stream stream = request.GetRequestStream())
 #else
@@ -648,7 +616,7 @@ namespace StackifyLib.Utils
         {
             if (string.IsNullOrEmpty(_version))
             {
-#if NET451 || NET45 || NET40
+#if NET451 || NET45
                 _version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
 #else
                 _version =
@@ -664,7 +632,7 @@ namespace StackifyLib.Utils
             request.Headers["X-Stackify-Key"] = this.APIKey;
             request.ContentType = "application/x-www-form-urlencoded";
 
-#if NET451 || NET45 || NET40
+#if NET451 || NET45
             request.UserAgent = "StackifyLib-" + _version;
             request.ContentLength = 0;
 #else
@@ -684,7 +652,7 @@ namespace StackifyLib.Utils
             {
                 byte[] payload = Encoding.UTF8.GetBytes(postdata);
 
-#if NET451 || NET45 || NET40
+#if NET451 || NET45
                 using (Stream postStream = request.GetRequestStream())
 #else
                 using (Stream postStream = request.GetRequestStreamAsync().GetAwaiter().GetResult())

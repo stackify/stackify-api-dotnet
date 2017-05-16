@@ -1,76 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
+using System.Net;
+using System.Net.Http;
+using StackifyLib.Internal.Auth.Claims;
 using StackifyLib.Internal.Logs;
 using StackifyLib.Internal.Metrics;
 using StackifyLib.Models;
 using StackifyLib.Utils;
 
+#if NET451 || NET45
+using System.Diagnostics;
+#endif
+
 namespace StackifyLib
 {
     public class Logger
     {
-        public static int _MaxLogBufferSize = 10000;
-
-        private static LogClient _LogClient = null;
+        private static ILogClient _logClient;
 
         static Logger()
         {
-            _LogClient = new LogClient("StackifyLib.net");
-        }
-
-
-        /// <summary>
-        /// Used to override the appname being used by any and all logging appenders. Be it this Logger class, log4net, NLog, etc
-        /// </summary>
-        [Obsolete("Use StackifyLib.Config instead", true)]
-        public static string GlobalAppName = null;
-
-        /// <summary>
-        /// Used to override the environment being used by any and all logging appenders. Be it this Logger class, log4net, NLog, etc
-        /// </summary>
-        [Obsolete("Use StackifyLib.Config instead", true)]
-        public static string GlobalEnvironment = null;
-
-        /// <summary>
-        /// Used to override the api key being used by any and all logging appenders. Be it this Logger class, log4net, NLog, etc
-        /// </summary>
-        [Obsolete("Use StackifyLib.Config instead", true)]
-        public static string GlobalApiKey = null;
-
-
-        /// <summary>
-        /// Used to get/set the api key used by this logger class, not appenders like log4net, NLog, etc. Set GlobalApiKey to change it for those
-        /// </summary>
-        [Obsolete("Use StackifyLib.Config instead", true)]
-        public static string ApiKey
-        {
-            get
-            {
-                return _LogClient.APIKey;
-            }
-            set
-            {
-                //close the log client and create a new one with the new key
-                //people shouldn't really be changing this around so not worried about it being crazily set
-                if (_LogClient.APIKey != value)
-                {
-                    _LogClient.Close();
-                    _LogClient = new LogClient("StackifyLib.net", value);
-                }
-            }
+            _logClient = LogClientFactory.GetClient("StackifyLib.net");
         }
 
         /// <summary>
-        /// Global setting for any log appenders for how big the log queue size can be in memory before messages are lost if there are problems uploading or we can't upload fast enough
+        /// Callback when logs are not uploaded to the API and the library will not retry
         /// </summary>
-        public static int MaxLogBufferSize
-        {
-            get { return _MaxLogBufferSize; }
-            set { _MaxLogBufferSize = value; }
-        }
+        public static event Action<List<LogMsg>, HttpStatusCode> OnRejectedLogs;
+        internal static void NotifyRejectedLogs(List<LogMsg> logs, HttpStatusCode status)
+            => OnRejectedLogs(logs, status);
 
         /// <summary>
         /// Flushes any items in the queue when shutting down an app
@@ -78,31 +36,21 @@ namespace StackifyLib
         public static void Shutdown()
         {
             //flush logs queue
-            _LogClient.Close();
+            _logClient.Close();
 
             //flush any remaining metrics as well
             MetricClient.StopMetricsQueue("Logger Shutdown called");
         }
 
         /// <summary>
-        /// Gets info about the app
-        /// </summary>
-        /// <returns></returns>
-        public static AppIdentityInfo Identity()
-        {
-            return _LogClient.GetIdentity();
-        }
-
-        /// <summary>
         /// Used to check if there have been recent failures or if the queue is backed up and if logs can be sent or not
         /// </summary>
-        /// <returns></returns>
         public static bool CanSend()
         {
-            if (_LogClient == null)
+            if (_logClient == null)
                 return false;
 
-            return _LogClient.CanQueue();
+            return _logClient.CanQueue();
         }
 
         public static void Queue(string level, string message, object debugData = null)
@@ -122,13 +70,11 @@ namespace StackifyLib
             QueueLogObject(msg, null);
         }
 
-
         public static void QueueException(Exception exceptionObject,
                                           object debugData = null)
         {
             QueueException("ERROR", exceptionObject.Message, exceptionObject, debugData);
         }
-
 
         public static void QueueException(string message, Exception exceptionObject,
                                           object debugData = null)
@@ -155,12 +101,12 @@ namespace StackifyLib
 
         internal static bool ErrorShouldBeSent(StackifyError error)
         {
-            return _LogClient.ErrorShouldBeSent(error);
+            return _logClient.ErrorShouldBeSent(error);
         }
 
         public static void PauseUpload(bool isPaused)
         {
-            _LogClient.PauseUpload(isPaused);
+            _logClient.PauseUpload(isPaused);
         }
 
         public static void QueueException(StackifyError error)
@@ -175,11 +121,11 @@ namespace StackifyLib
             QueueLogObject(msg);
         }
 
-        public static void QueueLogObject(StackifyLib.Models.LogMsg msg)
+        public static void QueueLogObject(LogMsg msg)
         {
             try
             {
-                if (PrefixEnabled() || _LogClient.CanQueue())
+                if (PrefixEnabled() || _logClient.CanQueue())
                 {
 
                     if (msg.Ex != null)
@@ -202,8 +148,7 @@ namespace StackifyLib
 
 
                         bool ignore = StackifyError.IgnoreError(msg.Ex);
-                        bool shouldSend = _LogClient.ErrorShouldBeSent(msg.Ex);
-
+                        bool shouldSend = _logClient.ErrorShouldBeSent(msg.Ex);
 
                         if (!ignore)
                         {
@@ -224,15 +169,12 @@ namespace StackifyLib
                         }
                     }
 
-                    _LogClient.QueueMessage(msg);
+                    _logClient.QueueMessage(msg);
                 }
                 else
                 {
                     StackifyAPILogger.Log("Unable to send log because the queue is full");
                 }
-
-
-
             }
             catch (Exception ex)
             {
@@ -240,7 +182,7 @@ namespace StackifyLib
             }
         }
 
-        public static void QueueLogObject(StackifyLib.Models.LogMsg msg, Exception exceptionObject)
+        public static void QueueLogObject(LogMsg msg, Exception exceptionObject)
         {
             if (exceptionObject != null)
             {
@@ -254,12 +196,11 @@ namespace StackifyLib
         /// Helper method for getting the current stack trace
         /// </summary>
         /// <param name="declaringClassName"></param>
-        /// <returns></returns>
         public static List<TraceFrame> GetCurrentStackTrace(string declaringClassName, int maxFrames = 99, bool simpleMethodNames = false)
         {
             List<TraceFrame> frames = new List<TraceFrame>();
 
-#if NET451 || NET45 || NET40
+#if NET451 || NET45
             try
             {
                 //moves to the part of the trace where the declaring method starts then the other loop gets all the frames. This is to remove frames that happen within the logging library itself.
@@ -299,10 +240,9 @@ namespace StackifyLib
                             return frames;
                         }
                     }
-
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
 
             }
