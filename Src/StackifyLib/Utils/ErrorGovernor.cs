@@ -10,7 +10,7 @@ namespace StackifyLib.Utils
     /// <summary>
     /// Handles error throttling from the client side appender
     /// </summary>
-    public class ErrorGovernor
+    public class ErrorGovernor : IErrorGovernor
     {
         /// <summary>
         /// Number of instances of a unique error that are allowed to be sent in one minute 

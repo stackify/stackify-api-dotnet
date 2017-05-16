@@ -75,6 +75,9 @@ namespace StackifyLib
                     ErrorSessionGoodKeys = CaptureErrorSessionWhitelist.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList();
                 }
 	            
+                ApiHost = Get("Stackify.ApiHost", "https://api.stackify.com");
+                AuthTokenUrl = Get("Stackify.AuthTokenUrl", "https://auth.stackify.com/oauth2/token");
+                LogUri = Get("Stackify.LogUri", "api/v1/logs");
             }
             catch (Exception ex)
 	        {
@@ -82,9 +85,12 @@ namespace StackifyLib
 	        }
         }
 
+        public static string AuthTokenUrl { get; set; }
+        public static string ApiHost { get; set; }
+        public static string LogUri { get; set; }
+
         public static string ApiKey { get; set; }
         public static string Environment { get; set; }
-
         public static string AppName { get; set; }
 
         public static List<string> ErrorHeaderGoodKeys = new List<string>();
@@ -134,7 +140,7 @@ namespace StackifyLib
                     }
 #endif
 
-#if NET451 || NET45 || NET40s
+#if NET451 || NET45
                     v = System.Configuration.ConfigurationManager.AppSettings[key];
 #endif
 

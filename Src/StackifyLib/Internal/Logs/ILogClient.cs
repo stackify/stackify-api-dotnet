@@ -1,18 +1,32 @@
-﻿using StackifyLib.Models;
+﻿using StackifyLib.Internal.Auth.Claims;
+using StackifyLib.Models;
 using StackifyLib.Utils;
 
 namespace StackifyLib.Internal.Logs
 {
     public interface ILogClient
     {
+        ///<summary>
+        /// Whether or not the queue is available
+        ///</summary>
         bool CanQueue();
-        bool CanSend();
-        bool CanUpload();
+
+        /// <summary>
+        /// Close and flush the log queue
+        /// </summary>
         void Close();
-        bool ErrorShouldBeSent(StackifyError error);
-        AppIdentityInfo GetIdentity();
-        bool IsAuthorized();
-        void PauseUpload(bool isPaused);
+
+        /// <summary>
+        /// Add a message to the queue for the current app
+        /// </summary>
         void QueueMessage(LogMsg msg);
+
+        /// <summary>
+        /// Add a message to the queue for a specific app
+        /// </summary>
+        void QueueMessage(LogMsg msg, AppClaims appClaims);
+
+        bool ErrorShouldBeSent(StackifyError error);
+        void PauseUpload(bool isPaused);
     }
 }

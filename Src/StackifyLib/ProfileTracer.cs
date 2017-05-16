@@ -33,7 +33,7 @@ namespace StackifyLib
             _appReportingCategory = appLevelReportingCategory;
 
 
-#if NET451 || NET45 || NET40
+#if NET451 || NET45
             try
             {
                 if (System.Web.HttpContext.Current != null)
@@ -67,7 +67,7 @@ namespace StackifyLib
         [MethodImpl(MethodImplOptions.PreserveSig | MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public static void SetReportingUrl(string reportingUrl)
         {
-#if NET451 || NET45 || NET40
+#if NET451 || NET45
             try
             {
                 if (System.Web.HttpContext.Current != null)

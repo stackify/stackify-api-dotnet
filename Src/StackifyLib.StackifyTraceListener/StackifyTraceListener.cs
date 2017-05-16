@@ -15,7 +15,7 @@ namespace StackifyLib
 
         public StackifyTraceListener()
         {
-            _logClient = new LogClient("StackifyLib.net-TraceListener", null, null);
+            _logClient = LogClientFactory.GetClient("StackifyLib.net-TraceListener");
         }
 
 

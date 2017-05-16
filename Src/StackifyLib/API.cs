@@ -33,16 +33,6 @@ namespace StackifyLib
             }
         }
 
-        public static bool SetServerEnvironmentForThisDevice(string environmentName)
-        {
-            var deviceid = Logger.Identity()?.DeviceID;
-
-            if(deviceid == null)
-                throw new Exception("Unable to evaluate current device id");
-
-            return SetServerEnvironmentByID(deviceid.Value, environmentName);
-        }
-
         public static bool SetServerEnvironmentByID(int id, string environmentName)
         {
             var response = client.POSTAndGetResponse((client.BaseAPIUrl) +

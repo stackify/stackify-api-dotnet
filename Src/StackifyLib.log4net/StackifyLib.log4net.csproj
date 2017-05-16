@@ -3,7 +3,7 @@
   <PropertyGroup>
     <AssemblyTitle>Stackify Log4Net Appender</AssemblyTitle>
     <VersionPrefix>2.0.0-beta1</VersionPrefix>
-    <TargetFrameworks>netstandard1.3;net40;net45</TargetFrameworks>
+    <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
     <AssemblyName>StackifyLib.log4net</AssemblyName>
     <PackageId>StackifyLib.log4net</PackageId>
     <PackageTags>stackify;metrics;errors;logs</PackageTags>
@@ -21,12 +21,6 @@
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
     <PackageReference Include="log4net" Version="2.0.7" />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net40' ">
-    <PackageReference Include="log4net" Version="2.0.5" />
-    <Reference Include="System" />
-    <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">

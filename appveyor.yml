@@ -1,0 +1,34 @@
+version: '{build}'
+os: Visual Studio 2017
+
+pull_requests:
+  do_not_increment_build_number: true
+
+branches:
+  only:
+  - develop
+  - /Feature*/
+
+nuget:
+  disable_publish_on_pr: true
+
+init:
+  - SET PATH=C:\Program Files\PostgreSQL\9.6\bin\;%PATH%
+
+build_script:
+- ps: .\Build.ps1
+
+test: off
+
+artifacts:
+- path: .\**\artifacts\**\*.nupkg
+  name: NuGet
+
+deploy:
+- provider: NuGet
+  server: https://www.myget.org/F/stackify-private/api/v2
+  api_key:
+    secure: UOvRrTDVcxyLUJYZVWZJUIrBCxTeaW5UCOKWHOWgaWaV8g+mupAamSPY5yHaJa0b
+  skip_symbols: false
+  on:
+    branch: Feature/SF-6592

@@ -17,9 +17,6 @@ namespace CoreConsoleApp
 {
     public class Program
     {
-        
-      
-
         static void Main(string[] args)
         {
             var builder = new ConfigurationBuilder()
@@ -29,17 +26,19 @@ namespace CoreConsoleApp
 
             var config = builder.Build();
             config.ConfigureStackifyLogging();
-            // OR
-            //StackifyLib.Config.SetConfiguration(config);
 
-            //enable debug logging
+            // OR
+            // StackifyLib.Config.SetConfiguration(config);
+
+            // enable debug logging
             StackifyLib.Utils.StackifyAPILogger.OnLogMessage += StackifyAPILogger_OnLogMessage;
             StackifyLib.Utils.StackifyAPILogger.LogEnabled = true;
 
-
             NLogTest();
 
-            StackifyLib.Logger.Shutdown(); //best practice for console apps
+            System.Threading.Thread.Sleep(60 * 1000);
+            
+            StackifyLib.Logger.Shutdown(); // best practice for console apps
         }
 
         private static void NLogTest()
@@ -52,7 +51,7 @@ namespace CoreConsoleApp
             for (int i = 0; i < 100; i++)
             {
                 //      StackifyLib.Logger.Queue("Debug", "Test message");
-                //System.Threading.Thread.Sleep(1);
+                //
                 nlog.Debug("Hello");
                 //nlog.Debug(new { color = "red", int1 = 1 });
             }
@@ -78,11 +77,11 @@ namespace CoreConsoleApp
                 //System.Threading.Thread.Sleep(1);
                 log.Debug(new { color = "red", int1 = 1 });
             }
-
         }
 
         private static void StackifyAPILogger_OnLogMessage(string data)
         {
+            Console.WriteLine(data);
             Debug.WriteLine(data);
         }
     }

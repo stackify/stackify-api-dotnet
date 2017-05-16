@@ -1,0 +1,302 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Collections.Concurrent;
+using System.Threading.Tasks;
+using StackifyLib.Models;
+using StackifyLib.Utils;
+using System.Threading;
+using StackifyLib.Internal.StackifyApi;
+using StackifyLib.Internal.Auth.Claims;
+using StackifyLib.Internal.Scheduling;
+
+#if NET451 || NET45
+using System.Runtime.Remoting.Messaging;
+using StackifyLib.Web;
+#endif
+
+namespace StackifyLib.Internal.Logs
+{
+    internal class ScheduledLogHandler : IScheduledLogHandler
+    {        
+        private readonly IAppLogQueues _appQueues;
+        private readonly IStackifyApiService _stackifyApiService;
+        private readonly IScheduler _scheduler;
+        private TimeSpan _flushInterval = TimeSpan.FromSeconds(2);
+        private bool _stopRequested = false;
+        private bool _pauseUpload = false;        
+
+        public ScheduledLogHandler(
+            IStackifyApiService apiService,
+            IScheduler scheduler,
+            IAppLogQueues appQueues)
+        {
+            StackifyAPILogger.Log("Creating new LogQueue");
+            _stackifyApiService = apiService;
+            _scheduler = scheduler;
+            _appQueues = appQueues;
+        }
+
+        public bool CanQueue()
+        {
+            var canQueue = _appQueues.IsFull == false;
+
+            if (canQueue == false)
+                StackifyAPILogger.Log($"Cannot queue message");
+
+            return canQueue;
+        }
+
+        /// <summary>
+        /// Should call CanQueue() before this.
+        /// </summary>
+        public void QueueLogMessage(AppClaims app, LogMsg msg)
+        {
+            try
+            {
+                if (msg == null)
+                    return;
+
+                if (_scheduler.IsStarted == false)
+                {
+                    _scheduler.Schedule(OnTimerAsync, _flushInterval);
+                }
+
+                msg.Th = GetThread(msg);
+                msg.TransID = GetTransaction(msg);
+
+                _appQueues.QueueMessage(app, msg);
+            }
+            catch (Exception ex)
+            {
+                StackifyAPILogger.Log($"Failed to add message to the queue. { ex.Message }");
+            }
+        }
+
+        private string GetThread(LogMsg msg)
+        {
+            try
+            {
+                return string.IsNullOrEmpty(msg.Th)
+                    ? Thread.CurrentThread.ManagedThreadId.ToString()
+                    : msg.Th;
+            }
+            catch { }
+            return string.Empty;
+        }
+
+        private string GetTransaction(LogMsg msg)
+        {
+            return string.IsNullOrWhiteSpace(msg.TransID)
+                    ? GetTransId()
+                    : msg.TransID;
+        }
+
+        private string GetTransId()
+        {
+            var transId = string.Empty;
+
+#if NET451 || NET45
+            try
+            {
+                Object stackifyRequestID = CallContext.LogicalGetData("Stackify-RequestID");
+
+                if (stackifyRequestID != null)
+                {
+                    transId = stackifyRequestID.ToString();
+                }
+
+                if (string.IsNullOrEmpty(transId))
+                {
+                    // gets from Trace.CorrelationManager.ActivityId but doesnt assume it is guid since it technically doesn't have to be
+                    // not calling the CorrelationManager method because it blows up if it isn't a guid
+                    Object correltionManagerId = CallContext.LogicalGetData("E2ETrace.ActivityID");
+
+                    if (correltionManagerId != null && correltionManagerId is Guid && ((Guid)correltionManagerId) != Guid.Empty)
+                    {
+                        transId = correltionManagerId.ToString();
+                    }
+                }
+            }
+            catch (System.Web.HttpException ex)
+            {
+                StackifyAPILogger.Log("Request not available \r\n" + ex.ToString());
+            }
+            catch (Exception ex)
+            {
+                StackifyAPILogger.Log("Error figuring out TransID \r\n" + ex.ToString());
+            }
+            
+#endif
+
+            return transId;
+        }
+
+        private async void OnTimerAsync(Object stateInfo)
+        {
+            if (_pauseUpload)
+                return;
+
+            _scheduler.Pause();
+
+            _appQueues.RemoveOldMessagesFromQueue();
+
+            try
+            {
+                var processedCount = await FlushAllQueuesAsync();
+
+                UpdateFlushInterval(processedCount);
+            }
+            catch (Exception ex)
+            {
+                StackifyAPILogger.Log(ex.ToString());
+            }
+
+            if (_stopRequested == false)
+            {
+                _scheduler.Change(_flushInterval);
+                StackifyAPILogger.Log($"Resetting Timer");
+            }
+        }
+
+        ///<summary>
+        /// Adjust how often we send based on how the rate of which data is being logged
+        ///</summary>
+        private void UpdateFlushInterval(int processedCount)
+        {
+            if (processedCount >= 100)
+            {
+                if (_flushInterval.TotalSeconds > 1)
+                {
+                    _flushInterval = TimeSpan.FromSeconds(_flushInterval.TotalSeconds / 2);
+                    StackifyAPILogger.Log($"{processedCount} processed. Adjust log flush interval down to {_flushInterval.TotalSeconds:0.00} seconds");
+                }
+            }
+            else if (processedCount < 10 && _flushInterval != TimeSpan.FromSeconds(5))
+            {
+                double proposedSeconds = _flushInterval.TotalSeconds * 1.25;
+
+                if (proposedSeconds < 1)
+                {
+                    proposedSeconds = 1;
+                }
+                else if (proposedSeconds > 5)
+                {
+                    proposedSeconds = 5;
+                }
+
+                if (_flushInterval.TotalSeconds < proposedSeconds)
+                {
+                    _flushInterval = TimeSpan.FromSeconds(proposedSeconds);
+
+                    StackifyAPILogger.Log($"{processedCount} processed. Adjust log flush interval up to {_flushInterval.TotalSeconds:0.00} seconds");
+                }
+            }
+        }
+
+        private async Task<int> FlushAllQueuesAsync()
+        {
+            StackifyAPILogger.Log("FlushAllQueuesAsync");
+
+            var totalMessagesProcessed = 0;
+
+            var appLogBatches = _appQueues.GetAppLogBatches(100, 25);
+            foreach(var appLogBatch in appLogBatches)
+            {
+                totalMessagesProcessed += await FlushQueueInBatchesAsync(appLogBatch.Key, appLogBatch.Value);
+            }
+            return totalMessagesProcessed;
+        }
+
+        private async Task<int> FlushQueueInBatchesAsync(AppClaims app, List<List<LogMsg>> batches)
+        {
+            StackifyAPILogger.Log("FlushQueueInBatchesAsync");
+            var totalMessagesProcessed = 0;           
+            try
+            {
+                if (batches.Count > 0)
+                {
+                    var tasks = new List<Task<int>>();
+
+                    // keep flushing
+                    foreach (var batch in batches)
+                        tasks.Add(FlushOnceAsync(app, batch));
+
+                    StackifyAPILogger.Log($"batch size {tasks.Count}");
+
+                    if (tasks.Any())
+                    {
+                        StackifyAPILogger.Log("Waiting to ensure final log send. Waiting on " + tasks.Count + " tasks", true);
+
+                        int[] processedCounts;
+                        processedCounts = await Task.WhenAll<int>(tasks);
+                        totalMessagesProcessed = processedCounts.Sum();
+
+                        StackifyAPILogger.Log("FlushQueueInBatchesAsync complete", true);
+                    }
+                }
+                else
+                {
+                    StackifyAPILogger.Log("No messages in queue", true);
+                }
+            }
+            catch (Exception ex)
+            {
+                StackifyAPILogger.Log(ex.ToString());
+            }
+
+            return totalMessagesProcessed;
+        }
+
+        private async Task<int> FlushOnceAsync(AppClaims app, List<LogMsg> batch)
+        {
+            StackifyAPILogger.Log("Sending batch", true);
+
+            var result = await SendLogGroupAsync(app, batch);
+            if (result == false)
+            {
+                StackifyAPILogger.Log("Failed to send log group");
+                _appQueues.ReQueueBatch(app, batch);
+                return 0;
+            }
+
+            return batch.Count;
+        }
+
+        private async Task<bool> SendLogGroupAsync(AppClaims app, List<LogMsg> messages)
+        {
+            try
+            {
+                StackifyAPILogger.Log("Trying to SendLogs");
+
+                var group = new LogMsgGroup
+                {
+                    Msgs = messages
+                };
+
+                StackifyAPILogger.Log($"Sending {messages.Count} log messages.");
+
+                var result = await _stackifyApiService.UploadAsync(app, Config.LogUri, group, true);
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                StackifyAPILogger.Log($"Failed to send logs due to {ex}");
+                return false;
+            }
+        }
+
+        public async Task Stop()
+        {
+            Utils.StackifyAPILogger.Log("LogQueue stop received");
+            _stopRequested = true;
+            await FlushAllQueuesAsync();
+        }
+
+        public void Pause(bool isPaused)
+        {
+            _pauseUpload = isPaused;
+        }
+    }
+}

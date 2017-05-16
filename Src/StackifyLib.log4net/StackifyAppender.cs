@@ -14,8 +14,6 @@ namespace StackifyLib.log4net
 {
     public class StackifyAppender : AppenderSkeleton
     {
-        public string apiKey { get; set; }
-        public string uri { get; set; }
         public string globalContextKeys { get; set; }
         public string threadContextKeys { get; set; }
         public string logicalThreadContextKeys { get; set; }
@@ -31,7 +29,7 @@ namespace StackifyLib.log4net
         private ILogClient _logClient = null;
         private bool _HasContextKeys = false;
 
-        public Func<string, string, ILogClient> CreateLogClient = (apiKey, uri) => new LogClient("StackifyLib.net-log4net", apiKey, uri);
+        public ILogClient CreateLogClient() => LogClientFactory.GetClient("StackifyLib.net-log4net");
 
         protected override void OnClose()
         {
@@ -80,7 +78,7 @@ namespace StackifyLib.log4net
 
                 _HasContextKeys = _GlobalContextKeys.Any() || _ThreadContextKeys.Any() || _LogicalThreadContextKeys.Any() || _CallContextKeys.Any();
 
-                _logClient = CreateLogClient(apiKey, uri);
+                _logClient = CreateLogClient();
             }
             catch (Exception ex)
             {

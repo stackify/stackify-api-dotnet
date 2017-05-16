@@ -38,11 +38,7 @@ namespace StackifyLib.Utils
                 else
                 {
                     t = logObject.GetType();
-#if NET40
-                    var typeInfo = t;
-#else
                     var typeInfo = t.GetTypeInfo();
-#endif
                     if (logObject is string || t.FullName == "log4net.Util.SystemStringFormat")
                     {
                         if (serializeSimpleTypes)
@@ -107,11 +103,7 @@ namespace StackifyLib.Utils
 
                                     var childtype = child.GetType();
 
-#if NET40
-                                    var childtypeinfo = childtype;
-#else
                                     var childtypeinfo = childtype.GetTypeInfo();
-#endif
 
                                     if (childtypeinfo.IsPrimitive || childtype.Name == "String" ||
                                         childtypeinfo.BaseType == typeof (ValueType))
@@ -131,7 +123,7 @@ namespace StackifyLib.Utils
                                 {
                                     jObject.Add("objectType", type.FullName);
                                 }
-#if NET451 || NET45 || NET40
+#if NET451 || NET45
                                 else
                                 {
 
@@ -141,11 +133,8 @@ namespace StackifyLib.Utils
                                     {
                                         var childtype = genericArgs.First();
 
-#if NET40
-                                        var childtypeinfo = childtype;
-#else
                                         var childtypeinfo = childtype.GetTypeInfo();
-#endif
+
                                         if (childtypeinfo.IsPrimitive || childtype.Name == "String" ||
                                             childtypeinfo.BaseType == typeof (ValueType))
                                         {
@@ -238,11 +227,7 @@ namespace StackifyLib.Utils
                 return false;
 
             var t = obj.GetType();
-#if NET40
-            return t.IsPrimitive || t.Equals(typeof(string));
-#else
             return t.GetTypeInfo().IsPrimitive || t.Equals(typeof(string));
-#endif
         }
 
 
