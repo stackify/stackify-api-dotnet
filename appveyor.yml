@@ -1,8 +1,6 @@
 version: '{build}'
 os: Visual Studio 2017
 
-environment:
-
 pull_requests:
   do_not_increment_build_number: true
 
