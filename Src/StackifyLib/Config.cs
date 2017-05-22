@@ -126,7 +126,7 @@ namespace StackifyLib
 				{
 
 
-#if NETSTANDARD1_3
+#if NETSTANDARD1_3 || NET451
                     if (_Configuration != null)
                     {
                         var appSettings = _Configuration.GetSection("Stackify");
@@ -134,8 +134,9 @@ namespace StackifyLib
                     }
 #endif
 
-#if NET451 || NET45 || NET40s
-                    v = System.Configuration.ConfigurationManager.AppSettings[key];
+#if NET451 || NET45 || NET40
+                    if (string.IsNullOrEmpty(v))
+                        v = System.Configuration.ConfigurationManager.AppSettings[key];
 #endif
 
                     if (string.IsNullOrEmpty(v))
