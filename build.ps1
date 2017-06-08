@@ -49,8 +49,10 @@ Write-Output "VERSION-SUFFIX: alpha1-$revision"
 If($env:APPVEYOR_REPO_TAG -eq $true) {
     Write-Output "RUNNING dotnet pack .\Src\StackifyLib -c Release -o .\artifacts "
     dotnet pack .\Src\StackifyLib -c Release -o .\artifacts 
+    dotnet pack .\Src\StackifyLib.log4net -c Release -o .\artifacts 
 }
-Else { 
-    Write-Output "RUNNING dotnet pack .\Src\StackifyLib -c Release -o .\artifacts --version-suffix=alpha1-$revision"
+Else {  # publish pre-release if it does not have a tag
+    Write-Output "RUNNING dotnet pack .\Src\StackifyLib -c Release -o .\artifacts --version-suffix=beta1-$revision"
     dotnet pack .\Src\StackifyLib -c Release -o .\artifacts --version-suffix=beta1-$revision 
+    dotnet pack .\Src\StackifyLib.log4net -c Release -o .\artifacts --version-suffix=beta1-$revision 
 }

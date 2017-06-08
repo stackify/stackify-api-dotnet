@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <AssemblyTitle>Stackify Log4Net Appender</AssemblyTitle>
-    <VersionPrefix>2.0.0-beta1</VersionPrefix>
+    <VersionPrefix>2.0.0</VersionPrefix>
     <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
     <AssemblyName>StackifyLib.log4net</AssemblyName>
     <PackageId>StackifyLib.log4net</PackageId>
