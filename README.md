@@ -1,6 +1,4 @@
-# Stackify API for .NET
-
-[![Build status](https://ci.appveyor.com/api/projects/status/6suxse470ab4bdxl?svg=true)](https://ci.appveyor.com/project/jaredcnance/stackify-api-dotnet)
+# Stackify API for .NET [![Build status](https://ci.appveyor.com/api/projects/status/6suxse470ab4bdxl?svg=true)](https://ci.appveyor.com/project/jaredcnance/stackify-api-dotnet)
 
 | Package Name                      | NuGet Version                                                                                                                                       |
 |-----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -230,8 +228,6 @@ If you use a custom logging framework or a framework not currently supported, yo
 StackifyLib.Logger.Queue("DEBUG", "My log message");
 StackifyLib.Logger.QueueException("Test exception", new ApplicationException("Sky is falling"));
 
-StackifyLib.Logger.Shutdown(); // should be called before your app closes to flush the log queue
-        
 // More advanced example
 LogMsg msg = new LogMsg {
         Ex = StackifyError.New(new ApplicationException("Exception goes here")),
@@ -240,7 +236,9 @@ LogMsg msg = new LogMsg {
         Msg = "My log message",
         Level = "ERROR"
 };
+
 StackifyLib.Logger.QueueLogObject(msg);
+StackifyLib.Logger.Shutdown(); // should be called before your app closes to flush the log queue
 ```
 
 *Make sure you call StackifyLib.Logger.Shutdown() before your app ends to flush the queue*
