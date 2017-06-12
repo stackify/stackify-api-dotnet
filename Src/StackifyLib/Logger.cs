@@ -22,12 +22,6 @@ namespace StackifyLib
         }
 
         /// <summary>
-        /// Global setting for any log appenders for how big the log queue size can be in memory 
-        /// before messages are lost if there are problems uploading or we can't upload fast enough
-        /// </summary>
-        public static int MaxLogBufferSize { get; set; }  = 10000;
-
-        /// <summary>
         /// Flushes any items in the queue when shutting down an app
         /// </summary>
         public static void Shutdown()

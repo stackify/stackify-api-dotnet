@@ -14,9 +14,9 @@ namespace StackifyLib
 	{
 
 #if NETSTANDARD1_3 || NET451
-        private static Microsoft.Extensions.Configuration.IConfigurationRoot _Configuration = null;
+        private static Microsoft.Extensions.Configuration.IConfiguration _Configuration = null;
 
-	    public static void SetConfiguration(Microsoft.Extensions.Configuration.IConfigurationRoot configuration)
+	    public static void SetConfiguration(Microsoft.Extensions.Configuration.IConfiguration configuration)
 	    {
 	        _Configuration = configuration;
 	    }
@@ -115,6 +115,11 @@ namespace StackifyLib
 
         public static string CaptureErrorCookiesBlacklist { get; set; } = ".ASPXAUTH";
 
+        /// <summary>
+        /// Global setting for any log appenders for how big the log queue size can be in memory 
+        /// before messages are lost if there are problems uploading or we can't upload fast enough
+        /// </summary>
+        public static int MaxLogBufferSize { get; set; }  = 10000;
 
         /// <summary>
         /// Attempts to fetch a setting value given the key.

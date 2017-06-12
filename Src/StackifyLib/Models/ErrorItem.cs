@@ -185,8 +185,6 @@ namespace StackifyLib.Models
                             Method = GetMethodFullName(method)
                         });
                     }
-
-
                 }
             }
 #endif

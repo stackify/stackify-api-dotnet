@@ -6,9 +6,9 @@ namespace StackifyLib.Internal.Logs
     {
         public static ILogClient GetClient(string loggerName) 
         {
-            var queue = ScheduledLogHandlerFactory.Get();
+            var scheduledLogHandler = ScheduledLogHandlerFactory.Get();
             var errorGovernor = new ErrorGovernor();
-            return new LogClient(queue, errorGovernor, loggerName);
+            return new LogClient(scheduledLogHandler, errorGovernor, loggerName);
         }
     }
 }
