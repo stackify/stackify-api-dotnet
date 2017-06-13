@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StackifyLib.log4net
+namespace StackifyLib
 {
     public static class Extensions
     {

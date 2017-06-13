@@ -2,7 +2,7 @@
 using StackifyLib.Models;
 using log4net;
 
-namespace StackifyLib
+namespace StackifyLib.log4net
 {
     public static class Extensions
     {
