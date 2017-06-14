@@ -75,8 +75,8 @@ namespace StackifyLib
                     ErrorSessionGoodKeys = CaptureErrorSessionWhitelist.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList();
                 }
 	            
-                ApiHost = Get("Stackify.ApiHost", "https://api.stackify.com");
-                AuthTokenUrl = Get("Stackify.AuthTokenUrl", "https://auth.stackify.com/oauth2/token");
+                ApiHost = Get("Stackify.ApiHost", "https://api.stackify.net");
+                AuthTokenUrl = Get("Stackify.AuthTokenUrl", "https://auth.stackify.net/oauth2/token");
                 LogUri = Get("Stackify.LogUri", "api/v1/logs");
             }
             catch (Exception ex)
