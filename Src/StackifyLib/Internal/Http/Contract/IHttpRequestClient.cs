@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading.Tasks;
 using StackifyLib.Auth;
 
@@ -17,8 +18,6 @@ namespace StackifyLib.Http
         /// <summary>
         /// Post JSON data
         /// </summary>
-        /// <exception cref="UnauthorizedAccessException">Received 401 response</exception>
-        /// <exception cref="HttpRequestException">Received failed HTTP response</exception>
-        Task PostAsync(string uri, object json, AccessTokenResponse token, bool compress = false);
+        Task<HttpResponseMessage> PostAsync(string uri, object json, AccessTokenResponse token, bool compress = false);
     }
 }

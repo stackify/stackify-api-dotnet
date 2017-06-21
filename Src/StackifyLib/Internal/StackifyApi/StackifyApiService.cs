@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using StackifyLib.Auth;
 using StackifyLib.Http;
@@ -12,52 +13,56 @@ namespace StackifyLib.Internal.StackifyApi
     internal class StackifyApiService : IStackifyApiService
     {
         private readonly ITokenStore _tokenStore;
-        private readonly IHttpRequestClient _httpClient;        
+        private readonly IHttpRequestClient _httpClient;
         private bool _claimsRejected = false;
         private DateTimeOffset? _lastError;
         private int _consecutiveErrorCount;
         private readonly TimeSpan _maxBackoffTime = new TimeSpan(0, 1, 0);
-        private AccessTokenResponse _accessToken;        
+        private AccessTokenResponse _accessToken;
 
         public StackifyApiService(ITokenStore tokenStore, IHttpRequestClient httpClient)
         {
             _tokenStore = tokenStore;
-            _httpClient = httpClient; 
+            _httpClient = httpClient;
         }
 
-        public async Task<bool> UploadAsync(AppClaims claims, string uri, Identifiable data, bool compress = false)
+        public async Task<HttpStatusCode> UploadAsync(AppClaims claims, string uri, Identifiable data, bool compress = false)
         {
             if (CanUpload() == false || data == null)
-                return false;
+                return 0;
 
             if (_accessToken == null && await GetTokenAsync(claims) == false)
-                return false;
+                return 0;
 
             var url = BuildUrl(uri);
 
             data.AccessToken = _accessToken.AccessToken;
 
             var dataToPost = new List<Identifiable> { data };
-
-            try {
-                 await _httpClient.PostAsync(url, dataToPost, _accessToken);
-            }
-            catch (UnauthorizedAccessException)
+        
+            var response = await _httpClient.PostAsync(url, dataToPost, _accessToken);
+            if(response.IsSuccessStatusCode)
             {
-                StackifyAPILogger.Log("Received 401 from API.");
-                _accessToken = null;
-                return false;
+                _consecutiveErrorCount = 0;
             }
-            catch (Exception)
+            else
+            {
+                HandleFailedResponse(response.StatusCode);
+            }
+            return response.StatusCode;
+        }
+
+        private void HandleFailedResponse(HttpStatusCode status)
+        {
+            if(status == HttpStatusCode.Unauthorized)
+            {
+                _accessToken = null;
+            }
+            else
             {
                 _consecutiveErrorCount += 1;
                 _lastError = DateTimeOffset.UtcNow;
-                return false;
             }
-
-            _consecutiveErrorCount = 0;
-
-            return true;
         }
 
         public bool CanUpload()
@@ -102,7 +107,7 @@ namespace StackifyLib.Internal.StackifyApi
             }
         }
 
-        private string BuildUrl(string uri) 
+        private string BuildUrl(string uri)
             => $"{ Config.ApiHost }/{ uri.TrimStart('/') }";
     }
 }

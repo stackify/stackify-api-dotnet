@@ -8,6 +8,8 @@ using StackifyLib.Internal.Auth.Claims;
 using System.Collections.Generic;
 using StackifyLib.Internal.StackifyApi;
 using StackifyLib.Models;
+using System.Net;
+using System.Net.Http;
 
 namespace StackifyLibTests.Unit
 {
@@ -36,7 +38,7 @@ namespace StackifyLibTests.Unit
         }
 
         [Fact]
-        public async Task UploadAsync_Returns_False_If_Authentication_Fails() 
+        public async Task UploadAsync_Returns_0_If_Authentication_Fails() 
         {
             // arrange
             var claims = await AppClaimsManager.GetAsync();
@@ -52,12 +54,12 @@ namespace StackifyLibTests.Unit
             var result = service.CanUpload();
 
             // assert
-            Assert.False(uploadResult);
+            Assert.Equal(0, (int)uploadResult);
             Assert.False(result);
         }
 
         [Fact]
-        public async Task UploadAsync_Sets_LogMsg_Token_And_Returns_True_If_Successful() 
+        public async Task UploadAsync_Sets_LogMsg_Token_And_Returns_StatusCode_If_Successful() 
         {
             // arrange
             var claims = await AppClaimsManager.GetAsync();
@@ -68,6 +70,11 @@ namespace StackifyLibTests.Unit
             _tokenStoreMock.Setup(m => 
                 m.GetTokenAsync(It.Is<AppClaims>(c => c.Equals(claims))))
                 .ReturnsAsync(accessToken);
+            
+            var httpResonse = new HttpResponseMessage();
+            httpResonse.StatusCode = HttpStatusCode.Accepted;
+            _httpClientMock.Setup(m => m.PostAsync(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<AccessTokenResponse>(), It.IsAny<bool>()))
+                .ReturnsAsync(httpResonse);
 
             var service = new StackifyApiService(_tokenStoreMock.Object, _httpClientMock.Object);
 
@@ -75,12 +82,12 @@ namespace StackifyLibTests.Unit
             var uploadResult = await service.UploadAsync(claims, string.Empty, data);
 
             // assert
-            Assert.True(uploadResult);
+            Assert.Equal(httpResonse.StatusCode, uploadResult);
             Assert.Equal(data.AccessToken, accessToken.AccessToken);
         }
 
         [Fact]
-        public async Task UploadAsync_ReturnsFalse_If_Data_Is_Null() 
+        public async Task UploadAsync_Returns_0_If_Data_Is_Null() 
         {
             // arrange
             var claims = await AppClaimsManager.GetAsync();
@@ -97,7 +104,7 @@ namespace StackifyLibTests.Unit
             var uploadResult = await service.UploadAsync(claims, string.Empty, null);
 
             // assert
-            Assert.False(uploadResult);
+            Assert.Equal(0, (int)uploadResult);
         }
     }
 }

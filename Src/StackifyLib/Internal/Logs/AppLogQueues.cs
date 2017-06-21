@@ -110,7 +110,7 @@ namespace StackifyLib.Internal.Logs
                     }
                 }
 
-                if (batch.Any())
+                if (batch.Count > 0)
                 {
                     batches.Add(batch);
                 }

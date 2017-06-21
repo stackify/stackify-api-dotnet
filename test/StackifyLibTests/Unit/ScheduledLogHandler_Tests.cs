@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
@@ -43,7 +44,7 @@ namespace StackifyLibTests.Unit
         }
 
         [Fact]
-        public void CanQueue_Returns_True_Queue_Is_Not_Full()
+        public void CanQueue_Returns_True_If_Queue_Is_Not_Full()
         {
             // arrange
             _appLogQueuesMock.Setup(q => q.IsFull).Returns(false);
@@ -195,10 +196,10 @@ namespace StackifyLibTests.Unit
             _schedulerMock
                 .Setup(s => s.Schedule(It.IsAny<TimerCallback>(), It.IsAny<TimeSpan>()))
                 .Callback<TimerCallback, TimeSpan>((c, t) => callback = c);
-            var queue = new ScheduledLogHandler(_apiServiceMock.Object, _schedulerMock.Object, _appLogQueuesMock.Object);
+            var scheduledLogHandler = new ScheduledLogHandler(_apiServiceMock.Object, _schedulerMock.Object, _appLogQueuesMock.Object);
 
             // act
-            queue.QueueLogMessage(new AppClaims(), new LogMsg());
+            scheduledLogHandler.QueueLogMessage(new AppClaims(), new LogMsg());
             callback.Invoke(null);
 
             // assert
@@ -209,6 +210,69 @@ namespace StackifyLibTests.Unit
                     It.IsAny<LogMsgGroup>(),
                     It.Is<bool>(b => b == true)), 
                 Times.Exactly(apps * numberOfBatches));
+        }
+
+        [Fact]
+        public void Http202_Response_DoesNot_ReQueue_Message()
+        {
+            TestReQueue(HttpStatusCode.Accepted, false);
+        }
+
+        [Fact]
+        public void Http0_Response_DoesNot_ReQueue_Message()
+        {
+            TestReQueue((HttpStatusCode)0, false);
+        }
+
+        [Fact]
+        public void Http400_Response_DoesNot_ReQueues_Message()
+        {
+            TestReQueue(HttpStatusCode.BadRequest, false);
+        }
+
+        [Fact]
+        public void Http429_Response_DoesNot_ReQueues_Message()
+        {
+            TestReQueue((HttpStatusCode)429, false);
+        }
+
+        [Fact]
+        public void Http500_Response_ReQueues_Message()
+        {
+            TestReQueue(HttpStatusCode.InternalServerError, true);
+        }
+
+        private void TestReQueue(HttpStatusCode statusCodeToReturn, bool shouldRequeue)
+        {
+            // arrange
+            const int apps = 1;
+            const int numberOfBatches = 1;
+            var expectedRequeueCalls = shouldRequeue ? apps * numberOfBatches : 0;
+
+            var batches = GetAppLogBatches(apps, numberOfBatches, 1);
+
+            _appLogQueuesMock
+                .Setup(q => q.GetAppLogBatches(It.IsAny<int>(), It.IsAny<int>()))
+                .Returns(batches);
+
+            TimerCallback callback = null;
+            _schedulerMock
+                .Setup(s => s.Schedule(It.IsAny<TimerCallback>(), It.IsAny<TimeSpan>()))
+                .Callback<TimerCallback, TimeSpan>((c, t) => callback = c);
+            var scheduledLogHandler = new ScheduledLogHandler(_apiServiceMock.Object, _schedulerMock.Object, _appLogQueuesMock.Object);
+
+            _apiServiceMock
+                .Setup(m => m.UploadAsync(It.IsAny<AppClaims>(), It.IsAny<string>(), It.IsAny<Identifiable>(), It.IsAny<bool>()))
+                .ReturnsAsync(statusCodeToReturn);
+
+            // act
+            scheduledLogHandler.QueueLogMessage(new AppClaims(), new LogMsg());
+            callback.Invoke(null);
+
+            // assert
+            _appLogQueuesMock.Verify(q => 
+                q.ReQueueBatch(It.IsAny<AppClaims>(), It.IsAny<List<LogMsg>>()),
+                Times.Exactly(expectedRequeueCalls));
         }
 
         private Dictionary<AppClaims, List<List<LogMsg>>> GetAppLogBatches(int numberOfApps, int numberOfBatches, int batchSize)

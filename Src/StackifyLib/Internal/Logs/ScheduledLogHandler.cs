@@ -9,6 +9,7 @@ using System.Threading;
 using StackifyLib.Internal.StackifyApi;
 using StackifyLib.Internal.Auth.Claims;
 using StackifyLib.Internal.Scheduling;
+using System.Net;
 
 #if NET451 || NET45
 using System.Runtime.Remoting.Messaging;
@@ -211,7 +212,7 @@ namespace StackifyLib.Internal.Logs
         private async Task<int> FlushQueueInBatchesAsync(AppClaims app, List<List<LogMsg>> batches)
         {
             StackifyAPILogger.Log("FlushQueueInBatchesAsync");
-            var totalMessagesProcessed = 0;           
+            var totalMessagesProcessed = 0;
             try
             {
                 if (batches.Count > 0)
@@ -224,7 +225,7 @@ namespace StackifyLib.Internal.Logs
 
                     StackifyAPILogger.Log($"batch size {tasks.Count}");
 
-                    if (tasks.Any())
+                    if (tasks.Count > 0)
                     {
                         StackifyAPILogger.Log("Waiting to ensure final log send. Waiting on " + tasks.Count + " tasks", true);
 
@@ -252,18 +253,20 @@ namespace StackifyLib.Internal.Logs
         {
             StackifyAPILogger.Log("Sending batch", true);
 
-            var result = await SendLogGroupAsync(app, batch);
-            if (result == false)
-            {
-                StackifyAPILogger.Log("Failed to send log group");
-                _appQueues.ReQueueBatch(app, batch);
-                return 0;
-            }
+            var result = (int)await SendLogGroupAsync(app, batch);
 
-            return batch.Count;
+            if(IsSuccessStatusCode(result))
+                return batch.Count;
+
+            StackifyAPILogger.Log("Failed to send log group");
+
+            if(ShouldReQueue(result))
+                _appQueues.ReQueueBatch(app, batch);
+
+            return 0;
         }
 
-        private async Task<bool> SendLogGroupAsync(AppClaims app, List<LogMsg> messages)
+        private async Task<HttpStatusCode> SendLogGroupAsync(AppClaims app, List<LogMsg> messages)
         {
             try
             {
@@ -276,15 +279,33 @@ namespace StackifyLib.Internal.Logs
 
                 StackifyAPILogger.Log($"Sending {messages.Count} log messages.");
 
-                var result = await _stackifyApiService.UploadAsync(app, Config.LogUri, group, true);
+                var statusCode = await _stackifyApiService.UploadAsync(app, Config.LogUri, group, true);
 
-                return result;
+                return statusCode;
             }
             catch (Exception ex)
             {
                 StackifyAPILogger.Log($"Failed to send logs due to {ex}");
-                return false;
+                return 0;
             }
+        }
+
+        private bool IsSuccessStatusCode(int statusCode) 
+            => (statusCode >= 200 && statusCode < 300);
+
+        private bool ShouldReQueue(int status)
+        {
+            if(status == 0) // request was not sent
+                return false;
+
+            if(status < 400)
+                return true;
+
+            // do not re-queue for client errors
+            if(status >= 400 && status < 500)
+                return false;
+            
+            return true;
         }
 
         public async Task Stop()

@@ -36,7 +36,7 @@ namespace StackifyLib.Http
             }
         }
 
-        public async Task PostAsync(string uri, object json, AccessTokenResponse token, bool compress = false)
+        public async Task<HttpResponseMessage> PostAsync(string uri, object json, AccessTokenResponse token, bool compress = false)
         {
             using (var client = new HttpClient())
             {
@@ -52,14 +52,10 @@ namespace StackifyLib.Http
                 
                 var response = await client.SendAsync(request);
 
-                if(response.StatusCode == HttpStatusCode.Unauthorized)
-                    throw new UnauthorizedAccessException();
-
                 if(response.IsSuccessStatusCode == false)
-                {
                     StackifyAPILogger.Log($"Received {response.StatusCode} response from {uri}");
-                    throw new HttpRequestException($"Received {response.StatusCode} response from {uri}");
-                }
+                    
+                return response;
             }
         }
 
