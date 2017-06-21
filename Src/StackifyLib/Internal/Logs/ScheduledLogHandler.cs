@@ -281,7 +281,7 @@ namespace StackifyLib.Internal.Logs
 
                 StackifyAPILogger.Log($"Sending {messages.Count} log messages.");
 
-                var statusCode = await _stackifyApiService.UploadAsync(app, Config.LogUri, group, true);
+                var statusCode = await _stackifyApiService.UploadAsync(app, GetRequestUri(messages.Count), group, compress: true);
 
                 return statusCode;
             }
@@ -291,6 +291,8 @@ namespace StackifyLib.Internal.Logs
                 return 0;
             }
         }
+
+        private string GetRequestUri(int numberOfLogs) => $"{Config.LogUri}/{numberOfLogs}";
 
         private bool IsSuccessStatusCode(int statusCode) 
             => (statusCode >= 200 && statusCode < 300);

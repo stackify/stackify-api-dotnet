@@ -40,7 +40,7 @@ namespace StackifyLib.Internal.StackifyApi
 
             var dataToPost = new List<Identifiable> { data };
         
-            var response = await _httpClient.PostAsync(url, dataToPost, _accessToken);
+            var response = await _httpClient.PostAsync(url, dataToPost, _accessToken, compress);
             if(response.IsSuccessStatusCode)
             {
                 _consecutiveErrorCount = 0;
