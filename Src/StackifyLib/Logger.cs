@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
 using StackifyLib.Internal.Auth.Claims;
 using StackifyLib.Internal.Logs;
 using StackifyLib.Internal.Metrics;
@@ -20,6 +22,13 @@ namespace StackifyLib
         {
             _logClient = LogClientFactory.GetClient("StackifyLib.net");
         }
+
+        /// <summary>
+        /// Callback when logs are not uploaded to the API and the library will not retry
+        /// </summary>
+        public static event Action<List<LogMsg>, HttpStatusCode> OnRejectedLogs;
+        internal static void NotifyRejectedLogs(List<LogMsg> logs, HttpStatusCode status)
+            => OnRejectedLogs(logs, status);
 
         /// <summary>
         /// Flushes any items in the queue when shutting down an app

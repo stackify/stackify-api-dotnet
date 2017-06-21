@@ -38,7 +38,7 @@ namespace StackifyLibTests.Unit
         }
 
         [Fact]
-        public async Task UploadAsync_Returns_0_If_Authentication_Fails() 
+        public async Task UploadAsync_Returns_401_If_Authentication_Fails() 
         {
             // arrange
             var claims = await AppClaimsManager.GetAsync();
@@ -54,7 +54,7 @@ namespace StackifyLibTests.Unit
             var result = service.CanUpload();
 
             // assert
-            Assert.Equal(0, (int)uploadResult);
+            Assert.Equal(401, (int)uploadResult);
             Assert.False(result);
         }
 

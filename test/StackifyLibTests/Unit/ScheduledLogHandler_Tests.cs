@@ -214,40 +214,34 @@ namespace StackifyLibTests.Unit
 
         [Fact]
         public void Http202_Response_DoesNot_ReQueue_Message()
-        {
-            TestReQueue(HttpStatusCode.Accepted, false);
-        }
+            => TestReQueue(HttpStatusCode.Accepted, shouldRequeue: false, shouldNotifyRejectedLogs: false);
 
         [Fact]
         public void Http0_Response_DoesNot_ReQueue_Message()
-        {
-            TestReQueue((HttpStatusCode)0, false);
-        }
+            => TestReQueue((HttpStatusCode)0, shouldRequeue: false, shouldNotifyRejectedLogs: true);
 
         [Fact]
         public void Http400_Response_DoesNot_ReQueues_Message()
-        {
-            TestReQueue(HttpStatusCode.BadRequest, false);
-        }
+            => TestReQueue(HttpStatusCode.BadRequest, shouldRequeue: false, shouldNotifyRejectedLogs: true);
 
         [Fact]
         public void Http429_Response_DoesNot_ReQueues_Message()
-        {
-            TestReQueue((HttpStatusCode)429, false);
-        }
+            => TestReQueue((HttpStatusCode)429, shouldRequeue: false, shouldNotifyRejectedLogs: true);
 
         [Fact]
         public void Http500_Response_ReQueues_Message()
-        {
-            TestReQueue(HttpStatusCode.InternalServerError, true);
-        }
+            => TestReQueue(HttpStatusCode.InternalServerError, shouldRequeue: true, shouldNotifyRejectedLogs: false);
 
-        private void TestReQueue(HttpStatusCode statusCodeToReturn, bool shouldRequeue)
+        private void TestReQueue(HttpStatusCode statusCodeToReturn, bool shouldRequeue, bool shouldNotifyRejectedLogs)
         {
             // arrange
             const int apps = 1;
             const int numberOfBatches = 1;
             var expectedRequeueCalls = shouldRequeue ? apps * numberOfBatches : 0;
+            var notifyRejectedLogs = false;
+            Logger.OnRejectedLogs += (batch, result) => {
+                notifyRejectedLogs = true;
+            };
 
             var batches = GetAppLogBatches(apps, numberOfBatches, 1);
 
@@ -273,6 +267,8 @@ namespace StackifyLibTests.Unit
             _appLogQueuesMock.Verify(q => 
                 q.ReQueueBatch(It.IsAny<AppClaims>(), It.IsAny<List<LogMsg>>()),
                 Times.Exactly(expectedRequeueCalls));
+
+            Assert.Equal(shouldNotifyRejectedLogs, notifyRejectedLogs);
         }
 
         private Dictionary<AppClaims, List<List<LogMsg>>> GetAppLogBatches(int numberOfApps, int numberOfBatches, int batchSize)

@@ -124,6 +124,9 @@ namespace StackifyLib.Internal.Logs
         {
             try
             {
+                if(IsFull == true)
+                    return;
+                    
                 const int maxQueueAttempts = 10;
                 foreach (var log in batch)
                 {

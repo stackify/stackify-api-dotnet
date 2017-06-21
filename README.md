@@ -243,6 +243,18 @@ StackifyLib.Logger.Shutdown(); // should be called before your app closes to flu
 
 *Make sure you call StackifyLib.Logger.Shutdown() before your app ends to flush the queue*
 
+### Failure Notification
+
+You can assign a callback to receive notifications when log messages fail to upload.
+This will be called in the event of a client side issue such as a bad credentials, 
+service throttling, or a malformatted request.
+
+```csharp
+StackifyLib.Logger.OnRejectedLogs += (logs, httpStatusCode) => {
+        // handle the failed logs
+};
+```
+
 ### Configuring with Azure service definitions
 
 StackifyLib reads the license key, app name, and environment settings from normal web.config appSettings. If you would prefer to store the settings in an [azure cloud deployment cscfg](http://msdn.microsoft.com/en-us/library/azure/hh369931.aspx#NameValue), then you can create a little code to read the settings from there and set the StackifyLib settings in code like this in some similar way.

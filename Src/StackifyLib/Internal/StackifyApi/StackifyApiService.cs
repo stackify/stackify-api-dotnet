@@ -32,7 +32,7 @@ namespace StackifyLib.Internal.StackifyApi
                 return 0;
 
             if (_accessToken == null && await GetTokenAsync(claims) == false)
-                return 0;
+                return HttpStatusCode.Unauthorized;
 
             var url = BuildUrl(uri);
 

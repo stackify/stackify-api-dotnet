@@ -262,6 +262,8 @@ namespace StackifyLib.Internal.Logs
 
             if(ShouldReQueue(result))
                 _appQueues.ReQueueBatch(app, batch);
+            else
+                Logger.NotifyRejectedLogs(batch, (HttpStatusCode)result);              
 
             return 0;
         }
