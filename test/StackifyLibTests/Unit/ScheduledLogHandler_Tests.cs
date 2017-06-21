@@ -221,11 +221,11 @@ namespace StackifyLibTests.Unit
             => TestReQueue((HttpStatusCode)0, shouldRequeue: false, shouldNotifyRejectedLogs: true);
 
         [Fact]
-        public void Http400_Response_DoesNot_ReQueues_Message()
+        public void Http400_Response_DoesNot_ReQueue_Message()
             => TestReQueue(HttpStatusCode.BadRequest, shouldRequeue: false, shouldNotifyRejectedLogs: true);
 
         [Fact]
-        public void Http429_Response_DoesNot_ReQueues_Message()
+        public void Http429_Response_DoesNot_ReQueue_Message()
             => TestReQueue((HttpStatusCode)429, shouldRequeue: false, shouldNotifyRejectedLogs: true);
 
         [Fact]
