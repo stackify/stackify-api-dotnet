@@ -70,6 +70,12 @@ namespace StackifyLib.Utils
             public string ResponseText { get; set; }
             public System.Net.HttpStatusCode StatusCode { get; set; }
             public Exception Exception { get; set; }
+
+            // return true if 4xx status code
+            public bool IsClientError()
+            {
+                return (HttpStatusCode.BadRequest <= StatusCode) && (StatusCode < HttpStatusCode.InternalServerError);
+            }
         }
 
         static HttpClient()
