@@ -2,14 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Collections.Concurrent;
-using System.Threading.Tasks;
 using StackifyLib.Models;
 using StackifyLib.Utils;
-using System.Threading;
-using StackifyLib.Internal.StackifyApi;
 using StackifyLib.Internal.Auth.Claims;
-using StackifyLib.Internal.Scheduling;
-using System.Collections;
 
 namespace StackifyLib.Internal.Logs
 {
@@ -18,7 +13,7 @@ namespace StackifyLib.Internal.Logs
     ///</summary>
     internal class AppLogQueues : IAppLogQueues
     {
-        private ConcurrentDictionary<AppClaims, ConcurrentQueue<LogMsg>> _queues = new ConcurrentDictionary<AppClaims, ConcurrentQueue<LogMsg>>();
+        private readonly ConcurrentDictionary<AppClaims, ConcurrentQueue<LogMsg>> _queues = new ConcurrentDictionary<AppClaims, ConcurrentQueue<LogMsg>>();
         private readonly int _maxSize;
         public bool IsFull => _queues.Sum(q => q.Value.Count) >= _maxSize;
         public bool IsEmpty => _queues.IsEmpty || _queues.All(q => q.Value.IsEmpty);
@@ -49,29 +44,26 @@ namespace StackifyLib.Internal.Logs
         {
             try
             {
-                if (_queues.IsEmpty == false)
-                {
-                    var cutoff = (long)DateTime.UtcNow.AddMinutes(-5).Subtract(StackifyConstants.Epoch).TotalMilliseconds;
+                if (_queues.IsEmpty) return;
 
-                    foreach (var appQueueEntry in _queues)
+                var cutoff = (long)DateTime.UtcNow.AddMinutes(-5).Subtract(StackifyConstants.Epoch).TotalMilliseconds;
+
+                foreach (var appQueueEntry in _queues)
+                {
+                    var appQueue = appQueueEntry.Value;
+                    while (true)
                     {
-                        var appQueue = appQueueEntry.Value;
-                        while (true)
+                        if (appQueue.TryPeek(out LogMsg msg) && msg.EpochMs < cutoff)
                         {
-                            if (appQueue.TryPeek(out LogMsg msg) && msg.EpochMs < cutoff)
-                            {
-                                StackifyAPILogger.Log($"Removed old message");
-                                appQueue.TryDequeue(out LogMsg oldMessage);
-                            }
-                            else
-                            {
-                                StackifyAPILogger.Log($"Not removing");
-                                break;
-                            }
+                            StackifyAPILogger.Log($"Removed old message");
+                            appQueue.TryDequeue(out LogMsg oldMessage);
+                        }
+                        else
+                        {
+                            StackifyAPILogger.Log($"Not removing");
+                            break;
                         }
                     }
-
-                    return;
                 }
             }
             catch (Exception ex)
@@ -124,8 +116,7 @@ namespace StackifyLib.Internal.Logs
         {
             try
             {
-                if(IsFull == true)
-                    return;
+                if(IsFull) return;
                     
                 const int maxQueueAttempts = 10;
                 foreach (var log in batch)

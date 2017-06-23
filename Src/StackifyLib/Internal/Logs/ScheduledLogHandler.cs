@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using StackifyLib.Models;
 using StackifyLib.Utils;
@@ -222,19 +221,13 @@ namespace StackifyLib.Internal.Logs
                     // keep flushing
                     foreach (var batch in batches)
                         tasks.Add(FlushOnceAsync(app, batch));
+                    
+                    StackifyAPILogger.Log($"{tasks.Count} batches in flight", true);
 
-                    StackifyAPILogger.Log($"batch size {tasks.Count}");
+                    var processedCounts = await Task.WhenAll(tasks);
+                    totalMessagesProcessed = processedCounts.Sum();
 
-                    if (tasks.Count > 0)
-                    {
-                        StackifyAPILogger.Log("Waiting to ensure final log send. Waiting on " + tasks.Count + " tasks", true);
-
-                        int[] processedCounts;
-                        processedCounts = await Task.WhenAll<int>(tasks);
-                        totalMessagesProcessed = processedCounts.Sum();
-
-                        StackifyAPILogger.Log("FlushQueueInBatchesAsync complete", true);
-                    }
+                    StackifyAPILogger.Log("FlushQueueInBatchesAsync complete", true);
                 }
                 else
                 {
@@ -251,8 +244,6 @@ namespace StackifyLib.Internal.Logs
 
         private async Task<int> FlushOnceAsync(AppClaims app, List<LogMsg> batch)
         {
-            StackifyAPILogger.Log("Sending batch", true);
-
             var result = (int)await SendLogGroupAsync(app, batch);
 
             if(IsSuccessStatusCode(result))
