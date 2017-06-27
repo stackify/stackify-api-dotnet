@@ -7,7 +7,7 @@ pull_requests:
 branches:
   only:
   - develop
-  - /Feature*/
+  - /feature*/
 
 nuget:
   disable_publish_on_pr: true
