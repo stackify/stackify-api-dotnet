@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp1.0</TargetFramework>
@@ -18,10 +18,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\StackifyLib\StackifyLib.csproj" />
-    <ProjectReference Include="..\StackifyLib.CoreLogger\StackifyLib.CoreLogger.csproj" />
     <ProjectReference Include="..\NLog.Targets.Stackify\NLog.Targets.Stackify.csproj" />
     <ProjectReference Include="..\StackifyLib.log4net\StackifyLib.log4net.csproj" />
-    <ProjectReference Include="..\StackifyLib.AspNetCore\StackifyLib.AspNetCore.csproj" />
   </ItemGroup>
 
   <ItemGroup>
