@@ -2,7 +2,7 @@ using StackifyLib.Utils;
 
 namespace StackifyLib.Internal.Logs
 {
-    public static class LogClientFactory
+    internal static class LogClientFactory
     {
         public static ILogClient GetClient(string loggerName) 
         {

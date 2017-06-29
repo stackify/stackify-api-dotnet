@@ -305,7 +305,8 @@ namespace StackifyLib.Internal.Logs
 
         public async Task Stop()
         {
-            Utils.StackifyAPILogger.Log("LogQueue stop received");
+            _scheduler.Pause();
+            StackifyAPILogger.Log("LogQueue stop received");
             _stopRequested = true;
             await FlushAllQueuesAsync();
         }

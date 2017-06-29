@@ -14,9 +14,9 @@ namespace StackifyLib.Internal.Logs
 {
     internal class LogClient : ILogClient
     {
-        private IScheduledLogHandler _logHandler;
+        private readonly IScheduledLogHandler _logHandler;
         private readonly IErrorGovernor _governor;
-        private string _loggerName;
+        private readonly string _loggerName;
         private static long _lastEpochMs = 0;
         private static int _millisecondCount = 1;
 

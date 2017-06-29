@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using StackifyLib.Utils;
 
 namespace StackifyLib.Internal.Scheduling
 {
@@ -16,6 +17,7 @@ namespace StackifyLib.Internal.Scheduling
 
         public void Pause()
         {
+            StackifyAPILogger.Log("Scheduler Paused");
             _timer.Change(Timeout.Infinite, Timeout.Infinite);
         }
 

@@ -16,6 +16,8 @@ using System.Runtime.InteropServices;
 
 // expose internal methods to test assemblies
 [assembly: InternalsVisibleTo("StackifyLibTests")]
+[assembly: InternalsVisibleTo("NLog.Targets.Stackify")]
+[assembly: InternalsVisibleTo("StackifyLib.log4net")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
