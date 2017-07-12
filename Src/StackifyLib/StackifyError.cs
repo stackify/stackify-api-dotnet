@@ -3,17 +3,18 @@ using System.Collections.Generic;
 using System.Reflection;
 using Newtonsoft.Json;
 using StackifyLib.Utils;
+using System.Threading.Tasks;
+using StackifyLib.Internal.Logs;
+using System.Threading;
+using StackifyLib.Internal.Auth.Claims;
+using StackifyLib.Models;
 
-#if NET451 || NET45 || NET40
+#if NET451 || NET45
 using System.Web;
 #endif
 
 namespace StackifyLib
 {
-    using Models;
-    using StackifyLib.Internal.Logs;
-    using System.Threading;
-
     [JsonObject]
     public class StackifyError : Exception
     {
@@ -27,7 +28,7 @@ namespace StackifyLib
 
         //Details of the device generating the error
         [JsonProperty]
-        public EnvironmentDetail EnvironmentDetail { get; set; }
+        public AppClaims EnvironmentDetail { get; set; }
 
         [JsonProperty]
         public WebRequestDetail WebRequestDetail { get; set; }
@@ -37,6 +38,7 @@ namespace StackifyLib
 
         [JsonProperty]
         public string CustomerName { get; set; }
+        
         [JsonProperty]
         public string UserName { get; set; }
 
@@ -57,6 +59,9 @@ namespace StackifyLib
         [JsonIgnore]
         public bool IsUnHandled { get; set; }
 
+        // required for de-serialization
+        public StackifyError()
+        { }
 
         public StackifyError(long errorOccurredEpochMillis, ErrorItem errorItem)
             : this(errorItem.Message, null)
@@ -92,7 +97,7 @@ namespace StackifyLib
                     Error = new ErrorItem(exception.InnerException);
                     _Exception = exception.InnerException;
                 }
-#if NET451 || NET45 || NET40
+#if NET451 || NET45
                 else if (exception is HttpUnhandledException && exception.InnerException != null)
                 {
                     Error = new ErrorItem(exception.GetBaseException());
@@ -114,10 +119,10 @@ namespace StackifyLib
             TimeSpan ts = DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, 0));
             OccurredEpochMillis = (long)ts.TotalMilliseconds;
 
-            EnvironmentDetail = EnvironmentDetail.Get(false);
+            EnvironmentDetail = AppClaimsManager.Get();
             ServerVariables = new Dictionary<string, string>();
 
-#if NET451 || NET45 || NET40
+#if NET451 || NET45
             if (System.Web.HttpContext.Current != null)
             {
                 // Make sure that the request is available in the current context.
@@ -162,10 +167,7 @@ namespace StackifyLib
 #elif NETSTANDARD1_3
             WebRequestDetail = new WebRequestDetail(this);
 #endif
-
-
-
-            //Fire event
+            // Fire event
             OnCaptureDetail?.Invoke(this);
 
             if (WebRequestDetail != null && WebRequestDetail.HttpMethod == null)

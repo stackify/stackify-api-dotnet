@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-#if NET45 || NET40
+#if NET45
 using System.Runtime.Remoting.Messaging;
 #endif
 using System.Security;
@@ -21,11 +21,9 @@ using NLog;
 namespace NLog.Targets.Stackify
 {
     [Target("StackifyTarget")]
-    public class StackifyTarget : TargetWithLayout 
+    public class StackifyTarget : TargetWithLayout
     {
         private bool _HasContextKeys = false;
-        public string apiKey { get; set; }
-        public string uri { get; set; }
         public string globalContextKeys { get; set; }
         public string mappedContextKeys { get; set; }
         public string callContextKeys { get; set; }
@@ -36,7 +34,7 @@ namespace NLog.Targets.Stackify
         private List<string> _MappedContextKeys = new List<string>();
         private List<string> _CallContextKeys = new List<string>();
 
-        private LogClient _logClient = null;
+        private ILogClient _logClient = LogClientFactory.GetClient("StackifyLib.net-nlog");
 
         protected override void CloseTarget()
         {
@@ -56,7 +54,6 @@ namespace NLog.Targets.Stackify
         {
             StackifyLib.Utils.StackifyAPILogger.Log("NLog InitializeTarget");
 
-            _logClient = new LogClient("StackifyLib.net-nlog", apiKey, uri);
             if (!String.IsNullOrEmpty(globalContextKeys))
             {
                 _GlobalContextKeys = globalContextKeys.Split(',').Select(s => s.Trim()).ToList();
@@ -151,7 +148,7 @@ namespace NLog.Targets.Stackify
                     }
                 }
             }
-            #if NET45 || NET40
+#if NET45
 
             foreach (string key in _CallContextKeys)
             {
@@ -185,16 +182,16 @@ namespace NLog.Targets.Stackify
                 msg.Level = loggingEvent.Level.Name;
             }
 
-         
+
 
             if (loggingEvent.HasStackTrace && loggingEvent.UserStackFrame != null)
             {
                 var frame = loggingEvent.UserStackFrame;
 
                 MethodBase method = frame.GetMethod();
-                if (method != (MethodBase) null && method.DeclaringType != (Type) null)
+                if (method != (MethodBase)null && method.DeclaringType != (Type)null)
                 {
-                    if (method.DeclaringType != (Type) null)
+                    if (method.DeclaringType != (Type)null)
                     {
                         msg.SrcMethod = method.DeclaringType.FullName + "." + method.Name;
                         msg.SrcLine = frame.GetFileLineNumber();
@@ -285,7 +282,7 @@ namespace NLog.Targets.Stackify
 
             if (loggingEvent.Exception != null && loggingEvent.Exception is StackifyError)
             {
-                error = (StackifyError) loggingEvent.Exception;
+                error = (StackifyError)loggingEvent.Exception;
             }
             else if (loggingEvent.Exception != null)
             {
@@ -300,7 +297,7 @@ namespace NLog.Targets.Stackify
             }
 
 
-     
+
 
 
 
@@ -314,7 +311,7 @@ namespace NLog.Targets.Stackify
             {
                 msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(null, false, diags);
             }
-          
+
 
             if (msg.Msg != null && error != null)
             {
@@ -361,6 +358,6 @@ namespace NLog.Targets.Stackify
         }
 
 
-    
+
     }
 }
