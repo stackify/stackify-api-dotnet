@@ -74,7 +74,16 @@ namespace StackifyLib
                 {
                     ErrorSessionGoodKeys = CaptureErrorSessionWhitelist.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList();
                 }
-	            
+
+                // SF-6804: Frequent Calls to GetEC2InstanceId
+                var captureEc2InstanceMetadataUpdateThresholdMinutes = Get("Stackify.Ec2InstanceMetadataUpdateThresholdMinutes", "");
+                if (string.IsNullOrWhiteSpace(captureEc2InstanceMetadataUpdateThresholdMinutes) == false)
+                {
+                    if (int.TryParse(captureEc2InstanceMetadataUpdateThresholdMinutes, out int minutes) && minutes > 0)
+                    {
+                        Ec2InstanceMetadataUpdateThresholdMinutes = minutes;
+                    }
+                }
             }
             catch (Exception ex)
 	        {
@@ -108,6 +117,8 @@ namespace StackifyLib
         public static string CaptureErrorCookiesWhitelist { get; set; } = null;
 
         public static string CaptureErrorCookiesBlacklist { get; set; } = ".ASPXAUTH";
+
+        public static int Ec2InstanceMetadataUpdateThresholdMinutes { get; set; } = 60;
 
 
         /// <summary>

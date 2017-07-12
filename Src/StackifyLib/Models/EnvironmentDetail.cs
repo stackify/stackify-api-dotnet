@@ -100,7 +100,10 @@ namespace StackifyLib.Models
         }
 
         // http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html#d0e30002
-        const string EC2InstanceIdUrl = "http://169.254.169.254/latest/meta-data/instance-id";
+        private const string EC2InstanceIdUrl = "http://169.254.169.254/latest/meta-data/instance-id";
+        public static readonly object ec2InstanceLock = new object();
+        private static DateTimeOffset? ec2InstanceIdLastUpdate = null;
+        private static string ec2InstanceId = null;
 
         /// <summary>
         /// Get the EC2 Instance name if it exists else null
@@ -108,6 +111,22 @@ namespace StackifyLib.Models
 #if NET451 || NET45 || NET40
         public static string GetEC2InstanceId()
         {
+            string r = null;
+
+            // SF-6804: Frequent Calls to GetEC2InstanceId
+            bool skipEc2InstanceIdUpdate = false;
+            var threshold = TimeSpan.FromMinutes(Config.Ec2InstanceMetadataUpdateThresholdMinutes);
+            lock (ec2InstanceLock)
+            {
+                skipEc2InstanceIdUpdate = ec2InstanceIdLastUpdate != null && ec2InstanceIdLastUpdate < DateTimeOffset.UtcNow.Subtract(threshold);
+                r = string.IsNullOrWhiteSpace(ec2InstanceId) ? null : ec2InstanceId;
+            }
+
+            if (skipEc2InstanceIdUpdate)
+            {
+                return r;
+            }
+
             try
             {
                 var request = (HttpWebRequest)WebRequest.Create(EC2InstanceIdUrl);
@@ -123,22 +142,44 @@ namespace StackifyLib.Models
                             using (var reader = new StreamReader(responseStream, encoding))
                             {
                                 var id = reader.ReadToEnd();
-                                return string.IsNullOrWhiteSpace(id) ? null : id;
+                                r = string.IsNullOrWhiteSpace(id) ? null : id;
                             }
                         }
                     }
-                    return null;
                 }
             }
             catch // if not in aws this will timeout
             {
-                return null;
+                r = null;
             }
 
+            lock (ec2InstanceLock)
+            {
+                ec2InstanceId = r;
+                ec2InstanceIdLastUpdate = DateTimeOffset.UtcNow;
+            }
+
+            return r;
         }
 #else
         public static async Task<string> GetEC2InstanceId()
         {
+            string r = null;
+
+            // SF-6804: Frequent Calls to GetEC2InstanceId
+            bool skipEc2InstanceIdUpdate = false;
+            var threshold = TimeSpan.FromMinutes(Config.Ec2InstanceMetadataUpdateThresholdMinutes);
+            lock (ec2InstanceLock)
+            {
+                skipEc2InstanceIdUpdate = ec2InstanceIdLastUpdate != null && ec2InstanceIdLastUpdate < DateTimeOffset.UtcNow.Subtract(threshold);
+                r = string.IsNullOrWhiteSpace(ec2InstanceId) ? null : ec2InstanceId;
+            }
+
+            if (skipEc2InstanceIdUpdate)
+            {
+                return r;
+            }
+
             try
             {
 
@@ -152,17 +193,23 @@ namespace StackifyLib.Models
                     if (statusCode >= 200 && statusCode < 300)
                     {
                         string id = await content.Content.ReadAsStringAsync();
-                        return string.IsNullOrWhiteSpace(id) ? null : id;
+                        r = string.IsNullOrWhiteSpace(id) ? null : id;
                     }
                 }
 
             }
             catch // if not in aws this will timeout
             {
-                return null;
+                r = null;
             }
 
-            return null;
+            lock (ec2InstanceLock)
+            {
+                ec2InstanceId = r;
+                ec2InstanceIdLastUpdate = DateTimeOffset.UtcNow;
+            }
+
+            return r;
         }
 #endif
         /// <summary>
@@ -269,7 +316,7 @@ namespace StackifyLib.Models
                 this.IsAzureWorkerRole = false;
 
                 //Logger global properties would override everything
-                
+
                 if (!string.IsNullOrEmpty(Config.AppName))
                 {
                     ConfiguredAppName = Config.AppName;
