@@ -8,9 +8,9 @@ namespace StackifyLib.Internal.Auth.Claims
         public static IAppClaimsBuilder Get()
         {
 #if NET451 || NET45
-            return new AppClaimsBuilderFullFramework(new AwsEc2MetadataService(new Scheduler(), Config.Ec2InstanceMetadataUpdateThresholdMinutes));
+            return new AppClaimsBuilderFullFramework(new AwsEc2MetadataService());
 #else
-            return new AppClaimsBuilderStandard(new AwsEc2MetadataService(new Scheduler(), Config.Ec2InstanceMetadataUpdateThresholdMinutes));
+            return new AppClaimsBuilderStandard(new AwsEc2MetadataService());
 #endif
         }
     }
