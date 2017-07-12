@@ -2,12 +2,16 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using System.Net.Http;
+using StackifyLib.Internal.Aws.Contract;
 
 namespace StackifyLib.Internal.Auth.Claims
 {
     internal class AppClaimsBuilderStandard : AppClaimsBuilderBase
     {
+        internal AppClaimsBuilderStandard(IAwsEc2MetadataService aws) : base(aws)
+        {
+        }
+
         protected override async Task BuildClaimsAsync()
         {
             // Logger global properties would override everything
@@ -21,36 +25,8 @@ namespace StackifyLib.Internal.Auth.Claims
 
         private async Task SetDeviceName()
         {
-            AppClaims.DeviceName = await GetEC2InstanceId()
+            AppClaims.DeviceName = await AwsMetadataService.GetEC2InstanceIdAsync()
                 ?? Process.GetCurrentProcess().MachineName;
-        }
-
-        /// <summary>
-        /// Get the EC2 Instance name if it exists else null
-        /// </summary>
-        private static async Task<string> GetEC2InstanceId()
-        {
-            try
-            {
-                using (var client = new HttpClient())
-                {
-                    client.Timeout = TimeSpan.FromSeconds(5);
-                    var content = await client.GetAsync(EC2InstanceIdUrl);
-
-                    int statusCode = (int)content.StatusCode;
-
-                    if (statusCode >= 200 && statusCode < 300)
-                    {
-                        string id = await content.Content.ReadAsStringAsync();
-                        return string.IsNullOrWhiteSpace(id) ? null : id;
-                    }
-                }
-
-            }
-            catch // if not in aws this will timeout
-            { }
-
-            return null;
         }
     }
 }
