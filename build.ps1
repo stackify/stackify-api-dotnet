@@ -25,7 +25,6 @@ if ($lastexitcode -ne 0)
 {
 	throw "dotnet build failed"
 }
-
 # Write-Output "Building StackifyLib.ELMAH"
 # dotnet build .\Src\StackifyLib.ELMAH -c Release
 
@@ -66,30 +65,38 @@ if ($lastexitcode -ne 0)
 	throw "dotnet test failed"
 }
 
+Write-Output "Testing StackifyLib"
+dotnet restore .\test\StackifyLibTests\StackifyLibTests.csproj
+dotnet test .\test\StackifyLibTests\StackifyLibTests.csproj
+
 Write-Output "APPVEYOR_REPO_TAG: $env:APPVEYOR_REPO_TAG"
 Write-Output "VERSION-SUFFIX: alpha1-$revision"
 
 If($env:APPVEYOR_REPO_TAG -eq $true) {
-    Write-Output "RUNNING dotnet pack .\Src\StackifyLib -c Release -o .\artifacts "
-    dotnet pack .\Src\StackifyLib -c Release -o .\artifacts
+  
+  Write-Output "RUNNING dotnet pack .\Src\StackifyLib -c Release -o .\artifacts "
+  dotnet pack .\Src\StackifyLib -c Release -o .\artifacts
 	if ($lastexitcode -ne 0)
 	{
 		throw "dotnet pack failed"
 	}
-    dotnet pack .\Src\StackifyLib.log4net -c Release -o .\artifacts 
+  
+  dotnet pack .\Src\StackifyLib.log4net -c Release -o .\artifacts 
 	if ($lastexitcode -ne 0)
 	{
 		throw "dotnet pack failed"
 	}
 }
 Else {  # publish pre-release if it does not have a tag
-    Write-Output "RUNNING dotnet pack .\Src\StackifyLib -c Release -o .\artifacts --version-suffix=beta1-$revision"
-    dotnet pack .\Src\StackifyLib -c Release -o .\artifacts --version-suffix=beta1-$revision
+  
+  Write-Output "RUNNING dotnet pack .\Src\StackifyLib -c Release -o .\artifacts --version-suffix=beta1-$revision"
+  dotnet pack .\Src\StackifyLib -c Release -o .\artifacts --version-suffix=beta1-$revision
 	if ($lastexitcode -ne 0)
 	{
 		throw "dotnet pack failed"
 	}
-    dotnet pack .\Src\StackifyLib.log4net -c Release -o .\artifacts --version-suffix=beta1-$revision
+  
+  dotnet pack .\Src\StackifyLib.log4net -c Release -o .\artifacts --version-suffix=beta1-$revision
 	if ($lastexitcode -ne 0)
 	{
 		throw "dotnet pack failed"

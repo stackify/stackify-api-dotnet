@@ -18,6 +18,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\StackifyLib.AspNetCore\StackifyLib.AspNetCore.csproj" />
+    <ProjectReference Include="..\StackifyLib\StackifyLib.csproj" />
+    <ProjectReference Include="..\NLog.Targets.Stackify\NLog.Targets.Stackify.csproj" />
     <ProjectReference Include="..\StackifyLib.log4net\StackifyLib.log4net.csproj" />
   </ItemGroup>
 

@@ -18,9 +18,9 @@ namespace StackifyLib.Auth
 
         public async Task<AccessTokenResponse> AuthenticateAsync(AppClaims claims)
         {
-            StackifyAPILogger.Log("Requesting Access Token.");
-
             var body = GetClaimsRequestBody(claims);
+
+            StackifyAPILogger.Log("Requesting Access Token.");
             
             var response = await _httpClient.PostAsync<AccessTokenResponse>(Config.AuthTokenUrl, body);
          
