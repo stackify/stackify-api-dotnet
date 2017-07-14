@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using Newtonsoft.Json;
+using StackifyLib.Models;
+using StackifyLib.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-//using System.Web.Configuration;
-using Newtonsoft.Json;
-using StackifyLib.Models;
-using StackifyLib.Utils;
 
 namespace StackifyLib.Internal.Logs
 {
@@ -295,7 +291,7 @@ namespace StackifyLib.Internal.Logs
         }
 
 
-        internal Task<HttpClient.StackifyWebResponse> SendLogsByGroups(LogMsg[] messages)
+        internal HttpClient.StackifyWebResponse SendLogsByGroups(LogMsg[] messages)
         {
             try
             {
@@ -309,16 +305,12 @@ namespace StackifyLib.Internal.Logs
 
                 if (_HttpClient.IsRecentError())
                 {
-                    var tcs = new TaskCompletionSource<HttpClient.StackifyWebResponse>();
-                    tcs.SetResult(new HttpClient.StackifyWebResponse() { Exception = new Exception("Unable to send logs at this time due to recent error: " + (_HttpClient.LastErrorMessage ?? "")) });
-                    return tcs.Task;
+                    return new HttpClient.StackifyWebResponse() { Exception = new Exception("Unable to send logs at this time due to recent error: " + (_HttpClient.LastErrorMessage ?? "")) };
                 }
 
                 if (!identified)
                 {
-                    var tcs = new TaskCompletionSource<HttpClient.StackifyWebResponse>();
-                    tcs.SetResult(new HttpClient.StackifyWebResponse() { Exception = new Exception("Unable to send logs at this time. Unable to identify app") });
-                    return tcs.Task;
+                    return new HttpClient.StackifyWebResponse() { Exception = new Exception("Unable to send logs at this time. Unable to identify app") };
                 }
 
                 var groups = SplitLogsToGroups(messages);
@@ -338,28 +330,23 @@ namespace StackifyLib.Internal.Logs
                 }
 
                 StackifyAPILogger.Log("Sending " + messages.Length.ToString() + " log messages via send multi groups");
-                var task =
-                    _HttpClient.SendJsonAndGetResponseAsync(
+                var response =
+                    _HttpClient.SendJsonAndGetResponse(
                         urlToUse,
                         jsonData, jsonData.Length > 5000);
-
 
                 messages = null;
                 groups = null;
 
-                return task;
+                return response;
 
             }
             catch (Exception ex)
             {
                 Utils.StackifyAPILogger.Log(ex.ToString());
 
-                var tcs = new TaskCompletionSource<HttpClient.StackifyWebResponse>();
-                tcs.SetResult(new HttpClient.StackifyWebResponse() { Exception = ex });
-                return tcs.Task;
+                return new HttpClient.StackifyWebResponse() { Exception = ex };
             }
-
-            return null;
         }
     }
 }
