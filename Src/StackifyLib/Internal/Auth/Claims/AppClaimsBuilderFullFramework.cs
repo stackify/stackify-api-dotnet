@@ -51,8 +51,8 @@ namespace StackifyLib.Internal.Auth.Claims
         private void SetWebAppId()
         {
             IsWebRequest = AppDomain.CurrentDomain.FriendlyName.Contains("W3SVC");
-            
-            if(IsWebRequest == false) 
+
+            if (IsWebRequest == false)
                 return;
 
             //regex test cases
@@ -159,7 +159,7 @@ namespace StackifyLib.Internal.Auth.Claims
         {
             if (Environment.UserInteractive || !AppDomain.CurrentDomain.FriendlyName.Contains("W3SVC"))
                 return;
-            
+
             try
             {
                 var query = $"select DisplayName from Win32_Service WHERE ProcessID='{Process.GetCurrentProcess().Id}'";
@@ -187,12 +187,21 @@ namespace StackifyLib.Internal.Auth.Claims
             catch (Exception ex)
             {
                 StackifyAPILogger.Log("Unable to get windows service name\r\n" + ex.ToString(), true);
-            }            
+            }
         }
 
         private async Task SetDeviceName()
         {
-            AppClaims.DeviceName = await GetEC2InstanceId() ?? Environment.MachineName;
+            var machineName = Environment.MachineName;
+
+            if (Config.IsEc2 == true || (machineName.StartsWith("EC2") && machineName.Contains("-")))
+            {
+                AppClaims.DeviceName = await GetEC2InstanceId() ?? machineName;
+            }
+            else
+            {
+                AppClaims.DeviceName = machineName;
+            }
         }
 
         /// <summary>

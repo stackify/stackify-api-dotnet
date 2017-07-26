@@ -21,8 +21,16 @@ namespace StackifyLib.Internal.Auth.Claims
 
         private async Task SetDeviceName()
         {
-            AppClaims.DeviceName = await GetEC2InstanceId()
-                ?? Process.GetCurrentProcess().MachineName;
+            var machineName = Process.GetCurrentProcess().MachineName;
+
+            if (Config.IsEc2 == true || (machineName.StartsWith("EC2") && machineName.Contains("-")))
+            {
+                AppClaims.DeviceName = await GetEC2InstanceId() ?? machineName;
+            }
+            else
+            {
+                AppClaims.DeviceName = machineName;
+            }
         }
 
         /// <summary>
