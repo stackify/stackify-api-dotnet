@@ -79,10 +79,17 @@ namespace StackifyLib
                 var captureEc2InstanceMetadataUpdateThresholdMinutes = Get("Stackify.Ec2InstanceMetadataUpdateThresholdMinutes", "");
                 if (string.IsNullOrWhiteSpace(captureEc2InstanceMetadataUpdateThresholdMinutes) == false)
                 {
-                    if (int.TryParse(captureEc2InstanceMetadataUpdateThresholdMinutes, out int minutes) && minutes > 0)
+                    if (int.TryParse(captureEc2InstanceMetadataUpdateThresholdMinutes, out int minutes) && minutes != 0)
                     {
                         Ec2InstanceMetadataUpdateThresholdMinutes = minutes;
                     }
+                }
+
+                // SF-6204: Allow local overrides of EC2 detection
+                var isEc2 = Get("Stackify.IsEC2", "");
+                if (string.IsNullOrWhiteSpace(isEc2) == false)
+                {
+                    IsEc2 = isEc2.Equals("true", StringComparison.CurrentCultureIgnoreCase);
                 }
             }
             catch (Exception ex)
@@ -119,6 +126,8 @@ namespace StackifyLib
         public static string CaptureErrorCookiesBlacklist { get; set; } = ".ASPXAUTH";
 
         public static int Ec2InstanceMetadataUpdateThresholdMinutes { get; set; } = 60;
+
+        public static bool? IsEc2 { get; set; } = null;
 
 
         /// <summary>
