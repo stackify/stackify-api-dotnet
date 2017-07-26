@@ -23,7 +23,7 @@ namespace StackifyLib.Internal.Auth.Claims
         {
             var machineName = Process.GetCurrentProcess().MachineName;
 
-            if (Config.IsEc2 == true || (machineName.StartsWith("EC2") && machineName.Contains("-")))
+            if (Config.IsEc2 == null || Config.IsEc2 == true || (machineName.StartsWith("EC2") && machineName.Contains("-")))
             {
                 AppClaims.DeviceName = await GetEC2InstanceId() ?? machineName;
             }
