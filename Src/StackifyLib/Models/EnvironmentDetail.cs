@@ -116,7 +116,7 @@ namespace StackifyLib.Models
             var deviceName = Environment.MachineName;
             var isDefaultDeviceNameEc2 = IsEc2MachineName(deviceName);
 
-            if (Config.IsEc2 == true || isDefaultDeviceNameEc2)
+            if (Config.IsEc2 == null || Config.IsEc2 == true || isDefaultDeviceNameEc2)
             {
                 var ec2InstanceId = GetEC2InstanceId();
                 if (string.IsNullOrWhiteSpace(ec2InstanceId) == false)
@@ -193,7 +193,7 @@ namespace StackifyLib.Models
             var deviceName = Process.GetCurrentProcess().MachineName;
             var isDefaultDeviceNameEc2 = IsEc2MachineName(deviceName);
 
-            if (Config.IsEc2 == true || isDefaultDeviceNameEc2)
+            if (Config.IsEc2 == null || Config.IsEc2 == true || isDefaultDeviceNameEc2)
             {
                 var instanceID_task = GetEC2InstanceId();
                 instanceID_task.Wait();
