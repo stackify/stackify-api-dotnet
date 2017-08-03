@@ -1,12 +1,12 @@
-﻿using System;
+﻿using StackifyLib.Models;
+using StackifyLib.Utils;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using StackifyLib.Models;
-using StackifyLib.Utils;
 
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
 using System.Runtime.Remoting.Messaging;
 using StackifyLib.Web;
 #endif
@@ -96,7 +96,7 @@ namespace StackifyLib.Internal.Logs
                 {
                 }
 
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
                 try
                 {
                     if (string.IsNullOrEmpty(msg.TransID))
@@ -297,19 +297,11 @@ namespace StackifyLib.Internal.Logs
 
                     bool keepGoing = false;
 
-                    var tasks = new List<Task>();
-
                     int flushTimes = 0;
                     //Keep flushing
                     do
                     {
-                        int count;
-                        var task = FlushOnceAsync(out count);
-
-                        if (task != null)
-                        {
-                            tasks.Add(task);
-                        }
+                        int count = FlushOnce();
 
                         if (count >= 100)
                         {
@@ -323,14 +315,6 @@ namespace StackifyLib.Internal.Logs
                         processedCount += count;
                     } while (keepGoing && flushTimes < 25);
 
-
-                    if (_StopRequested && tasks.Any())
-                    {
-                        StackifyLib.Utils.StackifyAPILogger.Log("Waiting to ensure final log send. Waiting on " + tasks.Count + " tasks");
-                        Task.WaitAll(tasks.ToArray(), 5000);
-                        StackifyLib.Utils.StackifyAPILogger.Log("Final log flush complete");
-                    }
-
                     _QueueTooBig = _MessageBuffer.Count < Logger.MaxLogBufferSize;
                 }
             }
@@ -342,12 +326,12 @@ namespace StackifyLib.Internal.Logs
             return processedCount;
         }
 
-        private Task FlushOnceAsync(out int messageSize)
+        private int FlushOnce()
         {
 
             // StackifyLib.Utils.StackifyAPILogger.Log("Calling FlushOnceAsync");
 
-            messageSize = 0;
+            int messageSize = 0;
             var chunk = new List<LogMsg>();
 
             //we only want to do this once at a time but the actual send is done async
@@ -392,85 +376,44 @@ namespace StackifyLib.Internal.Logs
 
                 if (chunk.Any())
                 {
+                    var response = _LogClient.SendLogsByGroups(chunk.ToArray());
 
-                    return _LogClient.SendLogsByGroups(chunk.ToArray()).ContinueWith((continuation) =>
+                    if (response != null && response.Exception != null)
                     {
+                        Utils.StackifyAPILogger.Log("Requeueing log messages due to error: " + response.Exception.ToString(), true);
 
-                        if (continuation.Exception != null)
+                        if (response.IsClientError())
                         {
-                            Utils.StackifyAPILogger.Log("Requeueing log messages due to error: " + continuation.Exception.ToString(), true);
+                            Utils.StackifyAPILogger.Log("Not requeueing log messages due to client error: " + response.StatusCode, true);
                         }
-
-                        if (continuation.Result != null && continuation.Result.Exception != null)
-                        {
-                            Utils.StackifyAPILogger.Log("Requeueing log messages due to error: " + continuation.Result.Exception.ToString(), true);
-                        }
-
-                        if (continuation.Exception != null ||
-                            (continuation.Result != null && continuation.Result.Exception != null))
+                        else
                         {
                             try
                             {
-                                bool messagesSentTooManyTimes = false;
-
-                                foreach (var item in chunk)
-                                {
-                                    item.UploadErrors++;
-
-                                    // try to upload up to 10 times
-                                    if (item.UploadErrors < 100)
-                                    {
-                                        _MessageBuffer.Enqueue(item);
-                                    }
-                                    else
-                                    {
-                                        messagesSentTooManyTimes = true;
-                                    }
-                                }
+                                bool messagesSentTooManyTimes = EnqueueForRetransmission(chunk);
 
                                 if (messagesSentTooManyTimes)
                                 {
                                     Utils.StackifyAPILogger.Log(
                                         "Some messages not queued again due to too many failures uploading");
                                 }
-
                             }
                             catch (Exception ex2)
                             {
                                 Utils.StackifyAPILogger.Log("Error trying to requeue messages " + ex2.ToString());
                             }
                         }
-                    });
+                    }
                 }
             }
             catch (Exception ex)
             {
                 Utils.StackifyAPILogger.Log(ex.ToString());
 
-
-                //requeue the messages that errored trying to upload
-                try
-                {
-                    foreach (var item in chunk)
-                    {
-                        item.UploadErrors++;
-
-                        // try to upload up to 10 times
-                        if (item.UploadErrors < 10)
-                        {
-                            _MessageBuffer.Enqueue(item);
-                        }
-                    }
-
-                }
-                catch (Exception ex2)
-                {
-                    Utils.StackifyAPILogger.Log(ex2.ToString());
-                }
+                EnqueueForRetransmission(chunk);
             }
 
-
-            return null;
+            return messageSize;
         }
 
 
@@ -485,12 +428,12 @@ namespace StackifyLib.Internal.Logs
             }
             else
             {
-                DateTime stopWaiting = DateTime.UtcNow.AddSeconds(5);
+                DateTime stopWaiting = DateTime.UtcNow.AddSeconds(15);
 
                 //wait for it to finish up to 5 seconds
                 while (_UploadingNow && DateTime.UtcNow < stopWaiting)
                 {
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
                     System.Threading.Thread.Sleep(10);
 #else
                     Task.Delay(10).Wait();
@@ -504,6 +447,35 @@ namespace StackifyLib.Internal.Logs
         public void Pause(bool isPaused)
         {
             _PauseUpload = isPaused;
+        }
+
+        private bool EnqueueForRetransmission(List<LogMsg> chunk)
+        {
+            bool skippedMessage = false;
+
+            try
+            {
+                foreach (var item in chunk)
+                {
+                    ++item.UploadErrors;
+
+                    // retry up to 5 times
+                    if (item.UploadErrors < 5)
+                    {
+                        _MessageBuffer.Enqueue(item);
+                    }
+                    else
+                    {
+                        skippedMessage = true;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Utils.StackifyAPILogger.Log(e.ToString());
+            }
+
+            return skippedMessage;
         }
     }
 }

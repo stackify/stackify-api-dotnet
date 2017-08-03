@@ -19,7 +19,7 @@ using System.Runtime.InteropServices;
 // COM, set the ComVisible attribute to true on that type.
 [assembly: ComVisible(false)]
 
-#if NET45 || NET40
+#if NET451 || NET45 || NET40
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("67aae97f-aa9f-4c35-b611-b68af22b9712")]
 #endif
@@ -34,5 +34,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.24.*")]
-[assembly: AssemblyFileVersion("1.24.*")]
+//[assembly: AssemblyVersion("1.24.*")]
+//[assembly: AssemblyFileVersion("1.24.*")]

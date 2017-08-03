@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
-using Newtonsoft.Json;
 
 namespace StackifyLib
 {
@@ -13,7 +12,16 @@ namespace StackifyLib
 	/// </summary>
 	public class Config
 	{
-	    public static void LoadSettings()
+
+#if NETSTANDARD1_3 || NET451
+        private static Microsoft.Extensions.Configuration.IConfigurationRoot _Configuration = null;
+
+	    public static void SetConfiguration(Microsoft.Extensions.Configuration.IConfigurationRoot configuration)
+	    {
+	        _Configuration = configuration;
+	    }
+#endif
+        public static void LoadSettings()
 	    {
 	        try
 	        {
@@ -29,6 +37,12 @@ namespace StackifyLib
 
                 CaptureErrorCookies = Get("Stackify.CaptureErrorCookies", "")
                     .Equals("true", StringComparison.CurrentCultureIgnoreCase);
+
+                ApiKey = Get("Stackify.ApiKey", "");
+
+                AppName = Get("Stackify.AppName", "");
+
+                Environment = Get("Stackify.Environment", "");
 
                 CaptureErrorHeadersWhitelist = Get("Stackify.CaptureErrorHeadersWhitelist", "");
 
@@ -60,13 +74,34 @@ namespace StackifyLib
                 {
                     ErrorSessionGoodKeys = CaptureErrorSessionWhitelist.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList();
                 }
-	            
+
+                // SF-6804: Frequent Calls to GetEC2InstanceId
+                var captureEc2InstanceMetadataUpdateThresholdMinutes = Get("Stackify.Ec2InstanceMetadataUpdateThresholdMinutes", "");
+                if (string.IsNullOrWhiteSpace(captureEc2InstanceMetadataUpdateThresholdMinutes) == false)
+                {
+                    if (int.TryParse(captureEc2InstanceMetadataUpdateThresholdMinutes, out int minutes) && minutes != 0)
+                    {
+                        Ec2InstanceMetadataUpdateThresholdMinutes = minutes;
+                    }
+                }
+
+                // SF-6204: Allow local overrides of EC2 detection
+                var isEc2 = Get("Stackify.IsEC2", "");
+                if (string.IsNullOrWhiteSpace(isEc2) == false)
+                {
+                    IsEc2 = isEc2.Equals("true", StringComparison.CurrentCultureIgnoreCase);
+                }
             }
             catch (Exception ex)
 	        {
 	            Debug.WriteLine(ex.ToString());
 	        }
         }
+
+        public static string ApiKey { get; set; }
+        public static string Environment { get; set; }
+
+        public static string AppName { get; set; }
 
         public static List<string> ErrorHeaderGoodKeys = new List<string>();
         public static List<string> ErrorHeaderBadKeys = new List<string>();
@@ -90,6 +125,10 @@ namespace StackifyLib
 
         public static string CaptureErrorCookiesBlacklist { get; set; } = ".ASPXAUTH";
 
+        public static int Ec2InstanceMetadataUpdateThresholdMinutes { get; set; } = 60;
+
+        public static bool? IsEc2 { get; set; } = null;
+
 
         /// <summary>
         /// Attempts to fetch a setting value given the key.
@@ -105,13 +144,25 @@ namespace StackifyLib
 			{
 				if (key != null)
 				{
-#if NET45 || NET40
-                    v = System.Configuration.ConfigurationManager.AppSettings[key];
+
+
+#if NETSTANDARD1_3 || NET451
+                    if (_Configuration != null)
+                    {
+                        var appSettings = _Configuration.GetSection("Stackify");
+                        v = appSettings[key.Replace("Stackify.", "")];
+                    }
 #endif
-					if (string.IsNullOrEmpty(v))
-						v = Environment.GetEnvironmentVariable(key);
-				}
-			}
+
+#if NET451 || NET45 || NET40
+                    if (string.IsNullOrEmpty(v))
+                        v = System.Configuration.ConfigurationManager.AppSettings[key];
+#endif
+
+                    if (string.IsNullOrEmpty(v))
+                        v = System.Environment.GetEnvironmentVariable(key);
+                }
+            }
 			finally
 			{
 				if (v == null)
