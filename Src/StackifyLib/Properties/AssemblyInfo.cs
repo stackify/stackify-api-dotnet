@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("StackifyLib")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Library for Stackify users to integrate Stackify in to their projects. Provides support for sending errors, logs, and custom metrics to Stackify. Also some support for querying metric data back out of Stackify for use in external projects.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("StackifyLib")]
-[assembly: AssemblyCopyright("Copyright ©  2015")]
+[assembly: AssemblyCompany("Stackify")]
+[assembly: AssemblyProduct("Stackify API for .NET")]
+[assembly: AssemblyCopyright("Copyright © 2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

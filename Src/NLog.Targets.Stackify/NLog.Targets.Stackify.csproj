@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <AssemblyTitle>NLog.Targets.Stackify</AssemblyTitle>
-    <VersionPrefix>2.0.0-beta1</VersionPrefix>
+    <VersionPrefix>2.0.0</VersionPrefix>
     <TargetFrameworks>netstandard1.3;net40;net45</TargetFrameworks>
     <AssemblyName>NLog.Targets.Stackify</AssemblyName>
     <PackageId>NLog.Targets.Stackify</PackageId>
@@ -15,6 +15,12 @@
     <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+    <Version>2.0.0</Version>
+    <PackageLicenseUrl>https://github.com/stackify/stackify-api-dotnet/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/stackify/stackify-api-dotnet</PackageProjectUrl>
+    <PackageIconUrl>https://stackify.com/wp-content/uploads/2016/08/cropped-Green-Favicon-192x192.png</PackageIconUrl>
+    <RepositoryUrl>https://github.com/stackify/stackify-api-dotnet</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>
