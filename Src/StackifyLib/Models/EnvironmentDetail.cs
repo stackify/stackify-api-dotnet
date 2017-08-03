@@ -12,6 +12,7 @@ using System.Linq;
 using System.Web.Hosting;
 using System.Management;
 #endif
+
 namespace StackifyLib.Models
 {
     public class EnvironmentDetail
@@ -109,17 +110,42 @@ namespace StackifyLib.Models
         /// Get the EC2 Instance name if it exists else null
         /// </summary>
 #if NET451 || NET45 || NET40
+
+        public static string GetDeviceName()
+        {
+            var deviceName = Environment.MachineName;
+            var isDefaultDeviceNameEc2 = IsEc2MachineName(deviceName);
+
+            if (Config.IsEc2 == null || Config.IsEc2 == true || isDefaultDeviceNameEc2)
+            {
+                var ec2InstanceId = GetEC2InstanceId();
+                if (string.IsNullOrWhiteSpace(ec2InstanceId) == false)
+                {
+                    deviceName = ec2InstanceId;
+                }
+            }
+
+            return deviceName;
+        }
+
         public static string GetEC2InstanceId()
         {
             string r = null;
 
             // SF-6804: Frequent Calls to GetEC2InstanceId
             bool skipEc2InstanceIdUpdate = false;
-            var threshold = TimeSpan.FromMinutes(Config.Ec2InstanceMetadataUpdateThresholdMinutes);
-            lock (ec2InstanceLock)
+            if (Config.Ec2InstanceMetadataUpdateThresholdMinutes > 0)
             {
-                skipEc2InstanceIdUpdate = ec2InstanceIdLastUpdate != null && ec2InstanceIdLastUpdate < DateTimeOffset.UtcNow.Subtract(threshold);
-                r = string.IsNullOrWhiteSpace(ec2InstanceId) ? null : ec2InstanceId;
+                var threshold = TimeSpan.FromMinutes(Config.Ec2InstanceMetadataUpdateThresholdMinutes);
+                lock (ec2InstanceLock)
+                {
+                    skipEc2InstanceIdUpdate = ec2InstanceIdLastUpdate != null && ec2InstanceIdLastUpdate < DateTimeOffset.UtcNow.Subtract(threshold);
+                    r = string.IsNullOrWhiteSpace(ec2InstanceId) ? null : ec2InstanceId;
+                }
+            }
+            else
+            {
+                skipEc2InstanceIdUpdate = true;
             }
 
             if (skipEc2InstanceIdUpdate)
@@ -162,17 +188,43 @@ namespace StackifyLib.Models
             return r;
         }
 #else
+        public static string GetDeviceName()
+        {
+            var deviceName = Process.GetCurrentProcess().MachineName;
+            var isDefaultDeviceNameEc2 = IsEc2MachineName(deviceName);
+
+            if (Config.IsEc2 == null || Config.IsEc2 == true || isDefaultDeviceNameEc2)
+            {
+                var instanceID_task = GetEC2InstanceId();
+                instanceID_task.Wait();
+                if (string.IsNullOrWhiteSpace(instanceID_task.Result) == false)
+                {
+                    deviceName = instanceID_task.Result;
+                }
+            }
+
+            return deviceName;
+        }
+
         public static async Task<string> GetEC2InstanceId()
         {
             string r = null;
 
             // SF-6804: Frequent Calls to GetEC2InstanceId
             bool skipEc2InstanceIdUpdate = false;
-            var threshold = TimeSpan.FromMinutes(Config.Ec2InstanceMetadataUpdateThresholdMinutes);
-            lock (ec2InstanceLock)
+
+            if (Config.Ec2InstanceMetadataUpdateThresholdMinutes > 0)
             {
-                skipEc2InstanceIdUpdate = ec2InstanceIdLastUpdate != null && ec2InstanceIdLastUpdate < DateTimeOffset.UtcNow.Subtract(threshold);
-                r = string.IsNullOrWhiteSpace(ec2InstanceId) ? null : ec2InstanceId;
+                var threshold = TimeSpan.FromMinutes(Config.Ec2InstanceMetadataUpdateThresholdMinutes);
+                lock (ec2InstanceLock)
+                {
+                    skipEc2InstanceIdUpdate = ec2InstanceIdLastUpdate != null && ec2InstanceIdLastUpdate < DateTimeOffset.UtcNow.Subtract(threshold);
+                    r = string.IsNullOrWhiteSpace(ec2InstanceId) ? null : ec2InstanceId;
+                }
+            }
+            else
+            {
+                skipEc2InstanceIdUpdate = true;
             }
 
             if (skipEc2InstanceIdUpdate)
@@ -211,7 +263,23 @@ namespace StackifyLib.Models
 
             return r;
         }
+
 #endif
+        private static bool IsEc2MachineName(string machineName)
+        {
+            if (string.IsNullOrWhiteSpace(machineName))
+            {
+                return false;
+            }
+
+            if (machineName.StartsWith("EC2") && machineName.Contains("-"))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Get the display name of the windows service if it is a windows service
         /// </summary>
@@ -348,15 +416,7 @@ namespace StackifyLib.Models
                 }
 #endif
 
-
-#if NET451 || NET45 || NET40
-
-                DeviceName = GetEC2InstanceId() ?? Environment.MachineName;
-#else
-                var instanceID_task = GetEC2InstanceId();
-                instanceID_task.Wait();
-                DeviceName = instanceID_task.Result ?? Process.GetCurrentProcess().MachineName;
-#endif
+                DeviceName = GetDeviceName();
 
 #if NET451 || NET45 || NET40
                 if (string.IsNullOrEmpty(AppName) && !isWebRequest)
