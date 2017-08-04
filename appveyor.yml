@@ -31,4 +31,4 @@ deploy:
     secure: UOvRrTDVcxyLUJYZVWZJUIrBCxTeaW5UCOKWHOWgaWaV8g+mupAamSPY5yHaJa0b
   skip_symbols: false
   on:
-    branch: feature/SF-6592
+    branch: develop
