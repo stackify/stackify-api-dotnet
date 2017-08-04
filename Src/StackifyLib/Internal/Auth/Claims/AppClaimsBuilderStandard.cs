@@ -19,24 +19,10 @@ namespace StackifyLib.Internal.Auth.Claims
             AppClaims.AppLocation = AppContext.BaseDirectory;
         }
 
-        private async Task SetDeviceName()
-        {
-            var machineName = Process.GetCurrentProcess().MachineName;
-
-            if (Config.IsEc2 == null || Config.IsEc2 == true || (machineName.StartsWith("EC2") && machineName.Contains("-")))
-            {
-                AppClaims.DeviceName = await GetEC2InstanceId() ?? machineName;
-            }
-            else
-            {
-                AppClaims.DeviceName = machineName;
-            }
-        }
-
-        /// <summary>
+         /// <summary>
         /// Get the EC2 Instance name if it exists else null
         /// </summary>
-        private static async Task<string> GetEC2InstanceId()
+        protected override async Task<string> GetEC2InstanceId()
         {
             try
             {
@@ -59,6 +45,15 @@ namespace StackifyLib.Internal.Auth.Claims
             { }
 
             return null;
+        }
+
+        /// <summary>
+        /// Get the current machine name
+        /// </summary>
+        protected override string GetMachineName()
+        {
+            var machineName = Process.GetCurrentProcess().MachineName;
+            return machineName;
         }
     }
 }
