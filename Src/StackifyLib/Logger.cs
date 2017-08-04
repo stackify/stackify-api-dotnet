@@ -27,8 +27,8 @@ namespace StackifyLib
         /// Callback when logs are not uploaded to the API and the library will not retry
         /// </summary>
         public static event Action<List<LogMsg>, HttpStatusCode> OnRejectedLogs;
-        internal static void NotifyRejectedLogs(List<LogMsg> logs, HttpStatusCode status)
-            => OnRejectedLogs(logs, status);
+
+        internal static void NotifyRejectedLogs(List<LogMsg> logs, HttpStatusCode status) => OnRejectedLogs?.Invoke(logs, status);
 
         /// <summary>
         /// Flushes any items in the queue when shutting down an app
