@@ -18,13 +18,13 @@ using StackifyLib.Web;
 namespace StackifyLib.Internal.Logs
 {
     internal class ScheduledLogHandler : IScheduledLogHandler
-    {        
+    {
         private readonly IAppLogQueues _appQueues;
         private readonly IStackifyApiService _stackifyApiService;
         private readonly IScheduler _scheduler;
         private TimeSpan _flushInterval = TimeSpan.FromSeconds(2);
         private bool _stopRequested = false;
-        private bool _pauseUpload = false;        
+        private bool _pauseUpload = false;
 
         public ScheduledLogHandler(
             IStackifyApiService apiService,
@@ -201,7 +201,7 @@ namespace StackifyLib.Internal.Logs
             var totalMessagesProcessed = 0;
 
             var appLogBatches = _appQueues.GetAppLogBatches(100, 25);
-            foreach(var appLogBatch in appLogBatches)
+            foreach (var appLogBatch in appLogBatches)
             {
                 totalMessagesProcessed += await FlushQueueInBatchesAsync(appLogBatch.Key, appLogBatch.Value);
             }
@@ -221,7 +221,7 @@ namespace StackifyLib.Internal.Logs
                     // keep flushing
                     foreach (var batch in batches)
                         tasks.Add(FlushOnceAsync(app, batch));
-                    
+
                     StackifyAPILogger.Log($"{tasks.Count} batches in flight", true);
 
                     var processedCounts = await Task.WhenAll(tasks);
@@ -246,15 +246,15 @@ namespace StackifyLib.Internal.Logs
         {
             var result = (int)await SendLogGroupAsync(app, batch);
 
-            if(IsSuccessStatusCode(result))
+            if (IsSuccessStatusCode(result))
                 return batch.Count;
 
             StackifyAPILogger.Log("Failed to send log group");
 
-            if(ShouldReQueue(result))
+            if (ShouldReQueue(result))
                 _appQueues.ReQueueBatch(app, batch);
             else
-                Logger.NotifyRejectedLogs(batch, (HttpStatusCode)result);              
+                Logger.NotifyRejectedLogs(batch, (HttpStatusCode)result);
 
             return 0;
         }
@@ -285,28 +285,28 @@ namespace StackifyLib.Internal.Logs
 
         private string GetRequestUri(int numberOfLogs) => $"{Config.LogUri}/{numberOfLogs}";
 
-        private bool IsSuccessStatusCode(int statusCode) 
+        private bool IsSuccessStatusCode(int statusCode)
             => (statusCode >= 200 && statusCode < 300);
 
         private bool ShouldReQueue(int status)
         {
-            if(status == 0) // request was not sent
+            if (status == 0) // request was not sent
                 return false;
 
-            if(status < 400)
+            if (status < 400)
                 return true;
 
             // do not re-queue for client errors
-            if(status >= 400 && status < 500)
+            if (status >= 400 && status < 500)
                 return false;
-            
+
             return true;
         }
 
         public async Task Stop()
         {
             _scheduler.Pause();
-            StackifyAPILogger.Log("LogQueue stop received");
+            StackifyAPILogger.Log($"LogQueue stop received from:\n{Environment.StackTrace}");
             _stopRequested = true;
             await FlushAllQueuesAsync();
         }

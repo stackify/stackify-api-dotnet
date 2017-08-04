@@ -21,8 +21,8 @@ namespace StackifyLib.Internal.Logs
         private static int _millisecondCount = 1;
 
         public LogClient(
-            IScheduledLogHandler logHandler, 
-            IErrorGovernor governor, 
+            IScheduledLogHandler logHandler,
+            IErrorGovernor governor,
             string loggerName)
         {
             Config.LoadSettings();
@@ -49,8 +49,9 @@ namespace StackifyLib.Internal.Logs
             {
                 _logHandler?.Stop().Wait();
             }
-            catch
+            catch (Exception e)
             {
+                StackifyAPILogger.Log($"An error ocurred while closing the log handler.\n{e}");
             }
         }
 
@@ -63,14 +64,14 @@ namespace StackifyLib.Internal.Logs
         {
             return _governor.ErrorShouldBeSent(error);
         }
-        
+
         public void QueueMessage(LogMsg msg)
         {
             msg.Logger = _loggerName;
             var claims = AppClaimsManager.Get();
             QueueMessage(msg, claims);
         }
-       
+
         public void QueueMessage(LogMsg msg, AppClaims appClaims)
         {
             if (msg == null) return;
