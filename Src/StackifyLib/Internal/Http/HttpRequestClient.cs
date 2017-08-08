@@ -15,65 +15,60 @@ using HttpClient = System.Net.Http.HttpClient;
 
 namespace StackifyLib.Http
 {
-    internal class HttpRequestClient : IHttpRequestClient
+    internal class HttpRequestClient : IHttpRequestClient, IDisposable
     {
-        private static readonly string _userAgent;
+        private static readonly HttpClient _httpClient;
 
         static HttpRequestClient()
         {
+            _httpClient = GetClient();
+        }
+
+        private static HttpClient GetClient()
+        {
             var version = typeof(HttpRequestClient).GetTypeInfo().Assembly.GetName().Version;
-            _userAgent = $"Stackify/{version}";
+            var userAgent = $"Stackify/{version}";
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("User-Agent", userAgent);
+            return client;
         }
 
         public async Task<T> PostAsync<T>(string uri, Dictionary<string, string> formData)
         {
             StackifyAPILogger.Log("Sending POST form body");
-            using (var client = GetClient())
-            {
-                var data = new FormUrlEncodedContent(formData);
-                var response = await client.PostAsync(uri, data);
+            var data = new FormUrlEncodedContent(formData);
+            var response = await _httpClient.PostAsync(uri, data);
 
-                if (response.StatusCode == HttpStatusCode.Unauthorized)
-                    throw new UnauthorizedAccessException();
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+                throw new UnauthorizedAccessException();
 
-                if (response.IsSuccessStatusCode == false)
-                    throw new HttpRequestException($"Received {response.StatusCode} response from {uri}");
+            if (response.IsSuccessStatusCode == false)
+                throw new HttpRequestException($"Received {response.StatusCode} response from {uri}");
 
-                var content = await response.Content.ReadAsStringAsync();
+            var content = await response.Content.ReadAsStringAsync();
 
-                return JsonConvert.DeserializeObject<T>(content);
-            }
+            return JsonConvert.DeserializeObject<T>(content);
         }
 
         public async Task<HttpResponseMessage> PostAsync(string uri, object json, AccessTokenResponse token, bool compress = false)
         {
-            using (var client = GetClient())
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(token.TokenType, token.AccessToken);
+
+            var content = JsonConvert.SerializeObject(json, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+
+            var shouldCompress = compress && content.Length > 5000;
+
+            var request = new HttpRequestMessage(HttpMethod.Post, uri)
             {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(token.TokenType, token.AccessToken);
+                Content = GetContent(content, shouldCompress)
+            };
 
-                var content = JsonConvert.SerializeObject(json, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+            var response = await _httpClient.SendAsync(request);
 
-                var shouldCompress = compress && content.Length > 5000;
+            if (response.IsSuccessStatusCode == false)
+                StackifyAPILogger.Log($"Received {response.StatusCode} response from {uri}");
 
-                var request = new HttpRequestMessage(HttpMethod.Post, uri)
-                {
-                    Content = GetContent(content, shouldCompress)
-                };
-
-                var response = await client.SendAsync(request);
-
-                if (response.IsSuccessStatusCode == false)
-                    StackifyAPILogger.Log($"Received {response.StatusCode} response from {uri}");
-
-                return response;
-            }
-        }
-
-        private HttpClient GetClient()
-        {
-            var client = new HttpClient();
-            client.DefaultRequestHeaders.Add("User-Agent", _userAgent);
-            return client;
+            return response;
         }
 
         private HttpContent GetContent(string content, bool compress)
@@ -83,8 +78,8 @@ namespace StackifyLib.Http
                 var bytes = Encoding.UTF8.GetBytes(content);
                 var ms = new MemoryStream();
 
-                using (GZipStream gzip = new GZipStream(ms, CompressionLevel.Fastest, true))
-                    gzip.Write(bytes, 0, bytes.Length);
+                using (var gZipStream = new GZipStream(ms, CompressionLevel.Fastest, true))
+                    gZipStream.Write(bytes, 0, bytes.Length);
 
                 ms.Position = 0;
                 var streamContent = new StreamContent(ms);
@@ -93,6 +88,11 @@ namespace StackifyLib.Http
             }
 
             return new StringContent(content);
+        }
+
+        public void Dispose()
+        {
+            _httpClient.Dispose();
         }
     }
 }
