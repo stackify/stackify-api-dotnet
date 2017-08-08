@@ -48,7 +48,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Utils\HttpClient\Contract\" />
+    <Compile Remove="Utils\HttpClient\**" />
+    <EmbeddedResource Remove="Utils\HttpClient\**" />
+    <None Remove="Utils\HttpClient\**" />
   </ItemGroup>
 
 </Project>
