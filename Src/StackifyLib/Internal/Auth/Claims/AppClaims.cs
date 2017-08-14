@@ -14,7 +14,7 @@ namespace StackifyLib.Internal.Auth.Claims
         public string ConfiguredAppName { get; set; }
         public string ConfiguredEnvironmentName { get; set; }
         public bool IsAzureWorkerRole { get; set; }
-        public string Platform { get; set; } = "dotnet";
+        public string Platform { get; set; } = ".net";
 
         [JsonIgnore]
         public string AzureInstanceName { get; set; }
