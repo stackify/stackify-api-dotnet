@@ -1,15 +1,20 @@
 ﻿using System;
 using System.Threading.Tasks;
+using StackifyLib.Internal.Aws.Contract;
 using StackifyLib.Utils;
 
 namespace StackifyLib.Internal.Auth.Claims
 {
     internal abstract class AppClaimsBuilderBase : IAppClaimsBuilder
     {
-        // http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html#d0e30002
-        protected const string EC2InstanceIdUrl = "http://169.254.169.254/latest/meta-data/instance-id";
+        protected readonly IAwsEc2MetadataService AwsMetadataService;
         protected readonly AppClaims AppClaims = new AppClaims();
         protected bool IsWebRequest = false;
+
+        internal AppClaimsBuilderBase(IAwsEc2MetadataService aws)
+        {
+            AwsMetadataService = aws ?? throw new ArgumentNullException("aws");
+        }
 
         public async Task<AppClaims> Build()
         {

@@ -74,7 +74,7 @@ namespace StackifyLib
                 {
                     ErrorSessionGoodKeys = CaptureErrorSessionWhitelist.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList();
                 }
-	            
+
                 ApiHost = Get("Stackify.ApiHost", "https://api.stackify.net");
                 AuthTokenUrl = Get("Stackify.AuthTokenUrl", "https://auth.stackify.net/oauth2/token");
                 LogUri = Get("Stackify.LogUri", "api/v1/logs");
@@ -116,7 +116,7 @@ namespace StackifyLib
         public static string CaptureErrorCookiesBlacklist { get; set; } = ".ASPXAUTH";
 
         /// <summary>
-        /// Global setting for any log appenders for how big the log queue size can be in memory 
+        /// Global setting for any log appenders for how big the log queue size can be in memory
         /// before messages are lost if there are problems uploading or we can't upload fast enough
         /// </summary>
         public static int MaxLogBufferSize { get; set; }  = 10000;

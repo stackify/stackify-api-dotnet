@@ -10,12 +10,17 @@ using StackifyLib.Utils;
 using System.Linq;
 using System.Web.Hosting;
 using System.Management;
+using StackifyLib.Internal.Aws.Contract;
 
 namespace StackifyLib.Internal.Auth.Claims
 {
     internal class AppClaimsBuilderFullFramework : AppClaimsBuilderBase
     {
         private static bool registryAccessFailure = false;
+
+        internal AppClaimsBuilderFullFramework(IAwsEc2MetadataService aws) : base(aws)
+        {
+        }
 
         protected override async Task BuildClaimsAsync()
         {
@@ -51,8 +56,8 @@ namespace StackifyLib.Internal.Auth.Claims
         private void SetWebAppId()
         {
             IsWebRequest = AppDomain.CurrentDomain.FriendlyName.Contains("W3SVC");
-            
-            if(IsWebRequest == false) 
+
+            if(IsWebRequest == false)
                 return;
 
             //regex test cases
@@ -159,7 +164,7 @@ namespace StackifyLib.Internal.Auth.Claims
         {
             if (Environment.UserInteractive || !AppDomain.CurrentDomain.FriendlyName.Contains("W3SVC"))
                 return;
-            
+
             try
             {
                 var query = $"select DisplayName from Win32_Service WHERE ProcessID='{Process.GetCurrentProcess().Id}'";
@@ -187,45 +192,12 @@ namespace StackifyLib.Internal.Auth.Claims
             catch (Exception ex)
             {
                 StackifyAPILogger.Log("Unable to get windows service name\r\n" + ex.ToString(), true);
-            }            
+            }
         }
 
         private async Task SetDeviceName()
         {
-            AppClaims.DeviceName = await GetEC2InstanceId() ?? Environment.MachineName;
-        }
-
-        /// <summary>
-        /// Get the EC2 Instance name if it exists else null
-        /// </summary>
-        private static async Task<string> GetEC2InstanceId()
-        {
-            try
-            {
-                var request = (HttpWebRequest)WebRequest.Create(EC2InstanceIdUrl);
-
-                // wait 5 seconds
-                request.Timeout = 5000;
-                using (var response = (HttpWebResponse)request.GetResponse())
-                {
-                    if ((int)response.StatusCode >= 200 && (int)response.StatusCode < 300)
-                    {
-                        var encoding = Encoding.GetEncoding(response.CharacterSet);
-                        using (var responseStream = response.GetResponseStream())
-                        {
-                            using (var reader = new StreamReader(responseStream, encoding))
-                            {
-                                var id = reader.ReadToEnd();
-                                return string.IsNullOrWhiteSpace(id) ? null : id;
-                            }
-                        }
-                    }
-                }
-            }
-            catch // if not in aws this will timeout
-            { }
-
-            return null;
+            AppClaims.DeviceName = await AwsMetadataService.GetEC2InstanceIdAsync() ?? Environment.MachineName;
         }
 
         private void SetClaimsFromAppDomain()
