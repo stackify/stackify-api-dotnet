@@ -51,8 +51,8 @@ namespace StackifyLib.Internal.Auth.Claims
         private void SetWebAppId()
         {
             IsWebRequest = AppDomain.CurrentDomain.FriendlyName.Contains("W3SVC");
-            
-            if(IsWebRequest == false) 
+
+            if (IsWebRequest == false)
                 return;
 
             //regex test cases
@@ -159,7 +159,7 @@ namespace StackifyLib.Internal.Auth.Claims
         {
             if (Environment.UserInteractive || !AppDomain.CurrentDomain.FriendlyName.Contains("W3SVC"))
                 return;
-            
+
             try
             {
                 var query = $"select DisplayName from Win32_Service WHERE ProcessID='{Process.GetCurrentProcess().Id}'";
@@ -187,18 +187,13 @@ namespace StackifyLib.Internal.Auth.Claims
             catch (Exception ex)
             {
                 StackifyAPILogger.Log("Unable to get windows service name\r\n" + ex.ToString(), true);
-            }            
-        }
-
-        private async Task SetDeviceName()
-        {
-            AppClaims.DeviceName = await GetEC2InstanceId() ?? Environment.MachineName;
+            }
         }
 
         /// <summary>
         /// Get the EC2 Instance name if it exists else null
         /// </summary>
-        private static async Task<string> GetEC2InstanceId()
+        protected override Task<string> GetEC2InstanceId()
         {
             try
             {
@@ -216,7 +211,8 @@ namespace StackifyLib.Internal.Auth.Claims
                             using (var reader = new StreamReader(responseStream, encoding))
                             {
                                 var id = reader.ReadToEnd();
-                                return string.IsNullOrWhiteSpace(id) ? null : id;
+                                var r = string.IsNullOrWhiteSpace(id) ? null : id;
+                                return Task.FromResult(r);
                             }
                         }
                     }
@@ -225,7 +221,16 @@ namespace StackifyLib.Internal.Auth.Claims
             catch // if not in aws this will timeout
             { }
 
-            return null;
+            return Task.FromResult<string>(null);
+        }
+
+        /// <summary>
+        /// Get the current machine name
+        /// </summary>
+        protected override string GetMachineName()
+        {
+            var machineName = Environment.MachineName;
+            return machineName;
         }
 
         private void SetClaimsFromAppDomain()

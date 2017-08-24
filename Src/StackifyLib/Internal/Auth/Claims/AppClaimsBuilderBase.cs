@@ -25,6 +25,22 @@ namespace StackifyLib.Internal.Auth.Claims
             return AppClaims;
         }
 
+        protected async Task SetDeviceName()
+        {
+            var machineName = GetMachineName();
+
+            if (Config.IsEc2 == null || Config.IsEc2 == true || (machineName.StartsWith("EC2") && machineName.Contains("-")))
+            {
+                AppClaims.DeviceName = await GetEC2InstanceId() ?? machineName;
+            }
+            else
+            {
+                AppClaims.DeviceName = machineName;
+            }
+        }
+
         protected abstract Task BuildClaimsAsync();
+        protected abstract Task<string> GetEC2InstanceId();
+        protected abstract string GetMachineName();
     }
 }
