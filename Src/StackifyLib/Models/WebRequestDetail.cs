@@ -57,7 +57,6 @@ namespace StackifyLib.Models
         [JsonProperty]
         public string ReportingUrl { get; set; }
 
-
         [JsonProperty]
         public string ReferralUrl { get; set; }
 

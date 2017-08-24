@@ -10,7 +10,19 @@ using StackifyLib.Internal.Auth.Claims;
 
 namespace StackifyLib.Utils
 {
-    internal class HttpClient
+    public class AppIdentityInfo
+    {
+        public int? DeviceID { get; set; }
+        public int? DeviceAppID { get; set; }
+        public Guid? AppNameID { get; set; }
+        public short? EnvID { get; set; }
+        public string AppName { get; set; }
+        public string Env { get; set; }
+        public Guid? AppEnvID { get; set; }
+        public string DeviceAlias { get; set; }
+    }
+
+    public class HttpClient
     {
          public static IWebProxy CustomWebProxy = null;
 
@@ -54,6 +66,12 @@ namespace StackifyLib.Utils
             public string ResponseText { get; set; }
             public System.Net.HttpStatusCode StatusCode { get; set; }
             public Exception Exception { get; set; }
+
+            // return true if 4xx status code
+            public bool IsClientError()
+            {
+                return (HttpStatusCode.BadRequest <= StatusCode) && (StatusCode < HttpStatusCode.InternalServerError);
+            }
         }
 
         static HttpClient()
@@ -647,7 +665,7 @@ namespace StackifyLib.Utils
 
 
             request.Method = "POST";
-            
+
             if (!String.IsNullOrEmpty(postdata))
             {
                 byte[] payload = Encoding.UTF8.GetBytes(postdata);

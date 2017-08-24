@@ -131,7 +131,11 @@ namespace StackifyLib.Models
 
                     var fullName = GetMethodFullName(method);
 
-                    bool isSource = false;//(ex.TargetSite != null && ex.TargetSite == method);
+                    bool isSource = false;
+
+#if NET451 || NET45 || NET40
+                    isSource = (ex.TargetSite != null && ex.TargetSite == method);
+#endif
 
                     if (isSource)
                     {
