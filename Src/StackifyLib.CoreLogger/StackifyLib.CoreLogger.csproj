@@ -16,7 +16,7 @@
     <PackageProjectUrl>https://github.com/stackify/stackify-api-dotnet</PackageProjectUrl>
     <RepositoryUrl>https://github.com/stackify/stackify-api-dotnet</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageIconUrl>https://stackify.com/wp-content/uploads/2016/08/cropped-Green-Favicon-192x192.png</PackageIconUrl>
+    <PackageIconUrl>https://stackify.com/wp-content/uploads/2017/02/stk.png</PackageIconUrl>
     <Description>StackifyLib.CoreLogger</Description>
     <Version>2.0.1</Version>
   </PropertyGroup>

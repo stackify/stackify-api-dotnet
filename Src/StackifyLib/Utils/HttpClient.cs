@@ -26,7 +26,7 @@ namespace StackifyLib.Utils
         public string DeviceAlias { get; set; }
     }
 
-    internal class HttpClient
+    public class HttpClient
     {
          public static IWebProxy CustomWebProxy = null;
 
@@ -685,7 +685,7 @@ namespace StackifyLib.Utils
 
 
             request.Method = "POST";
-            
+
             if (!String.IsNullOrEmpty(postdata))
             {
                 byte[] payload = Encoding.UTF8.GetBytes(postdata);
