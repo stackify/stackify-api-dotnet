@@ -17,7 +17,7 @@ namespace StackifyLib.Internal.StackifyApi
         private bool _claimsRejected = false;
         private DateTimeOffset? _lastError;
         private int _consecutiveErrorCount;
-        private readonly TimeSpan _maxBackoffTime = new TimeSpan(0, 1, 0);
+        private readonly TimeSpan _errorBackoffDuration = new TimeSpan(0, 1, 0);
         private AccessTokenResponse _accessToken;
 
         public StackifyApiService(ITokenStore tokenStore, IHttpRequestClient httpClient)
@@ -39,9 +39,9 @@ namespace StackifyLib.Internal.StackifyApi
             data.AccessToken = _accessToken.AccessToken;
 
             var dataToPost = new List<Identifiable> { data };
-        
+
             var response = await _httpClient.PostAsync(url, dataToPost, _accessToken, compress);
-            if(response.IsSuccessStatusCode)
+            if (response.IsSuccessStatusCode)
             {
                 _consecutiveErrorCount = 0;
             }
@@ -54,7 +54,7 @@ namespace StackifyLib.Internal.StackifyApi
 
         private void HandleFailedResponse(HttpStatusCode status)
         {
-            if(status == HttpStatusCode.Unauthorized)
+            if (status == HttpStatusCode.Unauthorized)
             {
                 _accessToken = null;
             }
@@ -75,21 +75,9 @@ namespace StackifyLib.Internal.StackifyApi
             if (_lastError == null)
                 return false;
 
-            var backoffTime = GetExponentialBackoffTime();
-            var backoffExpiration = _lastError.Value + backoffTime;
+            var backoffExpiration = _lastError.Value + _errorBackoffDuration;
 
             return (DateTime.UtcNow < backoffExpiration);
-        }
-
-        private TimeSpan GetExponentialBackoffTime()
-        {
-            var backoffSeconds = Convert.ToInt32(Math.Exp(_consecutiveErrorCount));
-
-            var backoffTime = backoffSeconds > _maxBackoffTime.Seconds
-                ? _maxBackoffTime
-                : new TimeSpan(0, 0, backoffSeconds);
-
-            return backoffTime;
         }
 
         private async Task<bool> GetTokenAsync(AppClaims claims)

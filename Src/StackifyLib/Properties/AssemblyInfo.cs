@@ -19,6 +19,7 @@ using System.Runtime.InteropServices;
 [assembly: InternalsVisibleTo("NLog.Targets.Stackify")]
 [assembly: InternalsVisibleTo("StackifyLib.log4net")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
+[assembly: InternalsVisibleTo("StackifyLib.StackifyTraceListener")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 

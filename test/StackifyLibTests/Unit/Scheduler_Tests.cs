@@ -13,7 +13,7 @@ namespace StackifyLibTests.Unit
             // arrange
             const int expectedExecutionCount = 2;
             const int intervalMilliseconds = 500;
-            const int sleepInterval = intervalMilliseconds * expectedExecutionCount + intervalMilliseconds / 2;
+            const int sleepInterval = intervalMilliseconds * (expectedExecutionCount + 1) - 1;
 
             var executionCount = 0;
             void Callback(object state) => executionCount += 1;
@@ -33,7 +33,7 @@ namespace StackifyLibTests.Unit
             // arrange
             const int expectedExecutionCount = 1;
             const int intervalMilliseconds = 500;
-            const int sleepInterval = intervalMilliseconds * expectedExecutionCount + intervalMilliseconds / 2;
+            const int sleepInterval = intervalMilliseconds * (expectedExecutionCount + 1) - 1;
 
             var executionCount = 0;
             void Callback(object state) => executionCount += 1;
@@ -58,7 +58,7 @@ namespace StackifyLibTests.Unit
             // arrange
             const int expectedExecutionCount = 1;
             const int intervalMilliseconds = 500;
-            const int sleepInterval = intervalMilliseconds * expectedExecutionCount + intervalMilliseconds / 2;
+            const int sleepInterval = intervalMilliseconds * (expectedExecutionCount + 1) - 1;
 
             var executionCount = 0;
             void Callback(object state) => executionCount += 1;
@@ -86,7 +86,7 @@ namespace StackifyLibTests.Unit
             // arrange
             const int expectedExecutionCount = 1;
             const int intervalMilliseconds = 500;
-            const int sleepInterval = intervalMilliseconds * expectedExecutionCount + intervalMilliseconds / 2;
+            const int sleepInterval = intervalMilliseconds * (expectedExecutionCount + 1) - 1;
 
             var executionCount = 0;
             void Callback1(object state) => executionCount += 1;

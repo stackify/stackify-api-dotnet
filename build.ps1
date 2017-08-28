@@ -1,3 +1,12 @@
+function CheckLastExitCode {
+    param ([int[]]$SuccessCodes = @(0), [scriptblock]$CleanupScript=$null)
+
+    if ($SuccessCodes -notcontains $LastExitCode) {
+        $msg = "EXE RETURNED EXIT CODE $LastExitCode"
+        throw $msg
+    }
+}
+
 $revision = @{ $true = $env:APPVEYOR_BUILD_NUMBER; $false = 1 }[$env:APPVEYOR_BUILD_NUMBER -ne $NULL];
 $revision = "{0:D4}" -f [convert]::ToInt32($revision, 10)
 
@@ -5,21 +14,26 @@ dotnet restore .\Src
 
 Write-Output "Building StackifyLib"
 dotnet build .\Src\StackifyLib -c Release
+CheckLastExitCode
 
 Write-Output "Building StackifyLib"
 dotnet build .\Src\StackifyLib -c Release
+CheckLastExitCode
 
 Write-Output "Building NLog.Targets.Stackify"
 dotnet build .\Src\NLog.Targets.Stackify -c Release
+CheckLastExitCode
 
 Write-Output "Building StackifyLib.CoreLogger"
 dotnet build .\Src\StackifyLib.CoreLogger -c Release
+CheckLastExitCode
 
 # Write-Output "Building StackifyLib.ELMAH"
 # dotnet build .\Src\StackifyLib.ELMAH -c Release
 
 Write-Output "Building StackifyLib.log4net"
 dotnet build .\Src\StackifyLib.log4net -c Release
+CheckLastExitCode
 
 # Write-Output "Building StackifyLib.log4net.Sitecore"
 # dotnet build .\Src\StackifyLib.log4net.Sitecore -c Release
@@ -38,10 +52,12 @@ dotnet build .\Src\StackifyLib.log4net -c Release
 
 Write-Output "Building StackifyLib.StackifyTraceListener"
 dotnet build .\Src\StackifyLib.StackifyTraceListener -c Release
+CheckLastExitCode
 
 Write-Output "Testing StackifyLib"
 dotnet restore .\test\StackifyLibTests\StackifyLibTests.csproj
 dotnet test .\test\StackifyLibTests\StackifyLibTests.csproj
+CheckLastExitCode
 
 Write-Output "APPVEYOR_REPO_TAG: $env:APPVEYOR_REPO_TAG"
 Write-Output "VERSION-SUFFIX: alpha1-$revision"
