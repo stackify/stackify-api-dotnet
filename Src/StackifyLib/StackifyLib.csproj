@@ -14,6 +14,15 @@
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
     <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
+    <Version>2.0.1</Version>
+    <Authors>StackifyLib</Authors>
+    <PackageProjectUrl>https://github.com/stackify/stackify-api-dotnet</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/stackify/stackify-api-dotnet/blob/master/LICENSE</PackageLicenseUrl>
+    <RepositoryUrl>https://github.com/stackify/stackify-api-dotnet</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageIconUrl>https://stackify.com/wp-content/uploads/2017/02/stk.png</PackageIconUrl>
+    <AssemblyVersion>2.0.1.0</AssemblyVersion>
+    <FileVersion>2.0.1.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
