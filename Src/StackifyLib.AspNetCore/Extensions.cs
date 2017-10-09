@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if NETSTANDARD1_3
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -9,11 +10,7 @@ namespace StackifyLib
 {
     public static class Extensions
     {
-
-
-
-        public static void ConfigureStackifyLogging(this Microsoft.AspNetCore.Builder.IApplicationBuilder app,
-                Microsoft.Extensions.Configuration.IConfigurationRoot configuration)
+        public static void ConfigureStackifyLogging(this Microsoft.AspNetCore.Builder.IApplicationBuilder app, Microsoft.Extensions.Configuration.IConfigurationRoot configuration)
         {
             try
             {
@@ -21,7 +18,7 @@ namespace StackifyLib
 
                 if (configuration != null)
                 {
-                    StackifyLib.Config.SetConfiguration(configuration);
+                    Config.SetConfiguration(configuration);
 
                     //tell it to load all the settings since we now have the config
                     Config.LoadSettings();
@@ -34,3 +31,4 @@ namespace StackifyLib
         }
     }
 }
+#endif

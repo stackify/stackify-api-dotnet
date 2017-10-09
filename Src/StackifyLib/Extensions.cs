@@ -37,7 +37,7 @@ namespace StackifyLib
             }
         }
 
-#if NETSTANDARD1_3 || NET451
+#if NETSTANDARD1_3
         public static void ConfigureStackifyLogging(this Microsoft.Extensions.Configuration.IConfigurationRoot configuration)
         {
             Config.SetConfiguration(configuration);

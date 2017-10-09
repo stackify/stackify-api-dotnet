@@ -1,6 +1,31 @@
-################################################################################
-# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
-################################################################################
-
-/CoreSrc/StackifyLib/bin/Debug/netcoreapp1.0/StackifyLib.pdb
-Src/StackifyLib.log4net/project.lock.json
+#Ignore thumbnails created by Windows
+ Thumbs.db
+ 
+#Ignore files built by Visual Studio
+ *.obj
+ *.exe
+ *.pdb
+ *.user
+ *.aps
+ *.pch
+ *.vspscc
+ *_i.c
+ *_p.c
+ *.ncb
+ *.suo
+ *.tlb
+ *.tlh
+ *.bak
+ *.cache
+ *.ilk
+ *.log
+ *.dll
+ *.lib
+ *.sbr
+ .idea/
+ _ReSharper.Caches/
+ packages/
+ *.lock.json
+ 
+ **/bin/*
+ **/obj/*

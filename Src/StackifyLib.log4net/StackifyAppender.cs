@@ -321,7 +321,7 @@ namespace StackifyLib.log4net
                     }
                 }
             }
-#if NET45
+#if NETFULL
             foreach (string mdcKey in _LogicalThreadContextKeys)
             {
                 object mdcValue = Apache_log4net.LogicalThreadContext.Properties[mdcKey];

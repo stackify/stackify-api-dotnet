@@ -9,7 +9,7 @@ using System.Threading;
 using StackifyLib.Internal.Auth.Claims;
 using StackifyLib.Models;
 
-#if NET451 || NET45
+#if NETFULL
 using System.Web;
 #endif
 
@@ -97,7 +97,7 @@ namespace StackifyLib
                     Error = new ErrorItem(exception.InnerException);
                     _Exception = exception.InnerException;
                 }
-#if NET451 || NET45
+#if NETFULL
                 else if (exception is HttpUnhandledException && exception.InnerException != null)
                 {
                     Error = new ErrorItem(exception.GetBaseException());
@@ -122,7 +122,7 @@ namespace StackifyLib
             EnvironmentDetail = AppClaimsManager.Get();
             ServerVariables = new Dictionary<string, string>();
 
-#if NET451 || NET45
+#if NETFULL
             if (System.Web.HttpContext.Current != null)
             {
                 // Make sure that the request is available in the current context.
@@ -164,9 +164,11 @@ namespace StackifyLib
                     }
                 }
             }
+
 #elif NETSTANDARD1_3
             WebRequestDetail = new WebRequestDetail(this);
 #endif
+
             // Fire event
             OnCaptureDetail?.Invoke(this);
 
@@ -221,10 +223,9 @@ namespace StackifyLib
                 //    ignore = true;
                 //}
             }
-            catch (Exception)
+            catch
             {
-
-
+                // ignored
             }
 
             return ignore;
@@ -246,10 +247,9 @@ namespace StackifyLib
                 //    ignore = true;
                 //}
             }
-            catch (Exception)
+            catch
             {
-
-
+                // ignored
             }
 
             return ignore;

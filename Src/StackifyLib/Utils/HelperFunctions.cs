@@ -123,7 +123,7 @@ namespace StackifyLib.Utils
                                 {
                                     jObject.Add("objectType", type.FullName);
                                 }
-#if NET451 || NET45
+#if NETFULL
                                 else
                                 {
 

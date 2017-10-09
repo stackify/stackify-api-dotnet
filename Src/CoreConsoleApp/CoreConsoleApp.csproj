@@ -23,9 +23,9 @@
     <PackageReference Include="log4net" Version="2.0.7" />
     <PackageReference Include="NLog" Version="5.0.0-beta05" />
     <PackageReference Include="Serilog" Version="2.4.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="1.2.0-preview1-22736" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="1.2.0-preview1-22736" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="1.2.0-preview1-22736" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="1.1.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="1.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="1.0.2" />
   </ItemGroup>
 
 </Project>

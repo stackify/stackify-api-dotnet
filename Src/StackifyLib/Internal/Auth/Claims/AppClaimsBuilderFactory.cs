@@ -4,7 +4,7 @@
     {
         public static IAppClaimsBuilder Get()
         {
-#if NET451 || NET45
+#if NETFULL
             return new AppClaimsBuilderFullFramework();
 #else
             return new AppClaimsBuilderStandard();

@@ -96,7 +96,7 @@ namespace StackifyLib.Internal.Logs
                 while (batch.Count < maxBatchSize && queue.TryDequeue(out LogMsg msg))
                 {
                     var msgContent = msg.Msg ?? string.Empty;
-                    if (msgContent.IndexOf("StackifyLib:") == -1)
+                    if (msgContent.Contains("StackifyLib:") == false)
                     {
                         batch.Add(msg);
                     }

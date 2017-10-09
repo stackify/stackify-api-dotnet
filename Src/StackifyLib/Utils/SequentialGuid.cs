@@ -8,13 +8,13 @@ namespace StackifyLib.Utils
 {
     public static class SequentialGuid
     {
-#if NET451 || NET45
+#if NETFULL
         [DllImport("rpcrt4.dll", SetLastError = true)]
         private static extern int UuidCreateSequential(out Guid guid);
 #endif
         public static Guid NewGuid()
         {
-#if NET451 || NET45
+#if NETFULL
             const int RPC_S_OK = 0;
             Guid guid;
             int result = UuidCreateSequential(out guid);

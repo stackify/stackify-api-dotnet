@@ -8,7 +8,7 @@ using StackifyLib.Internal.Metrics;
 using StackifyLib.Models;
 using StackifyLib.Utils;
 
-#if NET451 || NET45
+#if NETFULL
 using System.Diagnostics;
 #endif
 
@@ -200,7 +200,7 @@ namespace StackifyLib
         {
             List<TraceFrame> frames = new List<TraceFrame>();
 
-#if NET451 || NET45
+#if NETFULL
             try
             {
                 //moves to the part of the trace where the declaring method starts then the other loop gets all the frames. This is to remove frames that happen within the logging library itself.

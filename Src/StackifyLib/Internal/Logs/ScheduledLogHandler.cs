@@ -10,7 +10,7 @@ using StackifyLib.Internal.Auth.Claims;
 using StackifyLib.Internal.Scheduling;
 using System.Net;
 
-#if NET451 || NET45
+#if NETFULL
 using System.Runtime.Remoting.Messaging;
 using StackifyLib.Web;
 #endif
@@ -96,7 +96,7 @@ namespace StackifyLib.Internal.Logs
         {
             var transId = string.Empty;
 
-#if NET451 || NET45
+#if NETFULL
             try
             {
                 Object stackifyRequestID = CallContext.LogicalGetData("Stackify-RequestID");

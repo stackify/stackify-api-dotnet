@@ -1,4 +1,4 @@
-﻿#if NET45 || NETSTANDARD1_3
+﻿#if NET45 || NET451 || NETSTANDARD1_3
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
