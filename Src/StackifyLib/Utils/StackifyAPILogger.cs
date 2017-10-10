@@ -95,28 +95,9 @@ namespace StackifyLib.Utils
             {
                 if (logAnyways || (_logEnabled ?? false))
                 {
-                    var msg = $"{DateTime.UtcNow:yyyy/MM/dd HH:mm:ss,fff}/GMT StackifyLib: {message}\r\n{ex}";
+                    var msg = $"{message}\r\n{ex}";
 
-                    OnLogMessage?.Invoke(msg);
-
-                    if (_logger != null)
-                    {
-                        _logger.Write(msg);
-                    }
-                    else
-                    {
-                        Debug.WriteLine(msg);
-
-                        lock (LoggerDefaultLock)
-                        {
-                            if (_loggerDefault == null)
-                            {
-                                _loggerDefault = new StreamWriter(new FileStream(DefaultLoggerPathAndFile, FileMode.Append, FileAccess.Write, FileShare.Read));
-                            }
-                        }
-
-                        _loggerDefault.WriteLine(msg);
-                    }
+                    Log(msg, logAnyways);
                 }
             }
             catch
