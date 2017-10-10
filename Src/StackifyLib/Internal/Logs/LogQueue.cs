@@ -76,13 +76,14 @@ namespace StackifyLib.Internal.Logs
             try
             {
                 if (msg == null)
+                {
                     return;
+                }
 
                 if (!_TimerStarted)
                 {
                     EnsureTimer();
                 }
-
 
                 try
                 {
@@ -94,6 +95,7 @@ namespace StackifyLib.Internal.Logs
                 }
                 catch
                 {
+                    // ignore
                 }
 
 #if NET451 || NET45 || NET40
@@ -101,8 +103,7 @@ namespace StackifyLib.Internal.Logs
                 {
                     if (string.IsNullOrEmpty(msg.TransID))
                     {
-
-                        Object stackifyRequestID = CallContext.LogicalGetData("Stackify-RequestID");
+                        var stackifyRequestID = CallContext.LogicalGetData("Stackify-RequestID");
 
                         if (stackifyRequestID != null)
                         {
@@ -114,7 +115,7 @@ namespace StackifyLib.Internal.Logs
                     {
                         //gets from Trace.CorrelationManager.ActivityId but doesnt assume it is guid since it technically doesn't have to be
                         //not calling the CorrelationManager method because it blows up if it isn't a guid
-                        Object correltionManagerId = CallContext.LogicalGetData("E2ETrace.ActivityID");
+                        var correltionManagerId = CallContext.LogicalGetData("E2ETrace.ActivityID");
 
                         if (correltionManagerId != null && correltionManagerId is Guid && ((Guid)correltionManagerId) != Guid.Empty)
                         {
@@ -124,13 +125,13 @@ namespace StackifyLib.Internal.Logs
 
                     if (string.IsNullOrEmpty(msg.TransID))
                     {
-                        if (_IsWebApp && System.Web.Hosting.HostingEnvironment.IsHosted
-                                 && System.Web.HttpContext.Current != null && System.Web.HttpContext.Current.Handler != null &&
-                                 System.Web.HttpContext.Current.Request != null)
+                        if (_IsWebApp 
+                            && System.Web.Hosting.HostingEnvironment.IsHosted 
+                            && System.Web.HttpContext.Current != null 
+                            && System.Web.HttpContext.Current.Handler != null)
                         {
                             msg.TransID = System.Web.HttpContext.Current.Request.GetHashCode().ToString();
                         }
-
                     }
                 }
                 catch (System.Web.HttpException ex)
@@ -142,24 +143,22 @@ namespace StackifyLib.Internal.Logs
                     StackifyAPILogger.Log("Error figuring out TransID \r\n" + ex.ToString());
                 }
 
-
-
-                if (_IsWebApp && System.Web.Hosting.HostingEnvironment.IsHosted
+                if (_IsWebApp 
+                    && System.Web.Hosting.HostingEnvironment.IsHosted
                     && System.Web.HttpContext.Current != null
-                    && System.Web.HttpContext.Current.Handler != null
-                    && System.Web.HttpContext.Current.Request != null)
+                    && System.Web.HttpContext.Current.Handler != null)
                 {
                     var context = System.Web.HttpContext.Current;
 
                     msg.UrlFull = context.Request.Url.ToString();
 
-                    if (context.Items != null && context.Items.Contains("Stackify.ReportingUrl"))
+                    if (context.Items.Contains("Stackify.ReportingUrl"))
                     {
                         msg.UrlRoute = context.Items["Stackify.ReportingUrl"].ToString();
                     }
                     else
                     {
-                        RouteResolver resolver = new RouteResolver(context);
+                        var resolver = new RouteResolver(context);
 
                         var route = resolver.GetRoute();
 
@@ -169,24 +168,21 @@ namespace StackifyLib.Internal.Logs
                         }
                     }
 
-
                     if (string.IsNullOrEmpty(msg.UrlRoute))
                     {
-                        HelperFunctions.CleanPartialUrl(
-                            context.Request.AppRelativeCurrentExecutionFilePath.TrimStart('~'));
+                        if (string.IsNullOrWhiteSpace(context.Request.AppRelativeCurrentExecutionFilePath) == false)
+                        {
+                            HelperFunctions.CleanPartialUrl(context.Request.AppRelativeCurrentExecutionFilePath.TrimStart('~'));
+                        }
                     }
-
-
                 }
-
 #endif
 
                 _MessageBuffer.Enqueue(msg);
-
             }
-            catch
+            catch (Exception ex)
             {
-
+                StackifyAPILogger.Log("#LogQueue #QueueLogMessage failed", ex);
             }
         }
 
@@ -194,10 +190,11 @@ namespace StackifyLib.Internal.Logs
         private void OnTimer(Object stateInfo)
         {
             if (_PauseUpload)
+            {
                 return;
+            }
 
             _timer.Change(-1, -1); //disable while it does this so it does fire multiple times
-
 
             try
             {
@@ -221,14 +218,16 @@ namespace StackifyLib.Internal.Logs
                     }
 
                     if (_timer != null && !_StopRequested)
+                    {
                         _timer.Change(_FlushInterval, _FlushInterval);
+                    }
 
                     return;
                 }
             }
             catch (Exception ex)
             {
-                StackifyLib.Utils.StackifyAPILogger.Log(ex.ToString());
+                StackifyAPILogger.Log("#LogQueue #OnTimer failed", ex);
             }
 
 
@@ -242,9 +241,7 @@ namespace StackifyLib.Internal.Logs
                     if (_FlushInterval.TotalSeconds > 1)
                     {
                         _FlushInterval = TimeSpan.FromSeconds(_FlushInterval.TotalSeconds / 2);
-                        StackifyLib.Utils.StackifyAPILogger.Log(
-                            string.Format("Adjust log flush interval down to {0:0.00} seconds",
-                                          _FlushInterval.TotalSeconds));
+                        StackifyAPILogger.Log(string.Format("#LogQueue Adjust log flush interval down to {0:0.00} seconds",_FlushInterval.TotalSeconds));
                     }
                 }
                 else if (processedCount < 10 && _FlushInterval != TimeSpan.FromSeconds(5))
@@ -264,19 +261,19 @@ namespace StackifyLib.Internal.Logs
                     {
                         _FlushInterval = TimeSpan.FromSeconds(proposedSeconds);
 
-                        StackifyLib.Utils.StackifyAPILogger.Log(
-                            string.Format("Adjust log flush interval up to {0:0.00} seconds",
-                                          _FlushInterval.TotalSeconds));
+                        StackifyAPILogger.Log(string.Format("#LogQueue Adjust log flush interval up to {0:0.00} seconds",_FlushInterval.TotalSeconds));
                     }
                 }
             }
             catch (Exception ex)
             {
-                StackifyLib.Utils.StackifyAPILogger.Log(ex.ToString());
+                StackifyAPILogger.Log("#LogQueue #QueueLogMessage failed", ex);
             }
 
             if (_timer != null && !_StopRequested)
+            {
                 _timer.Change(_FlushInterval, _FlushInterval);
+            }
         }
 
 
@@ -320,7 +317,7 @@ namespace StackifyLib.Internal.Logs
             }
             catch (Exception ex)
             {
-                StackifyLib.Utils.StackifyAPILogger.Log(ex.ToString());
+                StackifyAPILogger.Log("#LogQueue #FlushLoop failed", ex);
             }
             _UploadingNow = false;
             return processedCount;
@@ -328,7 +325,6 @@ namespace StackifyLib.Internal.Logs
 
         private int FlushOnce()
         {
-
             // StackifyLib.Utils.StackifyAPILogger.Log("Calling FlushOnceAsync");
 
             int messageSize = 0;
@@ -336,6 +332,7 @@ namespace StackifyLib.Internal.Logs
 
             //we only want to do this once at a time but the actual send is done async
             long startMs = (long)DateTime.UtcNow.Subtract(_Epoch).TotalMilliseconds;
+
             try
             {
                 while (true)
@@ -344,7 +341,7 @@ namespace StackifyLib.Internal.Logs
                     if (_MessageBuffer.TryDequeue(out msg))
                     {
                         //do not log our own messages. This is to prevent any sort of recursion that could happen since calling to send this will cause even more logging to happen
-                        if (msg.Msg != null & msg.Msg.IndexOf("StackifyLib:") > -1)
+                        if (msg.Msg != null && msg.Msg != null && msg.Msg.Contains("StackifyLib:"))
                         {
                             //skip!
                             continue;
@@ -384,7 +381,7 @@ namespace StackifyLib.Internal.Logs
 
                         if (response.IsClientError())
                         {
-                            Utils.StackifyAPILogger.Log("Not requeueing log messages due to client error: " + response.StatusCode, true);
+                            Utils.StackifyAPILogger.Log("#LogQueue Not requeueing log messages due to client error: " + response.StatusCode, true);
                         }
                         else
                         {
@@ -394,13 +391,12 @@ namespace StackifyLib.Internal.Logs
 
                                 if (messagesSentTooManyTimes)
                                 {
-                                    Utils.StackifyAPILogger.Log(
-                                        "Some messages not queued again due to too many failures uploading");
+                                    Utils.StackifyAPILogger.Log("#LogQueue Some messages not queued again due to too many failures uploading");
                                 }
                             }
                             catch (Exception ex2)
                             {
-                                Utils.StackifyAPILogger.Log("Error trying to requeue messages " + ex2.ToString());
+                                Utils.StackifyAPILogger.Log("#LogQueue Error trying to requeue messages " + ex2.ToString());
                             }
                         }
                     }
@@ -408,7 +404,7 @@ namespace StackifyLib.Internal.Logs
             }
             catch (Exception ex)
             {
-                Utils.StackifyAPILogger.Log(ex.ToString());
+                StackifyAPILogger.Log("#LogQueue #FlushOnce failed", ex);
 
                 EnqueueForRetransmission(chunk);
             }
@@ -419,7 +415,7 @@ namespace StackifyLib.Internal.Logs
 
         public void Stop()
         {
-            Utils.StackifyAPILogger.Log("LogQueue stop received");
+            Utils.StackifyAPILogger.Log("#LogQueue stop received");
             _StopRequested = true;
 
             if (!_UploadingNow)
@@ -433,15 +429,11 @@ namespace StackifyLib.Internal.Logs
                 //wait for it to finish up to 5 seconds
                 while (_UploadingNow && DateTime.UtcNow < stopWaiting)
                 {
-#if NET451 || NET45 || NET40
                     System.Threading.Thread.Sleep(10);
-#else
-                    Task.Delay(10).Wait();
-#endif
                 }
 
             }
-            Utils.StackifyAPILogger.Log("LogQueue stop complete");
+            Utils.StackifyAPILogger.Log("#LogQueue stop complete");
         }
 
         public void Pause(bool isPaused)
@@ -470,9 +462,9 @@ namespace StackifyLib.Internal.Logs
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Utils.StackifyAPILogger.Log(e.ToString());
+                StackifyAPILogger.Log("#LogQueue #EnqueueForRetransmission failed", ex);
             }
 
             return skippedMessage;

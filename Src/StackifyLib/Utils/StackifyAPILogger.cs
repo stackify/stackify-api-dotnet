@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,10 +11,16 @@ namespace StackifyLib.Utils
 {
     public class StackifyAPILogger
     {
-        private static StringWriter _Logger = null;
+#if NETSTANDARD1_3
+        private static readonly string DefaultLoggerPathAndFile = Path.Combine(System.AppContext.BaseDirectory, "stackify.debug.log");
+#elif NET451 || NET45 || NET40
+        private static readonly string DefaultLoggerPathAndFile = Path.Combine(Environment.CurrentDirectory, "stackify.debug.log");
+#endif
+        private static readonly object LoggerDefaultLock = new object();
+        private static StreamWriter _loggerDefault;
 
-        //must start with null so EvaluateLogEnabled() works below
-        private static bool? _LogEnabled = null;
+        private static StringWriter _logger;
+        private static bool? _logEnabled;
 
         public delegate void LogMessageHandler(string data);
         public static event LogMessageHandler OnLogMessage;
@@ -27,66 +34,114 @@ namespace StackifyLib.Utils
         {
             get
             {
-                EvaluateLogEnabled();
-                return _LogEnabled ?? false;
+                var enabled = _logEnabled ?? false;
+
+                return enabled;
             }
             set
             {
-                _LogEnabled = value;
-                Log("Logging enabled via code to value " + value.ToString());
+                _logEnabled = value;
             }
         }
-            
 
         public static StringWriter Logger
         {
             set
             {
-                _Logger = value;
+                _logger = value;
             }
         }
+
+
 
         public static void Log(string message, bool logAnyways = false)
         {
             try
             {
-                if (logAnyways || (_LogEnabled ?? false))
+                if (logAnyways || (_logEnabled ?? false))
                 {
-                    OnLogMessage?.Invoke("StackifyLib: " + message);
+                    var msg = $"{DateTime.UtcNow:yyyy/MM/dd HH:mm:ss,fff}/GMT StackifyLib: {message}";
 
-                    if (_Logger != null)
+                    OnLogMessage?.Invoke(msg);
+
+                    if (_logger != null)
                     {
-                        _Logger.Write("StackifyLib: " + message);
+                        _logger.Write(msg);
                     }
                     else
                     {
-                        Debug.WriteLine("StackifyLib: " + message);
+                        Debug.WriteLine(msg);
+
+                        lock (LoggerDefaultLock)
+                        {
+                            if (_loggerDefault == null)
+                            {
+                                _loggerDefault = new StreamWriter(new FileStream(DefaultLoggerPathAndFile, FileMode.Append, FileAccess.Write, FileShare.Read));
+                            }
+                        }
+
+                        _loggerDefault.WriteLine(msg);
                     }
                 }
             }
-            catch 
+            catch (Exception ex)
             {
-
+                Debug.WriteLine($"#StackifyAPILogger #Log failed\r\n{ex}");
             }
-            
+        }
+
+        public static void Log(string message, Exception ex, bool logAnyways = false)
+        {
+            try
+            {
+                if (logAnyways || (_logEnabled ?? false))
+                {
+                    var msg = $"{DateTime.UtcNow:yyyy/MM/dd HH:mm:ss,fff}/GMT StackifyLib: {message}\r\n{ex}";
+
+                    OnLogMessage?.Invoke(msg);
+
+                    if (_logger != null)
+                    {
+                        _logger.Write(msg);
+                    }
+                    else
+                    {
+                        Debug.WriteLine(msg);
+
+                        lock (LoggerDefaultLock)
+                        {
+                            if (_loggerDefault == null)
+                            {
+                                _loggerDefault = new StreamWriter(new FileStream(DefaultLoggerPathAndFile, FileMode.Append, FileAccess.Write, FileShare.Read));
+                            }
+                        }
+
+                        _loggerDefault.WriteLine(msg);
+                    }
+                }
+            }
+            catch
+            {
+                Debug.WriteLine($"#StackifyAPILogger #Log failed\r\n{ex}");
+            }
         }
 
         private static void EvaluateLogEnabled()
         {
-            if (_LogEnabled == null)
+            if (_logEnabled == null)
             {
-				var setting = Config.Get("Stackify.ApiLog");
+                var setting = Config.Get("Stackify.ApiLog");
 
-                if (setting != null && setting.Equals("true", StringComparison.CurrentCultureIgnoreCase))
+                if (setting != null && setting.Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase))
                 {
-                    _LogEnabled = true;
+                    _logEnabled = true;
 
-                    Log("StackifyLib: API Logger is enabled");
+                    Log("API Logger is enabled");
                 }
                 else
                 {
-                    _LogEnabled = false;
-                    Log("StackifyLib: API Logger is disabled");
+                    _logEnabled = false;
+                    Log("API Logger is disabled");
                 }
             }
         }

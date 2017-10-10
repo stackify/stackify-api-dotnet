@@ -159,11 +159,10 @@ namespace StackifyLib
                     }
                 }
             }
+
 #elif NETSTANDARD1_3
             WebRequestDetail = new WebRequestDetail(this);
 #endif
-
-
 
             //Fire event
             OnCaptureDetail?.Invoke(this);
@@ -196,8 +195,6 @@ namespace StackifyLib
         }
 
 
-
-
         public static StackifyError New(Exception ex)
         {
             return new StackifyError(ex);
@@ -219,10 +216,9 @@ namespace StackifyLib
                 //    ignore = true;
                 //}
             }
-            catch (Exception)
+            catch
             {
-
-
+                // ignored
             }
 
             return ignore;
@@ -244,10 +240,9 @@ namespace StackifyLib
                 //    ignore = true;
                 //}
             }
-            catch (Exception)
+            catch
             {
-
-
+                // ignored
             }
 
             return ignore;

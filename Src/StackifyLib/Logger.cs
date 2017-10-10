@@ -254,57 +254,62 @@ namespace StackifyLib
         /// Helper method for getting the current stack trace
         /// </summary>
         /// <param name="declaringClassName"></param>
+        /// <param name="maxFrames"></param>
+        /// <param name="simpleMethodNames"></param>
         /// <returns></returns>
         public static List<TraceFrame> GetCurrentStackTrace(string declaringClassName, int maxFrames = 99, bool simpleMethodNames = false)
         {
-            List<TraceFrame> frames = new List<TraceFrame>();
+            var frames = new List<TraceFrame>();
 
 #if NET451 || NET45 || NET40
             try
             {
                 //moves to the part of the trace where the declaring method starts then the other loop gets all the frames. This is to remove frames that happen within the logging library itself.
-                StackTrace stackTrace = new StackTrace(true);
-                int index1;
+                var stackTrace = new StackTrace(true);
                 var stackTraceFrames = stackTrace.GetFrames();
-                for (index1 = 0; index1 < stackTraceFrames.Length; ++index1)
+                if (stackTraceFrames != null)
                 {
-                    var frame = stackTraceFrames[index1];
+                    int index1;
 
-                    if (frame != null)
+                    for (index1 = 0; index1 < stackTraceFrames.Length; ++index1)
                     {
-                        var method = frame.GetMethod();
+                        var frame = stackTraceFrames[index1];
 
-                        if (method != null && method.DeclaringType != null && method.DeclaringType.FullName == declaringClassName)
+                        if (frame != null)
                         {
-                            break;
+                            var method = frame.GetMethod();
+
+                            if (method != null && method.DeclaringType != null &&
+                                method.DeclaringType.FullName == declaringClassName)
+                            {
+                                break;
+                            }
                         }
                     }
 
-                }
-
-                if (index1 < stackTraceFrames.Length)
-                {
-
-                    for (int index2 = index1; index2 < stackTraceFrames.Length; ++index2)
+                    if (index1 < stackTraceFrames.Length)
                     {
-                        var frame2 = stackTraceFrames[index2];
-                        var f2 = new TraceFrame();
-                        f2.CodeFileName = frame2.GetFileName();
-                        f2.LineNum = frame2.GetFileLineNumber();
-                        f2.Method = ErrorItem.GetMethodFullName(frame2.GetMethod(), simpleMethodNames);
-                        frames.Add(f2);
 
-                        if (frames.Count > maxFrames)
+                        for (int index2 = index1; index2 < stackTraceFrames.Length; ++index2)
                         {
-                            return frames;
+                            var frame2 = stackTraceFrames[index2];
+                            var f2 = new TraceFrame();
+                            f2.CodeFileName = frame2.GetFileName();
+                            f2.LineNum = frame2.GetFileLineNumber();
+                            f2.Method = ErrorItem.GetMethodFullName(frame2.GetMethod(), simpleMethodNames);
+                            frames.Add(f2);
+
+                            if (frames.Count > maxFrames)
+                            {
+                                return frames;
+                            }
                         }
                     }
-
                 }
             }
-            catch (Exception ex)
+            catch
             {
-
+                // ignored
             }
 #endif
             return frames;

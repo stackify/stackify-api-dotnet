@@ -7,11 +7,11 @@ namespace StackifyLib
 {
     public class ProfileTracer
     {
-        private string _methodDisplayText = null;
-        private bool ignoreChildFrames = false;
+        private readonly string _methodDisplayText = null;
+        private bool _ignoreChildFrames = false;
 
-        private string _requestReportingCategory = null;
-        private string _appReportingCategory = null;
+        private readonly string _requestReportingCategory = null;
+        private readonly string _appReportingCategory = null;
 
         private bool _customMetricCount = false;
         private bool _customMetricTime = false;
@@ -20,18 +20,20 @@ namespace StackifyLib
         private string _customMetricCategory = null;
         private string _customMetricName = null;
 
-        private string _transactionID = Guid.NewGuid().ToString();
-        private string _RequestID = null;
-        internal bool IsOperation { get; set; }
-#if NET45 || NETSTANDARD1_3
+        private readonly string _transactionId = Guid.NewGuid().ToString();
+        private string _requestId = null;
+
+#if NET45 || NET451 || NETSTANDARD1_3
         private static EtwEventListener _etwEventListener = null;
 #endif
+
+        internal bool IsOperation { get; set; }
+
         internal ProfileTracer(string methodDisplayText, string requestLevelReportingCategory, string appLevelReportingCategory)
         {
             _methodDisplayText = methodDisplayText;
             _requestReportingCategory = requestLevelReportingCategory;
             _appReportingCategory = appLevelReportingCategory;
-
 
 #if NET451 || NET45 || NET40
             try
@@ -40,28 +42,27 @@ namespace StackifyLib
                 {
                     var id = System.Web.HttpContext.Current.Items["Stackify-RequestID"];
 
-                    if (id != null && !string.IsNullOrEmpty(id.ToString()))
+                    if (id != null && string.IsNullOrEmpty(id.ToString()) == false)
                     {
-                        _RequestID = id.ToString();
+                        _requestId = id.ToString();
                     }
                 }
 
-                if (string.IsNullOrEmpty(_RequestID))
+                if (string.IsNullOrEmpty(_requestId))
                 {
-                    Object correltionManagerId = System.Runtime.Remoting.Messaging.CallContext.LogicalGetData("Stackify-RequestID");
+                    var correltionManagerId = System.Runtime.Remoting.Messaging.CallContext.LogicalGetData("Stackify-RequestID");
 
                     if (correltionManagerId != null)
                     {
-                        _RequestID = correltionManagerId.ToString();
+                        _requestId = correltionManagerId.ToString();
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-
+                StackifyAPILogger.Log("#ProfileTracer ctor", ex);
             }
 #endif
-         
         }
 
         [MethodImpl(MethodImplOptions.PreserveSig | MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
@@ -75,9 +76,9 @@ namespace StackifyLib
                     System.Web.HttpContext.Current.Items["Stackify.ReportingUrl"] = reportingUrl;
                 }
             }
-            catch 
+            catch (Exception ex)
             {
-                
+                StackifyAPILogger.Log("#ProfileTracer #SetReportingUrl", ex);
             }
 #endif
         }
@@ -96,8 +97,6 @@ namespace StackifyLib
         {
             
         }
-
-
 
         [MethodImpl(MethodImplOptions.PreserveSig | MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public static void TraceString(string logMsg)
@@ -118,19 +117,18 @@ namespace StackifyLib
         /// <returns></returns>
         public static ProfileTracer CreateAsCodeBlock(string methodDisplayText)
         {
-            ProfileTracer tracer = new ProfileTracer(methodDisplayText, null, null);
+            var tracer = new ProfileTracer(methodDisplayText, null, null);
             return tracer;
         }
 
         /// <summary>
         /// Used by non web apps to define transactions in code that are turned in to operations to be tracked in Stackify APM or Prefix
         /// </summary>
-        /// <param name="operationName"></param>
-        /// <param name="uniqueOperationID"></param>
+        /// <param name="functionName"></param>
         /// <returns></returns>
         public static ProfileTracer CreateAsTrackedFunction(string functionName)
         {
-            ProfileTracer tracer = new ProfileTracer(functionName, "Tracked Function", null);
+            var tracer = new ProfileTracer(functionName, "Tracked Function", null);
             return tracer;
         }
 
@@ -142,16 +140,19 @@ namespace StackifyLib
         /// <returns></returns>
         public static ProfileTracer CreateAsOperation(string operationName, string uniqueOperationID = null)
         {
-#if NET45 || NETSTANDARD1_3
+#if NET45 || NET451 || NETSTANDARD1_3
             if (_etwEventListener == null)
+            {
                 _etwEventListener = new EtwEventListener();
+            }
 #endif
-            ProfileTracer tracer = new ProfileTracer(operationName, null, null);
+
+            var tracer = new ProfileTracer(operationName, null, null);
             tracer.IsOperation = true;
 
-            if (!string.IsNullOrEmpty(uniqueOperationID))
+            if (string.IsNullOrEmpty(uniqueOperationID) == false)
             {
-                tracer._RequestID = uniqueOperationID;
+                tracer._requestId = uniqueOperationID;
             }
 
             return tracer;
@@ -161,20 +162,21 @@ namespace StackifyLib
         /// Used to logically group a section of code
         /// </summary>
         /// <param name="methodDisplayText"></param>
+        /// <param name="requestLevelReportingCategory"></param>
+        /// <param name="appLevelReportingCategory"></param>
         /// <returns></returns>
-
         public static ProfileTracer CreateAsDependency(string methodDisplayText, string requestLevelReportingCategory, string appLevelReportingCategory = null)
         {
-            ProfileTracer tracer = new ProfileTracer(methodDisplayText, requestLevelReportingCategory, appLevelReportingCategory);
+            var tracer = new ProfileTracer(methodDisplayText, requestLevelReportingCategory, appLevelReportingCategory);
             return tracer;
         }
 
 
         public ProfileTracer SetUniqueOperationID(string uniqueOperationID)
         {
-            if (!string.IsNullOrEmpty(uniqueOperationID))
+            if (string.IsNullOrEmpty(uniqueOperationID) == false)
             {
-                this._RequestID = uniqueOperationID;
+                this._requestId = uniqueOperationID;
             }
 
             return this;
@@ -193,7 +195,7 @@ namespace StackifyLib
 
         public ProfileTracer IgnoreChildFrames(bool value = true)
         {
-            ignoreChildFrames = value;
+            _ignoreChildFrames = value;
             return this;
         }
 
@@ -207,8 +209,7 @@ namespace StackifyLib
             }
             finally
             {
-                ExecInternalComplete2(_transactionID + "|" + _RequestID + "|0|" + IsOperation);
-
+                ExecInternalComplete2(_transactionId + "|" + _requestId + "|0|" + IsOperation);
             }
         }
 
@@ -223,24 +224,23 @@ namespace StackifyLib
             }
             finally
             {
-                ExecInternalComplete2(_transactionID + "|" + _RequestID + "|0|" + IsOperation);
-
+                ExecInternalComplete2(_transactionId + "|" + _requestId + "|0|" + IsOperation);
             }
         }
 
         [MethodImpl(MethodImplOptions.PreserveSig | MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         private Task ExecInternal2(string values, Func<Task> action)
         {
-            Task t = action();
-            ExecInternalTaskStarted2(_transactionID + "|" + t.Id +  "|" + IsOperation);
+            var t = action();
+            ExecInternalTaskStarted2(_transactionId + "|" + t.Id +  "|" + IsOperation);
             return t;
         }
 
         [MethodImpl(MethodImplOptions.PreserveSig | MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         private Task<T> ExecInternal2<T>(string values, Func<Task<T>> action)
         {
-            Task<T> t = action();
-            ExecInternalTaskStarted2(_transactionID + "|" + t.Id + "|" + IsOperation);
+            var t = action();
+            ExecInternalTaskStarted2(_transactionId + "|" + t.Id + "|" + IsOperation);
             return t;
         }
 
@@ -248,19 +248,18 @@ namespace StackifyLib
         [MethodImpl(MethodImplOptions.PreserveSig | MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         private Task ExecInternalOperation(string values, Func<Task> action)
         {
-            Task t = action();
-            ExecInternalTaskStarted2(_transactionID + "|" + t.Id + "|" + IsOperation);
+            var t = action();
+            ExecInternalTaskStarted2(_transactionId + "|" + t.Id + "|" + IsOperation);
             return t;
         }
 
         [MethodImpl(MethodImplOptions.PreserveSig | MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         private Task<T> ExecInternalOperation<T>(string values, Func<Task<T>> action)
         {
-            Task<T> t = action();
-            ExecInternalTaskStarted2(_transactionID + "|" + t.Id + "|" + IsOperation);
+            var t = action();
+            ExecInternalTaskStarted2(_transactionId + "|" + t.Id + "|" + IsOperation);
             return t;
         }
-
 
         [MethodImpl(MethodImplOptions.PreserveSig | MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         private void ExecInternalTaskStarted2(string values)
@@ -268,51 +267,50 @@ namespace StackifyLib
 
         }
 
-
         public void Exec(Action action)
         {
             if (action == null)
+            {
                 return;
-            DateTimeOffset now = DateTimeOffset.UtcNow;
+            }
+
+            var now = DateTimeOffset.UtcNow;
 
             if (this.IsOperation)
             {
-                ExecInternalOperation(_methodDisplayText + "|" + (ignoreChildFrames ? 1 : 0).ToString() + "|" + _requestReportingCategory + "|" + _appReportingCategory + "|" + _transactionID + "|" + _RequestID + "|" + IsOperation, action);
+                ExecInternalOperation(_methodDisplayText + "|" + (_ignoreChildFrames ? 1 : 0) + "|" + _requestReportingCategory + "|" + _appReportingCategory + "|" + _transactionId + "|" + _requestId + "|" + IsOperation, action);
             }
             else
             {
-                ExecInternal2(_methodDisplayText + "|" + (ignoreChildFrames ? 1 : 0).ToString() + "|" + _requestReportingCategory + "|" + _appReportingCategory + "|" + _transactionID + "|" + _RequestID + "|" + IsOperation, action);
+                ExecInternal2(_methodDisplayText + "|" + (_ignoreChildFrames ? 1 : 0) + "|" + _requestReportingCategory + "|" + _appReportingCategory + "|" + _transactionId + "|" + _requestId + "|" + IsOperation, action);
 
             }
-
 
             if (_customMetricTime)
             {
                 Metrics.Time(_customMetricCategory, _customMetricName + " Time", now);
             }
 
-
             if (_customMetricCount)
             {
                 Metrics.Count(_customMetricCategory, _customMetricName, 1, _autoReportZeroIfNothingReported);
             }
-
         }
 
         public Task<T> ExecAsync<T>(Func<Task<T>> task)
         {
-            DateTimeOffset now = DateTimeOffset.UtcNow;
+            var now = DateTimeOffset.UtcNow;
 
             Task<T> t;
 
 
             if (this.IsOperation)
             {
-                t = ExecInternalOperation<T>(_methodDisplayText + "|" + (ignoreChildFrames ? 1 : 0).ToString() + "|" + _requestReportingCategory + "|" + _appReportingCategory + "|" + _transactionID + "|" + _RequestID + "|" + IsOperation, task);
+                t = ExecInternalOperation<T>(_methodDisplayText + "|" + (_ignoreChildFrames ? 1 : 0) + "|" + _requestReportingCategory + "|" + _appReportingCategory + "|" + _transactionId + "|" + _requestId + "|" + IsOperation, task);
             }
             else
             {
-                t = ExecInternal2<T>(_methodDisplayText + "|" + (ignoreChildFrames ? 1 : 0).ToString() + "|" + _requestReportingCategory + "|" + _appReportingCategory + "|" + _transactionID + "|" + _RequestID + "|" + IsOperation, task);
+                t = ExecInternal2<T>(_methodDisplayText + "|" + (_ignoreChildFrames ? 1 : 0) + "|" + _requestReportingCategory + "|" + _appReportingCategory + "|" + _transactionId + "|" + _requestId + "|" + IsOperation, task);
             }
 
             t.ContinueWith((tend) =>
@@ -321,7 +319,7 @@ namespace StackifyLib
                 {
                     Metrics.Time(_customMetricCategory, _customMetricName + " Time", now);
                 }
-                ExecInternalComplete2(_transactionID + "|" + _RequestID + "|" + tend.Id + "|" + IsOperation);
+                ExecInternalComplete2(_transactionId + "|" + _requestId + "|" + tend.Id + "|" + IsOperation);
             });
 
             if (_customMetricCount)
@@ -334,18 +332,18 @@ namespace StackifyLib
 
         public Task ExecAsync(Func<Task> task)
         {
-            DateTimeOffset now = DateTimeOffset.UtcNow;
+            var now = DateTimeOffset.UtcNow;
 
             Task t;
 
 
             if (this.IsOperation)
             {
-                t = ExecInternalOperation(_methodDisplayText + "|" + (ignoreChildFrames ? 1 : 0).ToString() + "|" + _requestReportingCategory + "|" + _appReportingCategory + "|" + _transactionID + "|" + _RequestID + "|" + IsOperation, task);
+                t = ExecInternalOperation(_methodDisplayText + "|" + (_ignoreChildFrames ? 1 : 0) + "|" + _requestReportingCategory + "|" + _appReportingCategory + "|" + _transactionId + "|" + _requestId + "|" + IsOperation, task);
             }
             else
             {
-                t = ExecInternal2(_methodDisplayText + "|" + (ignoreChildFrames ? 1 : 0).ToString() + "|" + _requestReportingCategory + "|" + _appReportingCategory + "|" + _transactionID + "|" + _RequestID + "|" + IsOperation, task);
+                t = ExecInternal2(_methodDisplayText + "|" + (_ignoreChildFrames ? 1 : 0) + "|" + _requestReportingCategory + "|" + _appReportingCategory + "|" + _transactionId + "|" + _requestId + "|" + IsOperation, task);
             }
 
             t.ContinueWith((tend) =>
@@ -354,7 +352,7 @@ namespace StackifyLib
                 {
                     Metrics.Time(_customMetricCategory, _customMetricName + " Time", now);
                 }
-                ExecInternalComplete2(_transactionID + "|" + _RequestID + "|" + tend.Id + "|" + IsOperation);
+                ExecInternalComplete2(_transactionId + "|" + _requestId + "|" + tend.Id + "|" + IsOperation);
             });
 
             if (_customMetricCount)
@@ -371,6 +369,5 @@ namespace StackifyLib
         {
 
         }
-
     }
 }
