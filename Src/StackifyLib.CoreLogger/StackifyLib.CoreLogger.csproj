@@ -18,7 +18,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageIconUrl>https://stackify.com/wp-content/uploads/2017/02/stk.png</PackageIconUrl>
     <Description>StackifyLib.CoreLogger</Description>
-    <Version>2.0.1</Version>
+    <Version>2.0.2</Version>
   </PropertyGroup>
 
   <ItemGroup>

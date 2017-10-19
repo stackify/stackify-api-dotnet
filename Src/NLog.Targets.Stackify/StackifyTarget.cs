@@ -151,7 +151,8 @@ namespace NLog.Targets.Stackify
                     }
                 }
             }
-            #if NET45 || NET40
+
+#if NET45 || NET40
 
             foreach (string key in _CallContextKeys)
             {
@@ -163,8 +164,8 @@ namespace NLog.Targets.Stackify
                 }
             }
 #endif
-            return properties;
 
+            return properties;
         }
 
         internal LogMsg Translate(LogEventInfo loggingEvent)

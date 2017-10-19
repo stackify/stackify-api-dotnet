@@ -17,7 +17,6 @@ namespace StackifyLib.Models
 {
     public class EnvironmentDetail
     {
-
         private static EnvironmentDetail _CachedCopy = null;
 
         public static EnvironmentDetail Get(bool refresh)
@@ -317,9 +316,6 @@ namespace StackifyLib.Models
             }
 #endif
         }
-
-
-
 
         public EnvironmentDetail(bool loadDetails)
         {

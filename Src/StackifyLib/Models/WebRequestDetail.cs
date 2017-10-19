@@ -145,12 +145,11 @@ namespace StackifyLib.Models
                     ReportingUrl = route.ToString();
                 }
             }
-            catch (Exception)
+            catch
             {
-
+                // ignored
             }
 
-           
 
             try
             {
@@ -224,8 +223,9 @@ namespace StackifyLib.Models
                     }
                 }
             }
-            catch (Exception)
+            catch
             {
+                // ignored
             }
         }
 #endif
@@ -264,9 +264,9 @@ namespace StackifyLib.Models
                          AddKey(key, cookie.Value, items, goodKeys, badKeys);
                     }
                 }
-                catch (Exception)
+                catch
                 {
-
+                    // ignored
                 }
             }
 
@@ -285,9 +285,9 @@ namespace StackifyLib.Models
                     string val = collection[key];
                     AddKey(key, val, items, goodKeys, badKeys);
                 }
-                catch (Exception)
+                catch
                 {
-                   
+                    // ignored
                 }
             }
 
@@ -312,9 +312,9 @@ namespace StackifyLib.Models
                     }
 
                 }
-                catch (Exception)
+                catch
                 {
-
+                    // ignored
                 }
             }
 

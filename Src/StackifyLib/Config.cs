@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
+using StackifyLib.Utils;
 
 namespace StackifyLib
 {
@@ -12,31 +13,28 @@ namespace StackifyLib
 	/// </summary>
 	public class Config
 	{
-
 #if NETSTANDARD1_3 || NET451
-        private static Microsoft.Extensions.Configuration.IConfigurationRoot _Configuration = null;
+        private static Microsoft.Extensions.Configuration.IConfigurationRoot _configuration = null;
 
 	    public static void SetConfiguration(Microsoft.Extensions.Configuration.IConfigurationRoot configuration)
 	    {
-	        _Configuration = configuration;
+	        _configuration = configuration;
 	    }
 #endif
+
         public static void LoadSettings()
 	    {
 	        try
 	        {
-                CaptureErrorPostdata = Get("Stackify.CaptureErrorPostdata", "")
-                    .Equals("true", StringComparison.CurrentCultureIgnoreCase);
+                CaptureErrorPostdata = Get("Stackify.CaptureErrorPostdata", "").Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
 
-                CaptureServerVariables = Get("Stackify.CaptureServerVariables", "")
-                    .Equals("true", StringComparison.CurrentCultureIgnoreCase);
-                CaptureSessionVariables = Get("Stackify.CaptureSessionVariables", "")
-                    .Equals("true", StringComparison.CurrentCultureIgnoreCase);
+                CaptureServerVariables = Get("Stackify.CaptureServerVariables", "").Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
 
-                CaptureErrorHeaders = Get("Stackify.CaptureErrorHeaders", "true").Equals("true", StringComparison.CurrentCultureIgnoreCase);
+                CaptureSessionVariables = Get("Stackify.CaptureSessionVariables", "").Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
 
-                CaptureErrorCookies = Get("Stackify.CaptureErrorCookies", "")
-                    .Equals("true", StringComparison.CurrentCultureIgnoreCase);
+                CaptureErrorHeaders = Get("Stackify.CaptureErrorHeaders", bool.TrueString).Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
+
+                CaptureErrorCookies = Get("Stackify.CaptureErrorCookies", "").Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
 
                 ApiKey = Get("Stackify.ApiKey", "");
 
@@ -46,31 +44,31 @@ namespace StackifyLib
 
                 CaptureErrorHeadersWhitelist = Get("Stackify.CaptureErrorHeadersWhitelist", "");
 
-	            if (!string.IsNullOrEmpty(CaptureErrorHeadersWhitelist))
+	            if (string.IsNullOrEmpty(CaptureErrorHeadersWhitelist) == false)
 	            {
 	                ErrorHeaderGoodKeys = CaptureErrorHeadersWhitelist.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList();
 	            }
 
                 CaptureErrorHeadersBlacklist = Get("Stackify.CaptureErrorHeadersBlacklist", "");
-                if (!string.IsNullOrEmpty(CaptureErrorHeadersBlacklist))
+                if (string.IsNullOrEmpty(CaptureErrorHeadersBlacklist) == false)
                 {
                     ErrorHeaderBadKeys = CaptureErrorHeadersBlacklist.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList();
                 }
 
                 CaptureErrorCookiesWhitelist = Get("Stackify.CaptureErrorCookiesWhitelist", "");
-                if (!string.IsNullOrEmpty(CaptureErrorCookiesWhitelist))
+                if (string.IsNullOrEmpty(CaptureErrorCookiesWhitelist) == false)
                 {
                     ErrorCookiesGoodKeys = CaptureErrorCookiesWhitelist.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList();
                 }
 
                 CaptureErrorCookiesBlacklist = Get("Stackify.CaptureErrorCookiesBlacklist", "");
-                if (!string.IsNullOrEmpty(CaptureErrorCookiesBlacklist))
+                if (string.IsNullOrEmpty(CaptureErrorCookiesBlacklist) == false)
                 {
                     ErrorCookiesBadKeys = CaptureErrorCookiesBlacklist.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList();
                 }
 
                 CaptureErrorSessionWhitelist = Get("Stackify.CaptureErrorSessionWhitelist", "");
-                if (!string.IsNullOrEmpty(CaptureErrorSessionWhitelist))
+                if (string.IsNullOrEmpty(CaptureErrorSessionWhitelist) == false)
                 {
                     ErrorSessionGoodKeys = CaptureErrorSessionWhitelist.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList();
                 }
@@ -89,12 +87,19 @@ namespace StackifyLib
                 var isEc2 = Get("Stackify.IsEC2", "");
                 if (string.IsNullOrWhiteSpace(isEc2) == false)
                 {
-                    IsEc2 = isEc2.Equals("true", StringComparison.CurrentCultureIgnoreCase);
+                    IsEc2 = isEc2.Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
                 }
-            }
+
+                // RT-297
+	            var apiLog = Get("Stackify.ApiLog", "");
+	            if (string.IsNullOrWhiteSpace(apiLog) == false)
+	            {
+	                ApiLog = apiLog.Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
+	            }
+	        }
             catch (Exception ex)
 	        {
-	            Debug.WriteLine(ex.ToString());
+	            StackifyAPILogger.Log("#Config #LoadSettings failed", ex);
 	        }
         }
 
@@ -129,6 +134,7 @@ namespace StackifyLib
 
         public static bool? IsEc2 { get; set; } = null;
 
+        public static bool? ApiLog { get; set; } = null;
 
         /// <summary>
         /// Attempts to fetch a setting value given the key.
@@ -140,34 +146,40 @@ namespace StackifyLib
         internal static string Get(string key, string defaultValue = null)
 		{
 			string v = null;
+
 			try
 			{
 				if (key != null)
 				{
-
-
 #if NETSTANDARD1_3 || NET451
-                    if (_Configuration != null)
+                    if (_configuration != null)
                     {
-                        var appSettings = _Configuration.GetSection("Stackify");
+                        var appSettings = _configuration.GetSection("Stackify");
                         v = appSettings[key.Replace("Stackify.", "")];
                     }
 #endif
 
-#if NET451 || NET45 || NET40
-                    if (string.IsNullOrEmpty(v))
-                        v = System.Configuration.ConfigurationManager.AppSettings[key];
+#if NET451 || NET45
+				    if (string.IsNullOrEmpty(v))
+				    {
+				        v = System.Configuration.ConfigurationManager.AppSettings[key];
+				    }
 #endif
 
-                    if (string.IsNullOrEmpty(v))
-                        v = System.Environment.GetEnvironmentVariable(key);
+				    if (string.IsNullOrEmpty(v))
+				    {
+				        v = System.Environment.GetEnvironmentVariable(key);
+				    }
                 }
             }
 			finally
 			{
-				if (v == null)
-					v = defaultValue;
+			    if (v == null)
+			    {
+			        v = defaultValue;
+			    }
 			}
+
 			return v;
 		}
 	}
