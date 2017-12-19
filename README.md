@@ -4,7 +4,7 @@ Library for Stackify users to integrate Stackify in to their projects. Provides 
 
 **Important links:**
 - [Stackify homepage](http://www.stackify.com)
-- [Stackify documentation site](http://support.stackify.com/hc/en-us/categories/200398739-Errors-Logs)
+- [Stackify documentation site](http://support.stackify.com/)
 - [NuGet packages](https://www.nuget.org/packages?q=Stackify)
 - [Best practices for logging with C#](https://stackify.com/csharp-logging-best-practices/)
 - [Why you should use tags in your logs](https://stackify.com/get-smarter-log-management-with-log-tags/)
