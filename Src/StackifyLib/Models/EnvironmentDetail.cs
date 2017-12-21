@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using StackifyLib.Utils;
-#if NET451 || NET45 || NET40
+#if NETFULL
 using System.Linq;
 using System.Web.Hosting;
 using System.Management;
@@ -36,7 +36,7 @@ namespace StackifyLib.Models
         /// </summary>
         private void GetAzureInfo()
         {
-#if NET451 || NET45 || NET40
+#if NETFULL
             if (registryAccessFailure)
                 return;
 
@@ -108,7 +108,7 @@ namespace StackifyLib.Models
         /// <summary>
         /// Get the EC2 Instance name if it exists else null
         /// </summary>
-#if NET451 || NET45 || NET40
+#if NETFULL
 
         public static string GetDeviceName()
         {
@@ -284,7 +284,7 @@ namespace StackifyLib.Models
         /// </summary>
         private void IsWindowService()
         {
-#if NET451 || NET45 || NET40
+#if NETFULL
             try
             {
                 string query = "select DisplayName from Win32_Service WHERE ProcessID='" + System.Diagnostics.Process.GetCurrentProcess().Id + "'";
@@ -323,7 +323,7 @@ namespace StackifyLib.Models
                 return;
 
             bool isWebRequest = false;
-#if NET451 || NET45 || NET40
+#if NETFULL
             try
             {
                 isWebRequest = AppDomain.CurrentDomain.FriendlyName.Contains("W3SVC");
@@ -404,7 +404,7 @@ namespace StackifyLib.Models
                 GetAzureInfo();
 
 
-#if NET451 || NET45 || NET40
+#if NETFULL
                 //Not a web app, check for windows service
                 if (!Environment.UserInteractive && !AppDomain.CurrentDomain.FriendlyName.Contains("W3SVC"))
                 {
@@ -414,7 +414,7 @@ namespace StackifyLib.Models
 
                 DeviceName = GetDeviceName();
 
-#if NET451 || NET45 || NET40
+#if NETFULL
                 if (string.IsNullOrEmpty(AppName) && !isWebRequest)
                 {
                     AppName = AppDomain.CurrentDomain.FriendlyName;
@@ -443,7 +443,7 @@ namespace StackifyLib.Models
                 StackifyLib.Utils.StackifyAPILogger.Log("Error figuring out app environment details\r\n" + ex.ToString(), true);
             }
 
-#if NET451 || NET45 || NET40
+#if NETFULL
             try
             {
 

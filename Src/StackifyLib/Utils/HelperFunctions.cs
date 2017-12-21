@@ -133,7 +133,7 @@ namespace StackifyLib.Utils
                                 }
                                 else
                                 {
-#if NET451 || NET45 || NET40
+#if NETFULL
                                     var genericArgs = typeInfo.GetGenericArguments();
 #else
                                     var genericArgs = typeInfo.IsGenericTypeDefinition ?

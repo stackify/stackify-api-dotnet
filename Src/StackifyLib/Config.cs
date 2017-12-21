@@ -13,7 +13,7 @@ namespace StackifyLib
 	/// </summary>
 	public class Config
 	{
-#if NETSTANDARD1_3 || NET451
+#if NETCORE
         private static Microsoft.Extensions.Configuration.IConfigurationRoot _configuration = null;
 
 	    public static void SetConfiguration(Microsoft.Extensions.Configuration.IConfigurationRoot configuration)
@@ -151,7 +151,7 @@ namespace StackifyLib
 			{
 				if (key != null)
 				{
-#if NETSTANDARD1_3 || NET451
+#if NETCORE
                     if (_configuration != null)
                     {
                         var appSettings = _configuration.GetSection("Stackify");
@@ -159,7 +159,7 @@ namespace StackifyLib
                     }
 #endif
 
-#if NET451 || NET45
+#if NETFULL
 				    if (string.IsNullOrEmpty(v))
 				    {
 				        v = System.Configuration.ConfigurationManager.AppSettings[key];

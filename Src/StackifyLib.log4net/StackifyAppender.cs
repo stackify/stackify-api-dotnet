@@ -7,8 +7,6 @@ using StackifyLib.Utils;
 using Apache_log4net = log4net;
 using log4net.Appender;
 using log4net.Core;
-using log4netOffical = log4net;
-
 
 namespace StackifyLib.log4net
 {
@@ -323,7 +321,7 @@ namespace StackifyLib.log4net
                     }
                 }
             }
-#if NET45
+#if NETFULL
             foreach (string mdcKey in _LogicalThreadContextKeys)
             {
                 object mdcValue = Apache_log4net.LogicalThreadContext.Properties[mdcKey];

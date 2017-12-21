@@ -11,10 +11,10 @@ namespace StackifyLib.Utils
 {
     public class StackifyAPILogger
     {
-#if NETSTANDARD1_3
-        private static readonly string DefaultLoggerPathAndFile = Path.Combine(System.AppContext.BaseDirectory, "stackify.debug.log");
-#elif NET451 || NET45 || NET40
+#if NETFULL
         private static readonly string DefaultLoggerPathAndFile = Path.Combine(Environment.CurrentDirectory, "stackify.debug.log");
+#else 
+        private static readonly string DefaultLoggerPathAndFile = Path.Combine(System.AppContext.BaseDirectory, "stackify.debug.log");
 #endif
         private static readonly object LoggerDefaultLock = new object();
         private static StreamWriter _loggerDefault;

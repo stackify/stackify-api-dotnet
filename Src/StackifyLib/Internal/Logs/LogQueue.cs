@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-#if NET451 || NET45 || NET40
+#if NETFULL
 using System.Runtime.Remoting.Messaging;
 using StackifyLib.Web;
 #endif
@@ -98,7 +98,7 @@ namespace StackifyLib.Internal.Logs
                     // ignore
                 }
 
-#if NET451 || NET45 || NET40
+#if NETFULL
                 try
                 {
                     if (string.IsNullOrEmpty(msg.TransID))
@@ -241,7 +241,7 @@ namespace StackifyLib.Internal.Logs
                     if (_FlushInterval.TotalSeconds > 1)
                     {
                         _FlushInterval = TimeSpan.FromSeconds(_FlushInterval.TotalSeconds / 2);
-                        StackifyAPILogger.Log(string.Format("#LogQueue Adjust log flush interval down to {0:0.00} seconds",_FlushInterval.TotalSeconds));
+                        StackifyAPILogger.Log(string.Format("#LogQueue Adjust log flush interval down to {0:0.00} seconds", _FlushInterval.TotalSeconds));
                     }
                 }
                 else if (processedCount < 10 && _FlushInterval != TimeSpan.FromSeconds(5))
@@ -261,7 +261,7 @@ namespace StackifyLib.Internal.Logs
                     {
                         _FlushInterval = TimeSpan.FromSeconds(proposedSeconds);
 
-                        StackifyAPILogger.Log(string.Format("#LogQueue Adjust log flush interval up to {0:0.00} seconds",_FlushInterval.TotalSeconds));
+                        StackifyAPILogger.Log(string.Format("#LogQueue Adjust log flush interval up to {0:0.00} seconds", _FlushInterval.TotalSeconds));
                     }
                 }
             }
