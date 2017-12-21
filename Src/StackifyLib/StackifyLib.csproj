@@ -14,7 +14,7 @@
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
     <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
-    <Version>2.0.2</Version>
+    <Version>2.0.3</Version>
     <Authors>StackifyLib</Authors>
     <PackageProjectUrl>https://github.com/stackify/stackify-api-dotnet</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/stackify/stackify-api-dotnet/blob/master/LICENSE</PackageLicenseUrl>
