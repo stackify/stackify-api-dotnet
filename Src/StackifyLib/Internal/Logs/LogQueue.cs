@@ -15,8 +15,6 @@ namespace StackifyLib.Internal.Logs
 {
     internal class LogQueue
     {
-        static DateTime _Epoch = new DateTime(1970, 1, 1, 0, 0, 0, 0);
-
         private ConcurrentQueue<Models.LogMsg> _MessageBuffer = null;
         private System.Threading.Timer _timer = null;
         private TimeSpan _FlushInterval = TimeSpan.FromSeconds(1);
@@ -201,7 +199,7 @@ namespace StackifyLib.Internal.Logs
                 //remove messages in the queue that are old
                 if (!_LogClient.IsAuthorized() && _MessageBuffer.Count > 0)
                 {
-                    var cutoff = (long)DateTime.UtcNow.AddMinutes(-5).Subtract(_Epoch).TotalMilliseconds;
+                    var cutoff = (long)DateTime.UtcNow.AddMinutes(-5).Subtract(Constants.Epoch).TotalMilliseconds;
 
                     while (true)
                     {
@@ -331,7 +329,7 @@ namespace StackifyLib.Internal.Logs
             var chunk = new List<LogMsg>();
 
             //we only want to do this once at a time but the actual send is done async
-            long startMs = (long)DateTime.UtcNow.Subtract(_Epoch).TotalMilliseconds;
+            long startMs = (long)DateTime.UtcNow.Subtract(Constants.Epoch).TotalMilliseconds;
 
             try
             {
