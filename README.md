@@ -71,7 +71,6 @@ If you are having problems you can get logging out of the framework by hooking i
             Debug.WriteLine(data);
         }
 
-Please note that Newtonsoft.Json is used by StackifyLib but is embedded as a resource to avoid version conflicts. Costura.Fody is being used to embed it. If you have any issues with Newtonsoft.Json as a result of using StackifyLib please contact Stackify support.
 
 ## Errors and Logs
 
