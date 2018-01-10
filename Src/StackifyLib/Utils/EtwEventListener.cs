@@ -1,4 +1,5 @@
-﻿#if NET45 || NET451 || NETSTANDARD1_3
+﻿#if NETFULL
+#if !NET40
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -28,4 +29,5 @@ namespace StackifyLib.Utils
         }
     }
 }
+#endif
 #endif

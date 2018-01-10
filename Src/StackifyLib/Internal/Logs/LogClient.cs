@@ -323,7 +323,7 @@ namespace StackifyLib.Internal.Logs
 
                 if (!_ServicePointSet)
                 {
-#if NET451 || NET45 || NET40
+#if NETFULL
                     ServicePointManager.FindServicePoint(urlToUse, null).ConnectionLimit = 10;
 #endif
                     _ServicePointSet = true;

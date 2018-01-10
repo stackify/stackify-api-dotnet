@@ -1,4 +1,4 @@
-﻿#if NET45 || NET451
+﻿#if NETFULL
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

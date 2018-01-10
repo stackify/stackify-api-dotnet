@@ -23,8 +23,10 @@ namespace StackifyLib
         private readonly string _transactionId = Guid.NewGuid().ToString();
         private string _requestId = null;
 
-#if NET45 || NET451 || NETSTANDARD1_3
+#if NETFULL
+#if !NET40
         private static EtwEventListener _etwEventListener = null;
+#endif
 #endif
 
         internal bool IsOperation { get; set; }
@@ -35,7 +37,7 @@ namespace StackifyLib
             _requestReportingCategory = requestLevelReportingCategory;
             _appReportingCategory = appLevelReportingCategory;
 
-#if NET451 || NET45 || NET40
+#if NETFULL
             try
             {
                 if (System.Web.HttpContext.Current != null)
@@ -68,7 +70,7 @@ namespace StackifyLib
         [MethodImpl(MethodImplOptions.PreserveSig | MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public static void SetReportingUrl(string reportingUrl)
         {
-#if NET451 || NET45 || NET40
+#if NETFULL
             try
             {
                 if (System.Web.HttpContext.Current != null)
@@ -140,11 +142,13 @@ namespace StackifyLib
         /// <returns></returns>
         public static ProfileTracer CreateAsOperation(string operationName, string uniqueOperationID = null)
         {
-#if NET45 || NET451 || NETSTANDARD1_3
+#if NETFULL
+#if !NET40
             if (_etwEventListener == null)
             {
                 _etwEventListener = new EtwEventListener();
             }
+#endif
 #endif
 
             var tracer = new ProfileTracer(operationName, null, null);

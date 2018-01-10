@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-#if NET45 || NET40
+#if NETFULL
 using System.Runtime.Remoting.Messaging;
 #endif
 using StackifyLib;
@@ -145,7 +145,7 @@ namespace NLog.Targets.Stackify
                 }
             }
 
-#if NET45 || NET40
+#if NETFULL
 
             foreach (string key in _CallContextKeys)
             {
