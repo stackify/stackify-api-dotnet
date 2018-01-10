@@ -70,8 +70,6 @@ namespace StackifyLib.Utils
                     }
                     else
                     {
-                        Debug.WriteLine(msg);
-
                         lock (LoggerDefaultLock)
                         {
                             if (_loggerDefault == null)

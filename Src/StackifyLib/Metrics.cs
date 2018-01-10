@@ -48,23 +48,12 @@ namespace StackifyLib
         /// <param name="category">Category of the metric</param>
         /// <param name="metricName">Name of the metric</param>
         /// <param name="value">Explicit value to set the metric to</param>
-        //public static void SetGauge(string category, string metricName, double value, MetricSetting advancedSettings = null)
-        //{
-        //    var m = new Metric(category, metricName, MetricType.MetricLast) { Value = value, Settings = advancedSettings };
-        //    StackifyLib.Internal.Metrics.MetricClient.QueueMetric(m);
-        //}
-
-        /// <summary>
-        /// Guage type metric that reports the last value reported once a minute
-        /// </summary>
-        /// <param name="category">Category of the metric</param>
-        /// <param name="metricName">Name of the metric</param>
-        /// <param name="value">Explicit value to set the metric to</param>
         /// <param name="autoResendLastValueIfNothingReported">Every minute resend the last value if nothing reported</param>
         public static void SetGauge(string category, string metricName, double value, bool autoResendLastValueIfNothingReported = false)
         {
-            var m = new Metric(category, metricName, MetricType.MetricLast) { Value = value, Settings = new MetricSetting() { AutoReportLastValueIfNothingReported = autoResendLastValueIfNothingReported } };
-            StackifyLib.Internal.Metrics.MetricClient.QueueMetric(m);
+            var m = new Metric(category, metricName, MetricType.MetricLast) { Value = value, Settings = new MetricSetting { AutoReportLastValueIfNothingReported = autoResendLastValueIfNothingReported } };
+            
+            MetricClient.QueueMetric(m);
         }
 
         /// <summary>
@@ -80,7 +69,8 @@ namespace StackifyLib
             m.Value = incrementBy;
             m.IsIncrement = true;
             m.Settings = advancedSettings;
-            StackifyLib.Internal.Metrics.MetricClient.QueueMetric(m);
+
+            MetricClient.QueueMetric(m);
         }
 
         /// <summary>
@@ -92,8 +82,7 @@ namespace StackifyLib
         /// <param name="autoResendLastValueIfNothingReported">Every minute resend the last value if nothing reported</param>
         public static void IncrementGauge(string category, string metricName, double incrementBy = 1, bool autoResendLastValueIfNothingReported = false)
         {
-            IncrementGauge(category, metricName, incrementBy,
-                new MetricSetting() {AutoReportLastValueIfNothingReported = autoResendLastValueIfNothingReported});
+            IncrementGauge(category, metricName, incrementBy, new MetricSetting {AutoReportLastValueIfNothingReported = autoResendLastValueIfNothingReported});
         }
 
         /// <summary>
@@ -105,7 +94,8 @@ namespace StackifyLib
         public static void Average(string category, string metricName, double value, MetricSetting advancedSettings = null)
         {
             var m = new Metric(category, metricName, MetricType.MetricAverage) { Value = value, Settings = advancedSettings };
-            StackifyLib.Internal.Metrics.MetricClient.QueueMetric(m);
+            
+            MetricClient.QueueMetric(m);
         }
 
         /// <summary>
@@ -119,23 +109,9 @@ namespace StackifyLib
             var m = new Metric(category, metricName, MetricType.Counter);
             m.Value = value;
             m.Settings = advancedSettings;
-            StackifyLib.Internal.Metrics.MetricClient.QueueMetric(m);
+            
+            MetricClient.QueueMetric(m);
         }
-
-        /// <summary>
-        /// Counts how many times something happens per minute
-        /// </summary>
-        /// <param name="category">Category of the metric</param>
-        /// <param name="metricName">Name of the metric</param>
-        /// <param name="incrementBy"></param>
-        /// <param name="autoSendIfZero">If nothing is reported for a minute, should we report a 0?</param>
-        //public static void Count(string category, string metricName, int incrementBy = 1, MetricSetting advancedSettings = null)
-        //{
-        //    var m = new Metric(category, metricName, MetricType.Counter);
-        //    m.Value = incrementBy;
-        //    m.Settings = advancedSettings;
-        //    StackifyLib.Internal.Metrics.MetricClient.QueueMetric(m);
-        //}
 
         /// <summary>
         /// Counts how many times something happens per minute
@@ -148,12 +124,10 @@ namespace StackifyLib
         {
             var m = new Metric(category, metricName, MetricType.Counter);
             m.Value = incrementBy;
-            m.Settings = new MetricSetting() { AutoReportZeroIfNothingReported = autoReportZeroIfNothingReported };
-            StackifyLib.Internal.Metrics.MetricClient.QueueMetric(m);
+            m.Settings = new MetricSetting { AutoReportZeroIfNothingReported = autoReportZeroIfNothingReported };
+
+            MetricClient.QueueMetric(m);
         }
-
-
-
 
         /// <summary>
         /// Report when something started and this type of metric will calculate the average time it takes
@@ -175,7 +149,7 @@ namespace StackifyLib
         /// <param name="timeTaken">How long the event being tracked took</param>
         public static void Time(string category, string metricName, TimeSpan timeTaken)
         {
-            StackifyLib.Internal.Metrics.MetricClient.QueueMetric(new Metric(category, metricName, MetricType.CounterTime) { Value = timeTaken.TotalSeconds});
+            MetricClient.QueueMetric(new Metric(category, metricName, MetricType.CounterTime) { Value = timeTaken.TotalSeconds});
         }
 
         /// <summary>
@@ -196,22 +170,10 @@ namespace StackifyLib
         /// <param name="category">Category of the metric</param>
         /// <param name="metricName">Name of the metric</param>
         /// <param name="timeTaken">How long the event being tracked took</param>
-        //public static void CountAndTime(string category, string metricName, TimeSpan timeTaken, MetricSetting advancedSettings = null)
-        //{
-        //    StackifyLib.Internal.Metrics.MetricClient.QueueMetric(new Metric(category, metricName, MetricType.Counter) { Value = 1, Settings = advancedSettings});
-        //    StackifyLib.Internal.Metrics.MetricClient.QueueMetric(new Metric(category, metricName + " Time", MetricType.CounterTime) { Value = timeTaken.TotalSeconds, Settings = advancedSettings});
-        //}
-
-        /// <summary>
-        /// Calculate average time taken and a second metric for how many times it occurred
-        /// </summary>
-        /// <param name="category">Category of the metric</param>
-        /// <param name="metricName">Name of the metric</param>
-        /// <param name="timeTaken">How long the event being tracked took</param>
         public static void CountAndTime(string category, string metricName, TimeSpan timeTaken, bool autoReportZeroIfNothingReported = false)
         {
-            StackifyLib.Internal.Metrics.MetricClient.QueueMetric(new Metric(category, metricName, MetricType.Counter) { Value = 1, Settings = new MetricSetting() {AutoReportZeroIfNothingReported = autoReportZeroIfNothingReported} });
-            StackifyLib.Internal.Metrics.MetricClient.QueueMetric(new Metric(category, metricName + " Time", MetricType.CounterTime) { Value = timeTaken.TotalSeconds });
+            MetricClient.QueueMetric(new Metric(category, metricName, MetricType.Counter) { Value = 1, Settings = new MetricSetting() {AutoReportZeroIfNothingReported = autoReportZeroIfNothingReported} });
+            MetricClient.QueueMetric(new Metric(category, metricName + " Time", MetricType.CounterTime) { Value = timeTaken.TotalSeconds });
         }
     }
 }

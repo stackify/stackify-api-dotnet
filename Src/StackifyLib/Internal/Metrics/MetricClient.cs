@@ -12,75 +12,76 @@ namespace StackifyLib.Internal.Metrics
 {
     public static class MetricClient
     {
-        private static HttpClient _HttpClient = null;
-
+        private static HttpClient _httpClient = null;
         private static HttpClient HttpClient
         {
             get
             {
-                if(_HttpClient == null)
-                    _HttpClient = new HttpClient(null, null);
+                if (_httpClient == null)
+                {
+                    _httpClient = new HttpClient(null, null);
+                }
 
-                return _HttpClient;
+                return _httpClient;
             }
         }
 
-        private readonly static ConcurrentQueue<Metric> _MetricQueue;
+        private static readonly ConcurrentQueue<Metric> MetricQueue;
 
-        private static System.Threading.Timer _Timer;
+        private static readonly ConcurrentDictionary<string, GetMetricResponse> MontorIdList;
+        private static readonly ConcurrentDictionary<string, MetricAggregate> AggregateMetrics;
+        private static readonly ConcurrentDictionary<string, MetricAggregate> LastAggregates;
+        private static readonly ConcurrentDictionary<string, MetricSetting> MetricSettings;
 
-        private static ConcurrentDictionary<string, GetMetricResponse> _MontorIDList = new ConcurrentDictionary<string, GetMetricResponse>();
-        private static ConcurrentDictionary<string, MetricAggregate> _AggregateMetrics = new ConcurrentDictionary<string, MetricAggregate>();
-        private static ConcurrentDictionary<string, MetricAggregate> _LastAggregates = new ConcurrentDictionary<string, MetricAggregate>();
-        private static ConcurrentDictionary<string, MetricSetting> _MetricSettings = new ConcurrentDictionary<string, MetricSetting>();
+        private static readonly Timer Timer;
 
-        private static bool _StopRequested = false;
+        private static bool _stopRequested;
+        private static bool _metricsEverUsed;
 
-        private static bool _MetricsEverUsed = false;
 
         static MetricClient()
         {
-            _MetricQueue = new ConcurrentQueue<Metric>();
-            _Timer = new Timer(UploadMetricsCheck, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
+            MetricQueue = new ConcurrentQueue<Metric>();
+
+            MontorIdList = new ConcurrentDictionary<string, GetMetricResponse>();
+            AggregateMetrics = new ConcurrentDictionary<string, MetricAggregate>();
+            LastAggregates = new ConcurrentDictionary<string, MetricAggregate>();
+            MetricSettings = new ConcurrentDictionary<string, MetricSetting>();
+
+            Timer = new Timer(UploadMetricsCheck, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
         }
 
-        public static int QueueSize
-        {
-            get { return _MetricQueue.Count; }
-        }
+
+        public static int QueueSize => MetricQueue?.Count ?? 0;
 
         /// <summary>
         /// Used to make sure we report 0 values if nothing new comes in
         /// </summary>
         public static void HandleZeroReports(DateTime currentMinute)
         {
-            foreach (var item in _LastAggregates)
+            foreach (KeyValuePair<string, MetricAggregate> item in LastAggregates)
             {
                 MetricSetting setting;
-                if (_MetricSettings.TryGetValue(item.Value.NameKey, out setting))
+
+                if (MetricSettings.TryGetValue(item.Value.NameKey, out setting))
                 {
                     if (setting == null)
                     {
                         MetricSetting remove;
-                        _MetricSettings.TryRemove(item.Value.NameKey, out remove);
+                        MetricSettings.TryRemove(item.Value.NameKey, out remove);
                         continue;
                     }
 
-                    MetricAggregate agg = new MetricAggregate(item.Value.Category, item.Value.Name, item.Value.MetricType);
+                    var agg = new MetricAggregate(item.Value.Category, item.Value.Name, item.Value.MetricType, item.Value.IsIncrement);
                     agg.OccurredUtc = currentMinute;
-
 
                     switch (item.Value.MetricType)
                     {
                         case MetricType.Counter:
-                            setting.AutoReportLastValueIfNothingReported = false;//do not allow this
+                            setting.AutoReportLastValueIfNothingReported = false; // do not allow this
                             break;
                         case MetricType.CounterTime:
-                            setting.AutoReportLastValueIfNothingReported = false; //do not allow this
-                            break;
-                        case MetricType.MetricAverage:
-                            break;
-                        case MetricType.MetricLast:
+                            setting.AutoReportLastValueIfNothingReported = false; // do not allow this
                             break;
                     }
 
@@ -100,15 +101,16 @@ namespace StackifyLib.Internal.Metrics
                         continue;
                     }
 
-                    string aggKey = agg.AggregateKey();
+                    var aggKey = agg.AggregateKey();
 
-                    if (!_AggregateMetrics.ContainsKey(aggKey))
+                    if (AggregateMetrics.ContainsKey(aggKey) == false)
                     {
                         agg.NameKey = item.Value.NameKey;
-                        StackifyAPILogger.Log("Creating 0 default value for " + aggKey);
-                        _AggregateMetrics[aggKey] = agg;
-                    }
 
+                        StackifyAPILogger.Log($"Creating default value for {aggKey}");
+
+                        AggregateMetrics[aggKey] = agg;
+                    }
                 }
             }
         }
@@ -117,41 +119,47 @@ namespace StackifyLib.Internal.Metrics
         {
             var latest = new List<LatestAggregate>();
 
-            foreach (var item in _LastAggregates)
+            foreach (KeyValuePair<string, MetricAggregate> item in LastAggregates)
             {
                 var findVal = item.Value;
 
-                LatestAggregate agg = new LatestAggregate();
-                agg.Count = findVal.Count;
-                agg.MetricType = findVal.MetricType;
-                agg.MetricID = findVal.MonitorID;
-                agg.Name = findVal.Name;
-                agg.OccurredUtc = findVal.OccurredUtc;
-                agg.Value = findVal.Value;
-                agg.Count = findVal.Count;
-                agg.Category = findVal.Category;
+                var agg = new LatestAggregate
+                {
+                    Category = findVal.Category,
+                    Count = findVal.Count,
+                    MetricType = findVal.MetricType,
+                    MetricID = findVal.MonitorID,
+                    Name = findVal.Name,
+                    OccurredUtc = findVal.OccurredUtc,
+                    Value = findVal.Value
+                };
+
                 latest.Add(agg);
             }
 
             return latest;
         }
 
-
         public static LatestAggregate GetLatestMetric(string category, string metricName)
         {
-            foreach (var item in _LastAggregates.Where(x=>x.Value.Category.Equals(category, StringComparison.OrdinalIgnoreCase) && x.Value.Name.Equals(metricName, StringComparison.OrdinalIgnoreCase)))
+            IEnumerable<KeyValuePair<string, MetricAggregate>> list = LastAggregates
+                .Where(x => x.Value.Category.Equals(category, StringComparison.OrdinalIgnoreCase) && x.Value.Name.Equals(metricName, StringComparison.OrdinalIgnoreCase));
+
+            foreach (KeyValuePair<string, MetricAggregate> item in list)
             {
                 var findVal = item.Value;
 
-                LatestAggregate agg = new LatestAggregate();
-                agg.Count = findVal.Count;
-                agg.MetricType = findVal.MetricType;
-                agg.MetricID = findVal.MonitorID;
-                agg.Name = findVal.Name;
-                agg.OccurredUtc = findVal.OccurredUtc;
-                agg.Value = findVal.Value;
-                agg.Count = findVal.Count;
-                agg.Category = findVal.Category;
+                var agg = new LatestAggregate
+                {
+                    Category = findVal.Category,
+                    Count = findVal.Count,
+                    MetricType = findVal.MetricType,
+                    MetricID = findVal.MonitorID,
+                    Name = findVal.Name,
+                    OccurredUtc = findVal.OccurredUtc,
+                    Value = findVal.Value
+                };
+
                 return agg;
             }
 
@@ -160,18 +168,43 @@ namespace StackifyLib.Internal.Metrics
 
         public static void QueueMetric(Metric metric)
         {
-            _MetricsEverUsed = true;
+            _metricsEverUsed = true;
+
             try
             {
                 //set a sanity cap
-                if (_MetricQueue.Count < 100000)
+                if (MetricQueue.Count < 100000)
                 {
-                    _MetricQueue.Enqueue(metric);
+                    MetricQueue.Enqueue(metric);
+
+                    // RT-561: Incremented Metrics Broken
+                    if (metric.IsIncrement)
+                    {
+                        var nameKey = metric.CalcNameKey();
+
+                        if (LastAggregates.ContainsKey(metric.CalcNameKey()))
+                        {
+                            LastAggregates[nameKey].OccurredUtc = metric.Occurred;
+                            LastAggregates[nameKey].Value += metric.Value;
+                        }
+                        else
+                        {
+                            var agg = new MetricAggregate(metric);
+                            agg.OccurredUtc = metric.Occurred;
+                            agg.Value = metric.Value;
+
+                            LastAggregates.TryAdd(nameKey, agg);
+                        }
+                    }
+                }
+                else
+                {
+                    StackifyAPILogger.Log("No longer queuing new metrics because more than 100000 are queued", true);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                Utils.StackifyAPILogger.Log(ex.ToString());
+                StackifyAPILogger.Log(ex.ToString());
             }
         }
 
@@ -179,20 +212,20 @@ namespace StackifyLib.Internal.Metrics
         {
             try
             {
-                string aggKey = aggregate.AggregateKey();
+                var aggKey = aggregate.AggregateKey();
 
                 MetricAggregate agg;
-                if (!_AggregateMetrics.TryGetValue(aggKey, out agg))
+                if (AggregateMetrics.TryGetValue(aggKey, out agg) == false)
                 {
-
-                    if (_AggregateMetrics.Count > 1000)
+                    if (AggregateMetrics.Count > 1000)
                     {
-                        Utils.StackifyAPILogger.Log("No longer aggregating new metrics because more than 1000 are queued");
+                        StackifyAPILogger.Log("No longer aggregating new metrics because more than 1000 are queued", true);
                         return;
                     }
 
-                    StackifyAPILogger.Log("Creating aggregate for " + aggKey);
-                    _AggregateMetrics[aggKey] = aggregate;
+                    StackifyAPILogger.Log($"Creating aggregate for {aggKey}");
+
+                    AggregateMetrics[aggKey] = aggregate;
                     agg = aggregate;
                 }
 
@@ -201,77 +234,90 @@ namespace StackifyLib.Internal.Metrics
                     agg.Count = 1;
                     agg.Value = aggregate.Value;
                 }
-                else 
+                else
                 {
                     agg.Count += aggregate.Count;
                     agg.Value += aggregate.Value;
                 }
-                _AggregateMetrics[aggKey] = agg;
 
+                AggregateMetrics[aggKey] = agg;
             }
             catch (Exception ex)
             {
-
-                StackifyAPILogger.Log("Error in StackifyLib with aggregating metrics");
+                StackifyAPILogger.Log($"Error in StackifyLib with aggregating metrics\r\n{ex}");
             }
         }
-
 
         /// <summary>
         /// Read everything in the queue up to a certain time point
         /// </summary>
         private static void ReadAllQueuedMetrics()
         {
-            DateTime maxDate = DateTime.UtcNow; //read only up until now so it doesn't get stuck in an endless loop
-                                                //Loop through add sum up the totals of the counts and values by aggregate key then pass it all in at once to update the aggregate dictionary so it is done in one pass
+            // read only up until now so it doesn't get stuck in an endless loop
+            // Loop through add sum up the totals of the counts and values by aggregate key then pass it all in at once to update the aggregate dictionary so it is done in one pass
+            // key is the aggregate key which is the metric name, type and rounded minute of the occurrence
 
-            //key is the aggregate key which is the metric name, type and rounded minute of the occurrence
+            var maxDate = DateTime.UtcNow;
 
-            StackifyAPILogger.Log("ReadAllQueuedMetrics " + maxDate);
+            StackifyAPILogger.Log($"ReadAllQueuedMetrics {maxDate}");
 
             var batches = new Dictionary<string, MetricAggregate>();
 
             long processed = 0;
 
             Metric metric;
-            while (_MetricQueue.TryDequeue(out metric))
+            while (MetricQueue.TryDequeue(out metric))
             {
                 processed++;
+
                 metric.CalcAndSetAggregateKey();
 
-                if (!batches.ContainsKey(metric.AggregateKey))
+                if (batches.ContainsKey(metric.AggregateKey) == false)
                 {
-                    string nameKey = metric.CalcNameKey();
+                    var nameKey = metric.CalcNameKey();
 
-                    if (metric.IsIncrement && _LastAggregates.ContainsKey(nameKey))
+                    var agg = new MetricAggregate(metric);
+
+                    if (metric.IsIncrement)
                     {
-                        //if wanting to do increments we need to grab the last value so we know what to increment
-                        metric.Value = _LastAggregates[nameKey].Value;
+                        if (LastAggregates.ContainsKey(nameKey))
+                        {
+                            // if wanting to do increments we need to grab the last value so we know what to increment
+                            metric.Value = LastAggregates[nameKey].Value;
+                        }
                     }
 
-                    batches[metric.AggregateKey] = new MetricAggregate(metric);
+                    batches[metric.AggregateKey] = agg;
 
-                    //if it is null don't do anything
-                    //we are doing it where the aggregates are created so we don't do it one very single metric, just once per batch to optimize performance
+                    // if it is null don't do anything
+                    // we are doing it where the aggregates are created so we don't do it one very single metric, just once per batch to optimize performance
                     if (metric.Settings != null)
                     {
-                        _MetricSettings[nameKey] = metric.Settings;
+                        MetricSettings[nameKey] = metric.Settings;
                     }
-
                 }
 
                 batches[metric.AggregateKey].Count++;
 
                 if (metric.IsIncrement)
                 {
+                    // safety
+                    var val = batches[metric.AggregateKey].Value;
+                    if (val.Equals(double.MinValue) || val.Equals(double.MaxValue))
+                    {
+                        batches[metric.AggregateKey].Value = 0;
+
+                        StackifyAPILogger.Log($"Read queued metrics reset increment {metric.AggregateKey} to zero due to min/max value of {val}");
+                    }
+
                     //add or subtract
                     batches[metric.AggregateKey].Value += metric.Value;
 
-                    if (metric.Settings != null && batches[metric.AggregateKey].Value < 0 && !metric.Settings.AllowNegativeGauge)
+                    // allow negative?
+                    if (metric.Settings != null && batches[metric.AggregateKey].Value < 0 && metric.Settings.AllowNegativeGauge == false)
                     {
                         batches[metric.AggregateKey].Value = 0;
                     }
-
                 }
                 else if (metric.MetricType == MetricType.MetricLast)
                 {
@@ -280,7 +326,7 @@ namespace StackifyLib.Internal.Metrics
                 }
                 else
                 {
-                    batches[metric.AggregateKey].Value += metric.Value;    
+                    batches[metric.AggregateKey].Value += metric.Value;
                 }
 
                 if (metric.Occurred > maxDate)
@@ -290,9 +336,9 @@ namespace StackifyLib.Internal.Metrics
                 }
             }
 
-            StackifyLib.Utils.StackifyAPILogger.Log(string.Format("Read queued metrics processed {0} for max date {1}", processed, maxDate));
+            StackifyAPILogger.Log($"Read queued metrics processed {processed} for max date {maxDate}");
 
-            foreach (var batch in batches)
+            foreach (KeyValuePair<string, MetricAggregate> batch in batches)
             {
                 Aggregate(batch.Value);
             }
@@ -302,23 +348,24 @@ namespace StackifyLib.Internal.Metrics
         {
             StackifyAPILogger.Log("Upload metrics check");
 
-            _Timer.Change(-1, -1);
+            Timer.Change(-1, -1);
 
             double seconds = 2; //read quickly in case there is a very high volume to keep queue size down
 
-            if (!_StopRequested)
+            if (_stopRequested == false)
             {
-                bool allSuccess = false;
-                DateTime purgeOlderThan = DateTime.UtcNow.AddMinutes(-10);
+                var allSuccess = false;
+                var purgeOlderThan = DateTime.UtcNow.AddMinutes(-10);
 
-                DateTime currentMinute = DateTime.UtcNow.Floor(TimeSpan.FromMinutes(1));
+                var currentMinute = DateTime.UtcNow.Floor(TimeSpan.FromMinutes(1));
 
-                StackifyAPILogger.Log("Calling UploadMetrics " + currentMinute);
+                StackifyAPILogger.Log($"Calling UploadMetrics {currentMinute}");
+
                 allSuccess = UploadMetrics(currentMinute);
 
                 PurgeOldMetrics(purgeOlderThan);
 
-                if (_AggregateMetrics.Count > 0 && allSuccess)
+                if (AggregateMetrics.Count > 0 && allSuccess)
                 {
                     seconds = .1;
                 }
@@ -328,47 +375,47 @@ namespace StackifyLib.Internal.Metrics
                 StackifyAPILogger.Log("Metrics processing canceled because stop was requested");
             }
 
-
-
-            _Timer.Change(TimeSpan.FromSeconds(seconds), TimeSpan.FromSeconds(seconds));
-     
+            Timer.Change(TimeSpan.FromSeconds(seconds), TimeSpan.FromSeconds(seconds));
         }
 
-        
         public static void StopMetricsQueue(string reason = "Unknown")
         {
-            if (!_MetricsEverUsed)
+            if (_metricsEverUsed == false)
+            {
                 return;
+            }
 
             try
             {
-                StackifyAPILogger.Log("StopMetricsQueue called by " + reason, true);
+                StackifyAPILogger.Log($"StopMetricsQueue called by {reason}", true);
 
                 //don't let t his method run more than once
-                if (_StopRequested)
+                if (_stopRequested)
+                {
                     return;
+                }
 
-                _StopRequested = true;
+                _stopRequested = true;
 
-                DateTime currentMinute = DateTime.UtcNow.AddMinutes(2).Floor(TimeSpan.FromMinutes(1));
+                var currentMinute = DateTime.UtcNow.AddMinutes(2).Floor(TimeSpan.FromMinutes(1));
 
                 UploadMetrics(currentMinute);
 
-                _StopRequested = false;
-                StackifyAPILogger.Log("StopMetricsQueue completed" + reason, true);
+                _stopRequested = false;
+
+                StackifyAPILogger.Log($"StopMetricsQueue completed {reason}", true);
             }
             catch (Exception ex)
             {
-                StackifyAPILogger.Log("StopMetricsQueue error" + ex.ToString(), true);
+                StackifyAPILogger.Log($"StopMetricsQueue error {ex}", true);
             }
-
-
         }
 
         public static bool UploadMetrics(DateTime currentMinute)
         {
-            bool success = false;
-             List<KeyValuePair<string, MetricAggregate>> metrics = new List<KeyValuePair<string, MetricAggregate>>();
+            var success = false;
+            var metrics = new List<KeyValuePair<string, MetricAggregate>>();
+
             try
             {
                 //read everything up to now
@@ -377,75 +424,71 @@ namespace StackifyLib.Internal.Metrics
                 //ensures all the aggregate keys exists for any previous metrics so we report zeros on no changes
                 HandleZeroReports(currentMinute);
 
-                
-                var getForRecent = _AggregateMetrics.Where(x => x.Value.OccurredUtc < currentMinute && x.Value.OccurredUtc > DateTime.UtcNow.AddMinutes(-5)).Select(x=>x.Value).ToList();
+                List<MetricAggregate> getForRecent = AggregateMetrics
+                    .Where(x => x.Value.OccurredUtc < currentMinute && x.Value.OccurredUtc > DateTime.UtcNow.AddMinutes(-5))
+                    .Select(x => x.Value)
+                    .ToList();
 
                 SetLatestAggregates(getForRecent);
 
                 //skip messing with HttpClient if nothing to do
-                if (_AggregateMetrics.Count == 0)
-                    return true;
-
-                if (!HttpClient.MatchedClientDeviceApp())
+                if (AggregateMetrics.Count == 0)
                 {
-                   // purgeOlderThan = DateTime.UtcNow;
+                    return true;
+                }
+
+                if (HttpClient.MatchedClientDeviceApp() == false)
+                {
+                    // purgeOlderThan = DateTime.UtcNow;
                     StackifyAPILogger.Log("Upload metrics skipped because we were unable to match the app to an app in Stackify");
                 }
-                else if (!HttpClient.IsAuthorized())
+                else if (HttpClient.IsAuthorized() == false)
                 {
                     // purgeOlderThan = DateTime.UtcNow;
                     StackifyAPILogger.Log("Upload metrics skipped authorization failure");
                 }
-                else if (!HttpClient.IsRecentError())
+                else if (HttpClient.IsRecentError() == false)
                 {
-
                     //If something happens at 2:39:45. The OccurredUtc is a rounded down value to 2:39. So we add a minute to ensure the minute has fully elapsed
                     //We are doing 65 seconds to just a little lag time for queue processing
                     //doing metric counters only every 30 seconds.
 
-                    metrics =
-                        _AggregateMetrics.Where(
-                            x => x.Value.OccurredUtc < currentMinute).Take(50).ToList();
-
+                    metrics = AggregateMetrics
+                        .Where(x => x.Value.OccurredUtc < currentMinute)
+                        .Take(50)
+                        .ToList();
 
                     if (metrics.Count > 0)
                     {
-                        
-
                         //only getting metrics less than 10 minutes old to drop old data in case we get backed up
                         //they are removed from the _AggregateMetrics in the upload function upon success
-                        success =
-                            UploadAggregates(
-                                metrics.Where(x => x.Value.OccurredUtc > DateTime.UtcNow.AddMinutes(-10)).ToList());
-
-                    
+                        success = UploadAggregates(metrics
+                            .Where(x => x.Value.OccurredUtc > DateTime.UtcNow.AddMinutes(-10))
+                            .ToList());
                     }
                 }
                 else
                 {
-                    StackifyAPILogger.Log("Upload metrics skipped and delayed due to recent error"); 
+                    StackifyAPILogger.Log("Upload metrics skipped and delayed due to recent error");
                 }
-
             }
             catch (Exception ex)
             {
                 success = false;
-                StackifyAPILogger.Log("Error uploading metrics " + ex.ToString());
+                StackifyAPILogger.Log($"Error uploading metrics {ex}");
 
                 //if an error put them back in
                 try
                 {
-                    metrics.ForEach(x => _AggregateMetrics.TryAdd(x.Key, x.Value));
-
+                    metrics.ForEach(x => AggregateMetrics.TryAdd(x.Key, x.Value));
                 }
                 catch (Exception ex2)
                 {
-                    StackifyAPILogger.Log("Error adding metrics back to upload list " + ex.ToString());
+                    StackifyAPILogger.Log($"Error adding metrics back to upload list {ex2}");
                 }
             }
 
             return success;
-
         }
 
         private static void PurgeOldMetrics(DateTime purgeOlderThan)
@@ -458,14 +501,19 @@ namespace StackifyLib.Internal.Metrics
                 //if uploading disabled it purges everything
                 //if success uploading then should be nothing to purge as that is already done above
 
-                var oldMetrics = _AggregateMetrics.Where(x => x.Value.OccurredUtc < purgeOlderThan).ToList();
-                MetricAggregate oldval;
-                oldMetrics.ForEach(x => _AggregateMetrics.TryRemove(x.Key, out oldval));
+                List<KeyValuePair<string, MetricAggregate>> oldMetrics = AggregateMetrics
+                    .Where(x => x.Value.OccurredUtc < purgeOlderThan)
+                    .ToList();
 
+                oldMetrics.ForEach(x =>
+                {
+                    MetricAggregate oldval;
+                    AggregateMetrics.TryRemove(x.Key, out oldval);
+                });
             }
             catch (Exception ex)
             {
-                StackifyAPILogger.Log("Error purging metrics " + ex.ToString());
+                StackifyAPILogger.Log($"Error purging metrics {ex}");
             }
 
         }
@@ -476,71 +524,72 @@ namespace StackifyLib.Internal.Metrics
             {
                 MetricAggregate current;
 
-                if (_LastAggregates.TryGetValue(item.NameKey, out current))
+                if (LastAggregates.TryGetValue(item.NameKey, out current))
                 {
                     //if newer update it
                     if (item.OccurredUtc > current.OccurredUtc)
                     {
-                        _LastAggregates[item.NameKey] = item;
+                        LastAggregates[item.NameKey] = item;
                     }
                 }
                 else
                 {
                     //does not exist
 
-                    _LastAggregates[item.NameKey] = item;
+                    LastAggregates[item.NameKey] = item;
                 }
             }
         }
-        
 
-        private static bool UploadAggregates(List<KeyValuePair<string,MetricAggregate>> metrics)
+        private static bool UploadAggregates(List<KeyValuePair<string, MetricAggregate>> metrics)
         {
-            bool allSuccess = true;
+            var allSuccess = true;
 
             if (metrics.Count == 0)
-                return true;
-
-            bool identifyResult = HttpClient.IdentifyApp();
-
-            if (identifyResult && HttpClient.MatchedClientDeviceApp() && !HttpClient.IsRecentError() && HttpClient.IsAuthorized())
             {
-                StackifyAPILogger.Log("Uploading Aggregate Metrics: " + metrics.Count);
+                return true;
+            }
 
-                foreach (var keyValuePair in metrics)
+            var identifyResult = HttpClient.IdentifyApp();
+
+            if (identifyResult && HttpClient.MatchedClientDeviceApp() && HttpClient.IsRecentError() == false && HttpClient.IsAuthorized())
+            {
+                StackifyAPILogger.Log($"Uploading Aggregate Metrics: {metrics.Count}");
+
+                foreach (KeyValuePair<string, MetricAggregate> keyValuePair in metrics)
                 {
                     GetMetricResponse monitorInfo;
 
-                    //in case the appid changes on the server side somehow and we need to update the monitorids we are adding the appid to the key
-                    //calling IdentifyApp() above will sometimes cause the library to sync with the server with the appid
-                    string keyWithAppID = string.Format("{0}-{1}", keyValuePair.Value.NameKey, HttpClient.AppIdentity.DeviceAppID);
-                    
-                    if (!_MontorIDList.ContainsKey(keyWithAppID))
+                    // in case the appid changes on the server side somehow and we need to update the monitorids we are adding the appid to the key
+                    // calling IdentifyApp() above will sometimes cause the library to sync with the server with the appid
+                    var keyWithAppId = string.Format("{0}-{1}", keyValuePair.Value.NameKey, HttpClient.AppIdentity.DeviceAppID);
+
+                    if (MontorIdList.ContainsKey(keyWithAppId) == false)
                     {
                         monitorInfo = GetMonitorInfo(keyValuePair.Value);
                         if (monitorInfo != null && monitorInfo.MonitorID != null && monitorInfo.MonitorID > 0)
                         {
-                            _MontorIDList[keyWithAppID] = monitorInfo;
+                            MontorIdList[keyWithAppId] = monitorInfo;
                         }
                         else if (monitorInfo != null && monitorInfo.MonitorID == null)
                         {
-                            StackifyAPILogger.Log("Unable to get metric info for " + keyWithAppID + " MonitorID is null");
-                            _MontorIDList[keyWithAppID] = monitorInfo;
+                            StackifyAPILogger.Log($"Unable to get metric info for {keyWithAppId} MonitorID is null");
+                            MontorIdList[keyWithAppId] = monitorInfo;
                         }
                         else
                         {
-                            StackifyAPILogger.Log("Unable to get metric info for " + keyWithAppID);
+                            StackifyAPILogger.Log($"Unable to get metric info for {keyWithAppId}");
                             allSuccess = false;
                         }
                     }
                     else
                     {
-                        monitorInfo = _MontorIDList[keyWithAppID];
+                        monitorInfo = MontorIdList[keyWithAppId];
                     }
 
                     if (monitorInfo == null || monitorInfo.MonitorID == null)
                     {
-                        StackifyAPILogger.Log("Metric info missing for " + keyWithAppID);
+                        StackifyAPILogger.Log($"Metric info missing for {keyWithAppId}");
                         keyValuePair.Value.MonitorID = null;
                         allSuccess = false;
                     }
@@ -551,31 +600,35 @@ namespace StackifyLib.Internal.Metrics
                 }
 
                 //get the identified ones
-                var toUpload = metrics.Where(x => x.Value.MonitorID != null).ToList();
+                List<KeyValuePair<string, MetricAggregate>> toUpload = metrics.Where(x => x.Value.MonitorID != null).ToList();
 
-                bool success = UploadMetrics(toUpload.Select(x => x.Value).ToList());
+                var success = UploadMetrics(toUpload.Select(x => x.Value).ToList());
 
-                if (!success)
+                if (success == false)
                 {
                     //error uploading so add them back in
-                    toUpload.ForEach(x => _AggregateMetrics.TryAdd(x.Key, x.Value));
+                    toUpload.ForEach(x => AggregateMetrics.TryAdd(x.Key, x.Value));
                     allSuccess = false;
                 }
                 else
                 {
                     //worked so remove them
-                   MetricAggregate removed;
-                   toUpload.ForEach(x=> _AggregateMetrics.TryRemove(x.Key, out removed)); 
+                    toUpload.ForEach(x =>
+                    {
+                        MetricAggregate removed;
+                        AggregateMetrics.TryRemove(x.Key, out removed);
+                    });
                 }
             }
-            else 
+            else
             {
-                StackifyAPILogger.Log("Metrics not uploaded. Identify Result: " + identifyResult + ", Metrics API Enabled: " + HttpClient.MatchedClientDeviceApp());
+                StackifyAPILogger.Log($"Metrics not uploaded. Identify Result: {identifyResult}, Metrics API Enabled: {HttpClient.MatchedClientDeviceApp()}");
 
                 //if there was an issue trying to identify the app we could end up here and will want to try again later
                 allSuccess = false;
+
                 //add them back to the queue
-                metrics.ForEach(x=> _AggregateMetrics.TryAdd(x.Key, x.Value));
+                metrics.ForEach(x => AggregateMetrics.TryAdd(x.Key, x.Value));
             }
 
             return allSuccess;
@@ -586,20 +639,24 @@ namespace StackifyLib.Internal.Metrics
             try
             {
                 if (metrics == null || metrics.Count == 0)
+                {
                     return true;
+                }
 
                 //checks are done outside this method before it gets this far to ensure API access is working
 
-                List<SubmitMetricByIDModel> records = new List<SubmitMetricByIDModel>();
+                var records = new List<SubmitMetricByIDModel>();
 
                 foreach (var metric in metrics)
                 {
-                    SubmitMetricByIDModel model = new SubmitMetricByIDModel();
-                    model.Value = Math.Round(metric.Value, 2);
-                    model.MonitorID = metric.MonitorID ?? 0;
-                    model.OccurredUtc = metric.OccurredUtc;
-                    model.Count = metric.Count;
-                    model.MonitorTypeID = (short)metric.MetricType;
+                    var model = new SubmitMetricByIDModel
+                    {
+                        Value = Math.Round(metric.Value, 2),
+                        MonitorID = metric.MonitorID ?? 0,
+                        OccurredUtc = metric.OccurredUtc,
+                        Count = metric.Count,
+                        MonitorTypeID = (short)metric.MetricType
+                    };
 
                     if (HttpClient.AppIdentity != null)
                     {
@@ -608,34 +665,28 @@ namespace StackifyLib.Internal.Metrics
 
                     records.Add(model);
 
-                    StackifyAPILogger.Log(string.Format("Uploading metric {0}:{1} Count {2}, Value {3}, ID {4}", metric.Category, metric.Name, metric.Count, metric.Value, metric.MonitorID));
+                    StackifyAPILogger.Log(string.Format($"Uploading metric {metric.Category}:{metric.Name} Count {metric.Count}, Value {metric.Value}, ID {metric.MonitorID}"));
                 }
 
+                var jsonData = JsonConvert.SerializeObject(records);
 
-
-                string jsonData = JsonConvert.SerializeObject(records);
-
-                var response = HttpClient.SendJsonAndGetResponse(
-                        (HttpClient.BaseAPIUrl) +
-                        "Metrics/SubmitMetricsByID",
-                        jsonData);
-
+                var response = HttpClient.SendJsonAndGetResponse($"{HttpClient.BaseAPIUrl}Metrics/SubmitMetricsByID", jsonData);
 
                 if (response.Exception == null && response.StatusCode == HttpStatusCode.OK)
                 {
                     return true;
                 }
-                
+
                 if (response.Exception != null)
                 {
-                    StackifyAPILogger.Log("Error saving metrics " + response.Exception.Message);    
+                    StackifyAPILogger.Log($"Error saving metrics {response.Exception.Message}");
                 }
 
                 return false;
             }
             catch (Exception e)
             {
-                StackifyAPILogger.Log("Error saving metrics " + e.Message);
+                StackifyAPILogger.Log($"Error saving metrics {e}");
                 return false;
             }
         }
@@ -644,12 +695,12 @@ namespace StackifyLib.Internal.Metrics
         {
             try
             {
-                if (HttpClient.IsRecentError() || !HttpClient.MatchedClientDeviceApp())
+                if (HttpClient.IsRecentError() || HttpClient.MatchedClientDeviceApp() == false)
                 {
                     return null;
                 }
 
-                GetMetricRequest request = new GetMetricRequest();
+                var request = new GetMetricRequest();
 
                 if (HttpClient.AppIdentity != null)
                 {
@@ -657,19 +708,14 @@ namespace StackifyLib.Internal.Metrics
                     request.DeviceID = HttpClient.AppIdentity.DeviceID;
                     request.AppNameID = HttpClient.AppIdentity.AppNameID;
                 }
+
                 request.MetricName = metric.Name;
                 request.MetricTypeID = (short)metric.MetricType;
                 request.Category = metric.Category;
 
-                string jsonData = JsonConvert.SerializeObject(request);
+                var jsonData = JsonConvert.SerializeObject(request);
 
-
-                var response =
-                    HttpClient.SendJsonAndGetResponse(
-                        (HttpClient.BaseAPIUrl) +
-                        "Metrics/GetMetricInfo",
-                        jsonData);
-
+                var response = HttpClient.SendJsonAndGetResponse($"{HttpClient.BaseAPIUrl}Metrics/GetMetricInfo", jsonData);
 
                 if (response.Exception == null && response.StatusCode == HttpStatusCode.OK)
                 {
@@ -677,12 +723,12 @@ namespace StackifyLib.Internal.Metrics
 
                     return metricResponse;
                 }
-               
+
                 return null;
             }
             catch (Exception e)
             {
-                StackifyAPILogger.Log("Error getting monitor info " + e.Message);
+                StackifyAPILogger.Log($"Error getting monitor info {e}");
                 return null;
             }
         }
