@@ -189,7 +189,7 @@ namespace StackifyLib.Models
 #else
         public static string GetDeviceName()
         {
-            var deviceName = Process.GetCurrentProcess().MachineName;
+            var deviceName = Environment.MachineName;
             var isDefaultDeviceNameEc2 = IsEc2MachineName(deviceName);
 
             if (Config.IsEc2 == null || Config.IsEc2 == true || isDefaultDeviceNameEc2)
