@@ -1,12 +1,11 @@
-﻿using StackifyLib.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Primitives;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Primitives;
+using StackifyLib.Models;
 
 namespace StackifyLib.AspNetCore
 {
@@ -22,7 +21,9 @@ namespace StackifyLib.AspNetCore
             var context = Configure.ServiceProvider?.GetService<IHttpContextAccessor>()?.HttpContext;
 
             if (context == null)
+            {
                 return;
+            }
 
             Load(context, detail);
         }
@@ -30,59 +31,33 @@ namespace StackifyLib.AspNetCore
         private static void Load(HttpContext context, WebRequestDetail detail)
         {
             if (context == null || context.Request == null)
+            {
                 return;
+            }
 
-            HttpRequest request = context.Request;
+            var request = context.Request;
 
             try
             {
                 detail.HttpMethod = request.Method;
-
-                detail.UserIPAddress = context?.Connection?.RemoteIpAddress?.ToString();
-
-
-                //if (context.Items != null && context.Items.Contains("Stackify.ReportingUrl"))
-                //{
-                //    ReportingUrl = context.Items["Stackify.ReportingUrl"].ToString();
-                //}
-
-
-                if (request.IsHttps)
-                {
-                    detail.RequestProtocol = "https";
-                }
-                else
-                {
-                    detail.RequestProtocol = "http";
-                }
-                detail.RequestUrl = detail.RequestProtocol + "//" + request.Host + request.Path;
-
-
+                detail.UserIPAddress = context.Connection?.RemoteIpAddress?.ToString();
+                detail.RequestProtocol = request.IsHttps ? "https" : "http";
+                detail.RequestUrl = $"{detail.RequestProtocol}//{request.Host}{request.Path}";
                 detail.MVCAction = context.GetRouteValue("action")?.ToString();
                 detail.MVCController = context.GetRouteValue("controller")?.ToString();
 
-                if (!string.IsNullOrEmpty(detail.MVCAction) && !string.IsNullOrEmpty(detail.MVCController))
+                if (string.IsNullOrEmpty(detail.MVCAction) == false && string.IsNullOrEmpty(detail.MVCController) == false)
                 {
-                    detail.ReportingUrl = detail.MVCController + "." + detail.MVCAction;
+                    detail.ReportingUrl = $"{detail.MVCController}.{detail.MVCAction}";
                 }
-
-
-                //if (request.AppRelativeCurrentExecutionFilePath != null)
-                //{
-                //    RequestUrlRoot = request.AppRelativeCurrentExecutionFilePath.TrimStart('~');
-                //}
-
             }
             catch (Exception)
             {
-
+                // ignored
             }
-
-
 
             try
             {
-
                 if (request.QueryString != null)
                 {
                     detail.QueryString = ToKeyValues(request.Query, null, null);
@@ -95,12 +70,12 @@ namespace StackifyLib.AspNetCore
                         Config.ErrorHeaderBadKeys = new List<string>();
                     }
 
-                    if (!Config.ErrorHeaderBadKeys.Contains("cookie"))
+                    if (Config.ErrorHeaderBadKeys.Contains("cookie") == false)
                     {
                         Config.ErrorHeaderBadKeys.Add("cookie");
                     }
 
-                    if (!Config.ErrorHeaderBadKeys.Contains("authorization"))
+                    if (Config.ErrorHeaderBadKeys.Contains("authorization") == false)
                     {
                         Config.ErrorHeaderBadKeys.Add("authorization");
                     }
@@ -117,66 +92,33 @@ namespace StackifyLib.AspNetCore
                 {
                     detail.PostData = ToKeyValues(request.Form, null, null);
                 }
-
-                //sessions return a byte array...
-                //if (context.Session != null && Config.CaptureSessionVariables && Config.ErrorSessionGoodKeys.Any())
-                //{
-                //    SessionData = new Dictionary<string, string>();
-
-                //    foreach (var key in Config.ErrorSessionGoodKeys)
-                //    {
-                //        SessionData[key] = context.Session
-                //    }
-
-
-                //}
-
-                //if (Config.CaptureErrorPostdata)
-                //{
-                //    var contentType = context.Request.Headers["Content-Type"];
-
-                //    if (contentType != "text/html" && contentType != "application/x-www-form-urlencoded" &&
-                //        context.Request.RequestType != "GET")
-                //    {
-                //        int length = 4096;
-                //        string postBody = new StreamReader(context.Request.InputStream).ReadToEnd();
-                //        if (postBody.Length < length)
-                //        {
-                //            length = postBody.Length;
-                //        }
-
-                //        PostDataRaw = postBody.Substring(0, length);
-                //    }
-                //}
             }
             catch (Exception)
             {
+                // ignored
             }
         }
 
-        //IEnumerable<KeyValuePair<string, StringValues>>
-        //IEnumerable<KeyValuePair<string, string>>
         internal static Dictionary<string, string> ToKeyValues(IEnumerable<KeyValuePair<string, StringValues>> collection, List<string> goodKeys, List<string> badKeys)
         {
-            //var keys = collection.Keys;
             var items = new Dictionary<string, string>();
 
-            foreach (var item in collection)
+            foreach (KeyValuePair<string, StringValues> item in collection)
             {
-                string key = item.Key;
+                var key = item.Key;
+
                 try
                 {
                     object val = item.Value.ToString();
 
-                    if (val != null && !string.IsNullOrWhiteSpace(val.ToString()) && items.ContainsKey(key))
+                    if (val != null && string.IsNullOrWhiteSpace(val.ToString()) == false && items.ContainsKey(key))
                     {
                         AddKey(key, val.ToString(), items, goodKeys, badKeys);
                     }
-
                 }
                 catch (Exception)
                 {
-
+                    // ignored
                 }
             }
 
@@ -185,25 +127,24 @@ namespace StackifyLib.AspNetCore
 
         internal static Dictionary<string, string> ToKeyValues(IEnumerable<KeyValuePair<string, string>> collection, List<string> goodKeys, List<string> badKeys)
         {
-            //var keys = collection.Keys;
             var items = new Dictionary<string, string>();
 
-            foreach (var item in collection)
+            foreach (KeyValuePair<string, string> item in collection)
             {
-                string key = item.Key;
+                var key = item.Key;
+
                 try
                 {
                     object val = item.Value;
 
-                    if (val != null && !string.IsNullOrWhiteSpace(val.ToString()) && items.ContainsKey(key))
+                    if (val != null && string.IsNullOrWhiteSpace(val.ToString()) == false && items.ContainsKey(key))
                     {
                         AddKey(key, val.ToString(), items, goodKeys, badKeys);
                     }
-
                 }
                 catch (Exception)
                 {
-
+                    // ignored
                 }
             }
 
@@ -218,9 +159,10 @@ namespace StackifyLib.AspNetCore
                 dictionary[key] = "X-MASKED-X";
                 return;
             }
+
             //if not in the good key list, return
             //if good key list is empty, we let it take it
-            else if (goodKeys != null && goodKeys.Any() && !goodKeys.Any(x => x.Equals(key, StringComparison.CurrentCultureIgnoreCase)))
+            if (goodKeys != null && goodKeys.Any() && goodKeys.Any(x => x.Equals(key, StringComparison.CurrentCultureIgnoreCase)) == false)
             {
                 return;
             }

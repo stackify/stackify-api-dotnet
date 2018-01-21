@@ -1,11 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using StackifyLib.Utils;
 
 namespace StackifyLib
@@ -38,7 +31,7 @@ namespace StackifyLib
             }
         }
 
-#if NETCORE
+#if NETCORE || NETCOREX
         public static void ConfigureStackifyLogging(this Microsoft.Extensions.Configuration.IConfigurationRoot configuration)
         {
             Config.SetConfiguration(configuration);

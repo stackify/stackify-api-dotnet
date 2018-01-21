@@ -1,19 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using StackifyLib.AspNetCore;
 
 namespace StackifyLib
 {
     public static class Extensions
     {
-
-
-
-        public static void ConfigureStackifyLogging(this Microsoft.AspNetCore.Builder.IApplicationBuilder app,
-                Microsoft.Extensions.Configuration.IConfigurationRoot configuration)
+        public static void ConfigureStackifyLogging(this Microsoft.AspNetCore.Builder.IApplicationBuilder app, Microsoft.Extensions.Configuration.IConfigurationRoot configuration)
         {
             try
             {
@@ -29,7 +22,7 @@ namespace StackifyLib
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Error in AddStackifyLogging " + ex.ToString());
+                Debug.WriteLine($"Error in ConfigureStackifyLogging {ex}");
             }
         }
     }
