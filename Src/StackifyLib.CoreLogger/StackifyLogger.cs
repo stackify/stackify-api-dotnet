@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using StackifyLib.Models;
 
@@ -19,16 +16,20 @@ namespace StackifyLib.CoreLogger
             return true;
         }
 
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception,
-            Func<TState, Exception, string> formatter)
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
             if (formatter == null)
+            {
                 throw new ArgumentNullException("formatter");
-            string message = formatter(state, exception);
-            if (string.IsNullOrEmpty(message))
-                return;
+            }
 
-            var msg = new LogMsg()
+            var message = formatter(state, exception);
+            if (string.IsNullOrEmpty(message))
+            {
+                return;
+            }
+
+            var msg = new LogMsg
             {
                 Level = logLevel.ToString(),
                 Msg = message
@@ -45,7 +46,7 @@ namespace StackifyLib.CoreLogger
             }
             catch (Exception)
             {
-                
+                // ignored
             }
         }
     }

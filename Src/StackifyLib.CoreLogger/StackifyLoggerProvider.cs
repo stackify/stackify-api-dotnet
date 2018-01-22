@@ -1,28 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace StackifyLib.CoreLogger
 {
-    public class StackifyLoggerProvider : ILoggerProvider, IDisposable
+    public class StackifyLoggerProvider : ILoggerProvider
     {
-        private StackifyLogger _StackifyLogger = null;
+        private StackifyLogger _stackifyLogger;
 
         public Microsoft.Extensions.Logging.ILogger CreateLogger(string name)
         {
-            if (_StackifyLogger == null)
+            if (_stackifyLogger == null)
             {
-                _StackifyLogger = new StackifyLogger();
+                _stackifyLogger = new StackifyLogger();
             }
 
-            return _StackifyLogger;
+            return _stackifyLogger;
         }
 
         public void Dispose()
         {
-            _StackifyLogger?.Close();
+            _stackifyLogger?.Close();
         }
     }
 }
