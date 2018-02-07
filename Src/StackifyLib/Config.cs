@@ -11,7 +11,7 @@ namespace StackifyLib
     /// </summary>
     public class Config
     {
-        #if NETCORE || NETCOREX
+#if NETCORE || NETCOREX
 
         private static Microsoft.Extensions.Configuration.IConfigurationRoot _configuration = null;
 
@@ -20,7 +20,7 @@ namespace StackifyLib
             _configuration = configuration;
         }
 
-        #endif
+#endif
 
         static Config()
         {
@@ -31,21 +31,21 @@ namespace StackifyLib
         {
             try
             {
-                CaptureErrorPostdata = Get("Stackify.CaptureErrorPostdata", string.Empty).Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
+                CaptureErrorPostdata = Get("Stackify.CaptureErrorPostdata", bool.FalseString).Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
 
-                CaptureServerVariables = Get("Stackify.CaptureServerVariables", string.Empty).Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
+                CaptureServerVariables = Get("Stackify.CaptureServerVariables", bool.FalseString).Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
 
-                CaptureSessionVariables = Get("Stackify.CaptureSessionVariables", string.Empty).Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
+                CaptureSessionVariables = Get("Stackify.CaptureSessionVariables", bool.FalseString).Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
 
                 CaptureErrorHeaders = Get("Stackify.CaptureErrorHeaders", bool.TrueString).Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
 
-                CaptureErrorCookies = Get("Stackify.CaptureErrorCookies", string.Empty).Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
+                CaptureErrorCookies = Get("Stackify.CaptureErrorCookies", bool.FalseString).Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
 
-                ApiKey = Get("Stackify.ApiKey", string.Empty);
+                ApiKey = Get("Stackify.ApiKey", ApiKey ?? string.Empty);
 
-                AppName = Get("Stackify.AppName", string.Empty);
+                AppName = Get("Stackify.AppName", AppName ?? string.Empty);
 
-                Environment = Get("Stackify.Environment", string.Empty);
+                Environment = Get("Stackify.Environment", Environment ?? string.Empty);
 
                 CaptureErrorHeadersWhitelist = Get("Stackify.CaptureErrorHeadersWhitelist", string.Empty);
 
@@ -154,13 +154,13 @@ namespace StackifyLib
 
             try
             {
-                if (key != null)
+                if (string.IsNullOrWhiteSpace(key) == false)
                 {
 #if NETCORE || NETCOREX
                     if (_configuration != null)
                     {
                         var appSettings = _configuration.GetSection("Stackify");
-                        v = appSettings[key.Replace("Stackify.", "")];
+                        v = appSettings[key.Replace("Stackify.", string.Empty)];
                     }
 #endif
 
@@ -168,7 +168,7 @@ namespace StackifyLib
                     if (_configuration != null)
                     {
                         var appSettings = _configuration.GetSection("Stackify");
-                        v = appSettings[key.Replace("Stackify.", "")];
+                        v = appSettings[key.Replace("Stackify.", string.Empty)];
                     }
 #endif
 
