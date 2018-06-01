@@ -11,14 +11,6 @@ namespace StackifyLib.Utils
 {
     public class StackifyAPILogger
     {
-#if NETFULL
-        private static readonly string DefaultLoggerPathAndFile = Path.Combine(Environment.CurrentDirectory, "stackify.debug.log");
-#else 
-        private static readonly string DefaultLoggerPathAndFile = Path.Combine(System.AppContext.BaseDirectory, "stackify.debug.log");
-#endif
-        private static readonly object LoggerDefaultLock = new object();
-        private static StreamWriter _loggerDefault;
-
         private static StringWriter _logger;
         private static bool? _logEnabled;
 
@@ -67,18 +59,6 @@ namespace StackifyLib.Utils
                     if (_logger != null)
                     {
                         _logger.Write(msg);
-                    }
-                    else
-                    {
-                        lock (LoggerDefaultLock)
-                        {
-                            if (_loggerDefault == null)
-                            {
-                                _loggerDefault = new StreamWriter(new FileStream(DefaultLoggerPathAndFile, FileMode.Append, FileAccess.Write, FileShare.Read));
-                            }
-                        }
-
-                        _loggerDefault.WriteLine(msg);
                     }
                 }
             }
