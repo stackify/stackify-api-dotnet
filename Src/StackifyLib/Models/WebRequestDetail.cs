@@ -1,4 +1,4 @@
-﻿using System.Runtime.Serialization;
+using System.Runtime.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -99,7 +99,7 @@ namespace StackifyLib.Models
                 return;
 
             HttpRequest request = context.Request;
-            
+
             try
             {
                 HttpMethod = request.RequestType;
