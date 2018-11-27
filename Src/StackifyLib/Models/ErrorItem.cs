@@ -17,7 +17,6 @@ namespace StackifyLib.Models
 
         public ErrorItem(Exception ex)
         {
-
             try
             {
                 var keys = ex.Data.Keys;
@@ -32,7 +31,8 @@ namespace StackifyLib.Models
                 }
 
                 Message = ex.Message;
-#if NET451 || NET45 || NET40
+
+#if NETFULL
                 if (ex is System.Data.SqlClient.SqlException)
                 {
                     System.Data.SqlClient.SqlException sql = ex as System.Data.SqlClient.SqlException;
@@ -65,7 +65,6 @@ namespace StackifyLib.Models
 
                 var t = ex.GetType();
 
-
                 ErrorType = t.FullName;
 
                 if (ex is StringException)
@@ -76,7 +75,6 @@ namespace StackifyLib.Models
                 {
                     AddTraceFrames(ex);
                 }
-
             }
             catch (Exception e)
             {
@@ -131,7 +129,11 @@ namespace StackifyLib.Models
 
                     var fullName = GetMethodFullName(method);
 
-                    bool isSource = false;//(ex.TargetSite != null && ex.TargetSite == method);
+                    bool isSource = false;
+
+#if NETFULL
+                    isSource = (ex.TargetSite != null && ex.TargetSite == method);
+#endif
 
                     if (isSource)
                     {
@@ -149,7 +151,7 @@ namespace StackifyLib.Models
                 }
             }
 
-#if NET451 || NET45 || NET40
+#if NETFULL
             var stackTrace2 = new StackTrace(true);
             var allFrames = stackTrace2.GetFrames();
 
@@ -174,7 +176,6 @@ namespace StackifyLib.Models
                         }
                     }
 
-
                     if (foundLast)
                     {
                         StackTrace.Add(new TraceFrame()
@@ -185,13 +186,9 @@ namespace StackifyLib.Models
                             Method = GetMethodFullName(method)
                         });
                     }
-
-
                 }
             }
 #endif
-
-
         }
 
         public static string GetMethodFullName(MethodBase method, bool simpleMethodNames = false)
@@ -199,7 +196,7 @@ namespace StackifyLib.Models
             if (method == null)
                 return "Unknown";
 
-#if NET451 || NET45 || NET40
+#if NETFULL
             if (method.ReflectedType != null)
             {
                 if (simpleMethodNames)

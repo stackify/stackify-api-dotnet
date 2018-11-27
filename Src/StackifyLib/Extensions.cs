@@ -1,11 +1,5 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using StackifyLib.Utils;
 
 namespace StackifyLib
 {
@@ -19,7 +13,7 @@ namespace StackifyLib
             }
             catch (Exception e)
             {
-                Debug.WriteLine("Error submitting error to Stackify " + e.ToString());
+                StackifyAPILogger.Log("#Extensions #SendToStackify failed", e);
                 throw;
             }
         }
@@ -32,12 +26,12 @@ namespace StackifyLib
             }
             catch (Exception e)
             {
-                Debug.WriteLine("Error submitting error to Stackify " + e.ToString());
+                StackifyAPILogger.Log("#Extensions #NewStackifyError failed", e);
                 throw;
             }
         }
 
-#if NETSTANDARD1_3 || NET451
+#if NETCORE || NETCOREX
         public static void ConfigureStackifyLogging(this Microsoft.Extensions.Configuration.IConfigurationRoot configuration)
         {
             Config.SetConfiguration(configuration);

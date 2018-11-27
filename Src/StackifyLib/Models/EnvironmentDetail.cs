@@ -7,16 +7,16 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using StackifyLib.Utils;
-#if NET451 || NET45 || NET40
+#if NETFULL
 using System.Linq;
 using System.Web.Hosting;
 using System.Management;
 #endif
+
 namespace StackifyLib.Models
 {
     public class EnvironmentDetail
     {
-
         private static EnvironmentDetail _CachedCopy = null;
 
         public static EnvironmentDetail Get(bool refresh)
@@ -36,7 +36,7 @@ namespace StackifyLib.Models
         /// </summary>
         private void GetAzureInfo()
         {
-#if NET451 || NET45 || NET40
+#if NETFULL
             if (registryAccessFailure)
                 return;
 
@@ -100,14 +100,58 @@ namespace StackifyLib.Models
         }
 
         // http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html#d0e30002
-        const string EC2InstanceIdUrl = "http://169.254.169.254/latest/meta-data/instance-id";
+        private const string EC2InstanceIdUrl = "http://169.254.169.254/latest/meta-data/instance-id";
+        public static readonly object ec2InstanceLock = new object();
+        private static DateTimeOffset? ec2InstanceIdLastUpdate = null;
+        private static string ec2InstanceId = null;
 
         /// <summary>
         /// Get the EC2 Instance name if it exists else null
         /// </summary>
-#if NET451 || NET45 || NET40
+#if NETFULL
+
+        public static string GetDeviceName()
+        {
+            var deviceName = Environment.MachineName;
+            var isDefaultDeviceNameEc2 = IsEc2MachineName(deviceName);
+
+            if (Config.IsEc2 == null || Config.IsEc2 == true || isDefaultDeviceNameEc2)
+            {
+                var ec2InstanceId = GetEC2InstanceId();
+                if (string.IsNullOrWhiteSpace(ec2InstanceId) == false)
+                {
+                    deviceName = ec2InstanceId;
+                }
+            }
+
+            return deviceName;
+        }
+
         public static string GetEC2InstanceId()
         {
+            string r = null;
+
+            // SF-6804: Frequent Calls to GetEC2InstanceId
+            bool skipEc2InstanceIdUpdate = false;
+            if (Config.Ec2InstanceMetadataUpdateThresholdMinutes > 0)
+            {
+                var threshold = TimeSpan.FromMinutes(Config.Ec2InstanceMetadataUpdateThresholdMinutes);
+                lock (ec2InstanceLock)
+                {
+                    skipEc2InstanceIdUpdate = ec2InstanceIdLastUpdate != null && ec2InstanceIdLastUpdate < DateTimeOffset.UtcNow.Subtract(threshold);
+                    r = string.IsNullOrWhiteSpace(ec2InstanceId) ? null : ec2InstanceId;
+                }
+            }
+            else
+            {
+                skipEc2InstanceIdUpdate = true;
+            }
+
+            if (skipEc2InstanceIdUpdate)
+            {
+                return r;
+            }
+
             try
             {
                 var request = (HttpWebRequest)WebRequest.Create(EC2InstanceIdUrl);
@@ -123,22 +167,70 @@ namespace StackifyLib.Models
                             using (var reader = new StreamReader(responseStream, encoding))
                             {
                                 var id = reader.ReadToEnd();
-                                return string.IsNullOrWhiteSpace(id) ? null : id;
+                                r = string.IsNullOrWhiteSpace(id) ? null : id;
                             }
                         }
                     }
-                    return null;
                 }
             }
             catch // if not in aws this will timeout
             {
-                return null;
+                r = null;
             }
 
+            lock (ec2InstanceLock)
+            {
+                ec2InstanceId = r;
+                ec2InstanceIdLastUpdate = DateTimeOffset.UtcNow;
+            }
+
+            return r;
         }
 #else
+        public static string GetDeviceName()
+        {
+            var deviceName = Environment.MachineName;
+            var isDefaultDeviceNameEc2 = IsEc2MachineName(deviceName);
+
+            if (Config.IsEc2 == null || Config.IsEc2 == true || isDefaultDeviceNameEc2)
+            {
+                var instanceID_task = GetEC2InstanceId();
+                instanceID_task.Wait();
+                if (string.IsNullOrWhiteSpace(instanceID_task.Result) == false)
+                {
+                    deviceName = instanceID_task.Result;
+                }
+            }
+
+            return deviceName;
+        }
+
         public static async Task<string> GetEC2InstanceId()
         {
+            string r = null;
+
+            // SF-6804: Frequent Calls to GetEC2InstanceId
+            bool skipEc2InstanceIdUpdate = false;
+
+            if (Config.Ec2InstanceMetadataUpdateThresholdMinutes > 0)
+            {
+                var threshold = TimeSpan.FromMinutes(Config.Ec2InstanceMetadataUpdateThresholdMinutes);
+                lock (ec2InstanceLock)
+                {
+                    skipEc2InstanceIdUpdate = ec2InstanceIdLastUpdate != null && ec2InstanceIdLastUpdate < DateTimeOffset.UtcNow.Subtract(threshold);
+                    r = string.IsNullOrWhiteSpace(ec2InstanceId) ? null : ec2InstanceId;
+                }
+            }
+            else
+            {
+                skipEc2InstanceIdUpdate = true;
+            }
+
+            if (skipEc2InstanceIdUpdate)
+            {
+                return r;
+            }
+
             try
             {
 
@@ -152,25 +244,47 @@ namespace StackifyLib.Models
                     if (statusCode >= 200 && statusCode < 300)
                     {
                         string id = await content.Content.ReadAsStringAsync();
-                        return string.IsNullOrWhiteSpace(id) ? null : id;
+                        r = string.IsNullOrWhiteSpace(id) ? null : id;
                     }
                 }
 
             }
             catch // if not in aws this will timeout
             {
-                return null;
+                r = null;
             }
 
-            return null;
+            lock (ec2InstanceLock)
+            {
+                ec2InstanceId = r;
+                ec2InstanceIdLastUpdate = DateTimeOffset.UtcNow;
+            }
+
+            return r;
         }
+
 #endif
+        private static bool IsEc2MachineName(string machineName)
+        {
+            if (string.IsNullOrWhiteSpace(machineName))
+            {
+                return false;
+            }
+
+            if (machineName.StartsWith("EC2") && machineName.Contains("-"))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Get the display name of the windows service if it is a windows service
         /// </summary>
         private void IsWindowService()
         {
-#if NET451 || NET45 || NET40
+#if NETFULL
             try
             {
                 string query = "select DisplayName from Win32_Service WHERE ProcessID='" + System.Diagnostics.Process.GetCurrentProcess().Id + "'";
@@ -203,16 +317,13 @@ namespace StackifyLib.Models
 #endif
         }
 
-
-
-
         public EnvironmentDetail(bool loadDetails)
         {
             if (!loadDetails)
                 return;
 
             bool isWebRequest = false;
-#if NET451 || NET45 || NET40
+#if NETFULL
             try
             {
                 isWebRequest = AppDomain.CurrentDomain.FriendlyName.Contains("W3SVC");
@@ -269,7 +380,7 @@ namespace StackifyLib.Models
                 this.IsAzureWorkerRole = false;
 
                 //Logger global properties would override everything
-                
+
                 if (!string.IsNullOrEmpty(Config.AppName))
                 {
                     ConfiguredAppName = Config.AppName;
@@ -293,7 +404,7 @@ namespace StackifyLib.Models
                 GetAzureInfo();
 
 
-#if NET451 || NET45 || NET40
+#if NETFULL
                 //Not a web app, check for windows service
                 if (!Environment.UserInteractive && !AppDomain.CurrentDomain.FriendlyName.Contains("W3SVC"))
                 {
@@ -301,17 +412,9 @@ namespace StackifyLib.Models
                 }
 #endif
 
+                DeviceName = GetDeviceName();
 
-#if NET451 || NET45 || NET40
-
-                DeviceName = GetEC2InstanceId() ?? Environment.MachineName;
-#else
-                var instanceID_task = GetEC2InstanceId();
-                instanceID_task.Wait();
-                DeviceName = instanceID_task.Result ?? Process.GetCurrentProcess().MachineName;
-#endif
-
-#if NET451 || NET45 || NET40
+#if NETFULL
                 if (string.IsNullOrEmpty(AppName) && !isWebRequest)
                 {
                     AppName = AppDomain.CurrentDomain.FriendlyName;
@@ -340,7 +443,7 @@ namespace StackifyLib.Models
                 StackifyLib.Utils.StackifyAPILogger.Log("Error figuring out app environment details\r\n" + ex.ToString(), true);
             }
 
-#if NET451 || NET45 || NET40
+#if NETFULL
             try
             {
 

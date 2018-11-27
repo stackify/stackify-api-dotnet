@@ -7,7 +7,7 @@ using System.Linq;
 
 using Newtonsoft.Json;
 
-#if NET451 || NET45 || NET40
+#if NETFULL
 using System.Web;
 using System.Web.Routing;
 using StackifyLib.Web;
@@ -29,7 +29,7 @@ namespace StackifyLib.Models
         {
             _Error = error;
 
-#if NET451 || NET45 || NET40
+#if NETFULL
             if (System.Web.HttpContext.Current != null)
             {
                 Load(System.Web.HttpContext.Current);
@@ -56,7 +56,6 @@ namespace StackifyLib.Models
 
         [JsonProperty]
         public string ReportingUrl { get; set; }
-
 
         [JsonProperty]
         public string ReferralUrl { get; set; }
@@ -93,7 +92,7 @@ namespace StackifyLib.Models
 
 
 
-#if NET451 || NET45 || NET40
+#if NETFULL
         private void Load(HttpContext context)
         {
             if (context == null || context.Request == null)
@@ -146,12 +145,11 @@ namespace StackifyLib.Models
                     ReportingUrl = route.ToString();
                 }
             }
-            catch (Exception)
+            catch
             {
-
+                // ignored
             }
 
-           
 
             try
             {
@@ -225,8 +223,9 @@ namespace StackifyLib.Models
                     }
                 }
             }
-            catch (Exception)
+            catch
             {
+                // ignored
             }
         }
 #endif
@@ -248,7 +247,7 @@ namespace StackifyLib.Models
             dictionary[key] = value;
         }
 
-#if NET451 || NET45 || NET40
+#if NETFULL
         internal static Dictionary<string, string> ToKeyValues(HttpCookieCollection collection, List<string> goodKeys, List<string> badKeys)
         {
             var keys = collection.AllKeys;
@@ -265,9 +264,9 @@ namespace StackifyLib.Models
                          AddKey(key, cookie.Value, items, goodKeys, badKeys);
                     }
                 }
-                catch (Exception)
+                catch
                 {
-
+                    // ignored
                 }
             }
 
@@ -286,9 +285,9 @@ namespace StackifyLib.Models
                     string val = collection[key];
                     AddKey(key, val, items, goodKeys, badKeys);
                 }
-                catch (Exception)
+                catch
                 {
-                   
+                    // ignored
                 }
             }
 
@@ -313,9 +312,9 @@ namespace StackifyLib.Models
                     }
 
                 }
-                catch (Exception)
+                catch
                 {
-
+                    // ignored
                 }
             }
 

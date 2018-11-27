@@ -16,6 +16,7 @@ namespace StackifyLib.Utils
     {
         static List<string> _BadTypes = new List<string>() { "log4net.Util.SystemStringFormat", "System.Object[]" };
         static JsonSerializer serializer = new JsonSerializer { ReferenceLoopHandling = ReferenceLoopHandling.Ignore };
+        static JsonSerializerSettings serializerSettings = new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore, ReferenceLoopHandling = ReferenceLoopHandling.Ignore };
 
         /// <summary>
         /// Trying to serialize something that the user passed in. Sometimes this is used to serialize what we know is additional debug and sometimes it is the primary logged item. This is why the serializeSimpleTypes exists. For additional debug stuff we always serialize it. For the primary logged object we won't because it doesn't make any sense to put a string in the json as well as the main message. It's meant for objects.
@@ -126,21 +127,22 @@ namespace StackifyLib.Utils
                             }
                             else
                             {
-
                                 if (!typeInfo.ContainsGenericParameters)
                                 {
                                     jObject.Add("objectType", type.FullName);
                                 }
-#if NET451 || NET45 || NET40
                                 else
                                 {
-
+#if NETFULL
                                     var genericArgs = typeInfo.GetGenericArguments();
-
-                                    if (genericArgs.Any())
+#else
+                                    var genericArgs = typeInfo.IsGenericTypeDefinition ?
+                                        type.GetTypeInfo().GenericTypeParameters :
+                                        type.GetTypeInfo().GenericTypeArguments;
+#endif
+                                    if (genericArgs != null && genericArgs.Length > 0)
                                     {
                                         var childtype = genericArgs.First();
-
 #if NET40
                                         var childtypeinfo = childtype;
 #else
@@ -161,7 +163,6 @@ namespace StackifyLib.Utils
                                         jObject.Add("objectType", type.FullName);
                                     }
                                 }
-#endif
                             }
                         }
                         else if (token is JValue)
@@ -185,7 +186,7 @@ namespace StackifyLib.Utils
             }
 
             string data = null;
-            if (properties != null && properties.Any())
+            if (properties != null && properties.Count > 0)
             {
 
                 if (jObject == null)
@@ -221,12 +222,7 @@ namespace StackifyLib.Utils
 
             if (jObject != null)
             {
-                return JsonConvert.SerializeObject(jObject,
-                                                   new JsonSerializerSettings()
-                                                   {
-                                                       NullValueHandling = NullValueHandling.Ignore,
-                                                       ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-                                                   });
+                return JsonConvert.SerializeObject(jObject, serializerSettings);
             }
 
             return null;

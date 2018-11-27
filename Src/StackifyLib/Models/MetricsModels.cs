@@ -47,12 +47,12 @@ namespace StackifyLib.Models
 
         public void CalcAndSetAggregateKey()
         {
-            this.AggregateKey = Category.ToLower() + "-" + ((Name ?? "Missing Name")).ToLower() + "-" + MetricType.ToString() + "-" + GetRoundedTime().ToString("s");
+            AggregateKey = $"{Category.ToLower()}-{(Name ?? "Missing Name").ToLower()}-{MetricType}-{GetRoundedTime():s}";
         }
 
         public string CalcNameKey()
         {
-            return Category.ToLower() + "-" + ((Name ?? "Missing Name")).ToLower() + "-" + MetricType.ToString();
+            return $"{Category.ToLower()}-{(Name ?? "Missing Name").ToLower()}-{MetricType}";
         }
 
         public DateTime GetRoundedTime()
@@ -87,15 +87,18 @@ namespace StackifyLib.Models
             Count = 0;
             NameKey = metric.CalcNameKey();
             OccurredUtc = metric.GetRoundedTime();
+            IsIncrement = metric.IsIncrement;
         }
 
-        public MetricAggregate(string category, string name, MetricType metricType)
+        public MetricAggregate(string category, string name, MetricType metricType, bool isIncrement)
         {
             Value = 0;
             Name = name;
             Category = category;
             MetricType = metricType;
+            IsIncrement = isIncrement;
         }
+
         public int Count { get; set; }
         public string Category { get; private set; }
         public string Name { get; private set; }
@@ -107,10 +110,12 @@ namespace StackifyLib.Models
 
         public string NameKey { get; set; }
 
+        public bool IsIncrement { get; set; }
 
         public string AggregateKey()
         {
-            return (Category ?? "Missing Category").ToLower() + "-" + ((Name ?? "Missing Name")).ToLower() + "-" + MetricType.ToString() + "-" + OccurredUtc.Floor(TimeSpan.FromMinutes(1)).ToString("s");
+            var r = $"{(Category ?? "Missing Category").ToLower()}-{(Name ?? "Missing Name").ToLower()}-{MetricType}-{OccurredUtc.Floor(TimeSpan.FromMinutes(1)):s}";
+            return r;
         }
     }
 

@@ -2,31 +2,29 @@
 
   <PropertyGroup>
     <AssemblyTitle>Stackify .NET Core LoggerFactory</AssemblyTitle>
-    <VersionPrefix>2.0.0</VersionPrefix>
-    <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
+    <VersionPrefix>2.1.0</VersionPrefix>
+    <TargetFrameworks>netstandard2.0;net461;net462</TargetFrameworks>
     <AssemblyName>StackifyLib.CoreLogger</AssemblyName>
     <PackageId>StackifyLib.CoreLogger</PackageId>
     <PackageTags>stackify;metrics;errors;logs</PackageTags>
-    <NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>
-    <PackageTargetFallback>$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <PackageLicenseUrl>https://github.com/stackify/stackify-api-dotnet/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/stackify/stackify-api-dotnet</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/stackify/stackify-api-dotnet</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageIconUrl>https://stackify.com/wp-content/uploads/2017/02/stk.png</PackageIconUrl>
+    <Description>StackifyLib.CoreLogger</Description>
+    <Version>2.1.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\StackifyLib\StackifyLib.csproj" />
   </ItemGroup>
 
-  
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
+  <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging" Version="1.0.2" />
   </ItemGroup>
-
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="1.0.2" />
-  </ItemGroup>
-
 
 </Project>

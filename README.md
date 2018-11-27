@@ -1,4 +1,4 @@
-# Stackify API for .NET
+## Stackify API for .NET
 
 [![Build status](https://ci.appveyor.com/api/projects/status/6suxse470ab4bdxl?svg=true)](https://ci.appveyor.com/project/jaredcnance/stackify-api-dotnet)
 [![NuGet](https://img.shields.io/nuget/v/StackifyLib.svg)](https://www.nuget.org/packages/StackifyLib/)
@@ -7,7 +7,7 @@ Library for Stackify users to integrate Stackify in to their projects. Provides 
 
 **Important links:**
 - [Stackify homepage](http://www.stackify.com)
-- [Stackify documentation site](http://support.stackify.com/hc/en-us/categories/200398739-Errors-Logs)
+- [Stackify documentation site](http://support.stackify.com/)
 - [NuGet packages](https://www.nuget.org/packages?q=Stackify)
 - [Best practices for logging with C#](https://stackify.com/csharp-logging-best-practices/)
 - [Why you should use tags in your logs](https://stackify.com/get-smarter-log-management-with-log-tags/)
@@ -22,7 +22,7 @@ Library for Stackify users to integrate Stackify in to their projects. Provides 
 - [Direct API](#direct-api)
 - [Configuring with Azure service definitions](#configuring-with-azure-service-definitions)
 
-##Basics
+## Basics
 
 Several nuget packages are available for Stackify's core API as well as various logging frameworks. Please install the proper packages. All of the available packages for various logging frameworks are wrapper on top of StackifyLib which can also be used directly for logging. 
 
@@ -85,14 +85,13 @@ static void StackifyAPILogger_OnLogMessage(string data)
 }
 ```
 
-Please note that Newtonsoft.Json is used by StackifyLib but is embedded as a resource to avoid version conflicts. Costura.Fody is being used to embed it. If you have any issues with Newtonsoft.Json as a result of using StackifyLib please contact Stackify support.
 
-##Errors and Logs
+## Errors and Logs
 
 If you log an object with the message, Stackify's log viewer makes it easy to search by these parameters. You can always search by the text in the log message itself, but searching by the logged properties provides a lot more power. If you always logged a "clientid" for example on every log message, you could search in Stackify for "json.clientid:1" and quickly see all logs and errors affecting that specific client. Another big difference and advantage to logging objects is you can do a range type search "json.clientid:[1 TO 10]" which would not be possible by a straight text search.
 
 
-###NLog 2.0.1.2 - v3.1+
+### NLog 2.0.1.2 - v3.1+
 
 **Install via NuGet package**
 ```
@@ -131,7 +130,7 @@ Options
 - CallContextKeys is an additional feature unrelated to NLog that uses the local thread storage for more advanced tracking of context variables. It is used via CallContext.LogicalSetData(key, value). Research LogicalSetData online to learn more. It is supposed to work better across child Task objects and with async.
 - logMethodNames - Method names will show up in the StackifyLog viewer most of the time as the class name that did the logging. For exceptions it will usually show the method name. To enable the exact method name for all logging, set this property to true. Note that it does cause a small performance hit due to walking the StackTrace.
 
-###log4net v2.0+ (v1.2.11+)
+### log4net v2.0+ (v1.2.11+)
 
 **Install via NuGet package**
 ```
@@ -181,7 +180,7 @@ Options
 - logMethodNames - Method names will show up in the StackifyLog viewer most of the time as the class name that did the logging. For exceptions it will usually show the method name. To enable the exact method name for all logging, set this property to true. Note that it does cause a small performance hit due to walking the StackTrace.
 
 
-####log4net Extension Methods
+#### log4net Extension Methods
 
 log4net does not internally have methods for logging a log message along with an object. Stackify's appenders work fine if you log an object directly or we have created some friendly extension methods to make it easy to log an object with your message at the same time.
 
@@ -196,7 +195,7 @@ logger.Debug(dictionary); //This works fine and is indexed and searchable by Sta
 logger.Debug("Starting some process for client 1", dictionary); //extension method
 ```
 
-###log4net v1.2.10
+### log4net v1.2.10
 
 **Install via NuGet package**
 ```
@@ -206,7 +205,7 @@ PM> Install-Package StackifyLib.log4net.v1_2_10
 Note: If you use 1.2.10 then you must use our special nuget package for that version. There is no way to use an assembly redirect because the public key of log4net v1 and v2 are different. Everything else is the same about using log4net with Stackify.
 
 
-###Direct API
+### Direct API
 
 **Install via NuGet package**
 ```
@@ -233,7 +232,7 @@ StackifyLib.Logger.QueueLogObject(msg);
 
 *Make sure you call StackifyLib.Logger.Shutdown() before your app ends to flush the queue*
 
-###Configuring with Azure service definitions
+### Configuring with Azure service definitions
 
 StackifyLib reads the license key, app name, and environment settings from normal web.config appSettings. If you would prefer to store the settings in an [azure cloud deployment cscfg](http://msdn.microsoft.com/en-us/library/azure/hh369931.aspx#NameValue), then you can create a little code to read the settings from there and set the StackifyLib settings in code like this in some similar way.
 

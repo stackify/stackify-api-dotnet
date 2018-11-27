@@ -34,6 +34,7 @@ namespace StackifyLib
                     msg.Msg = message;
                     msg.Level = level;
 
+                    _logClient.QueueMessage(msg);
                 }
                 else
                 {

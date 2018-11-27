@@ -4,12 +4,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-#if NET45 || NET40
+#if NETFULL
 using System.Runtime.Remoting.Messaging;
 #endif
-using System.Security;
-using System.Text;
-using System.Threading.Tasks;
 using StackifyLib;
 using System.Diagnostics;
 using StackifyLib.Internal.Logs;
@@ -31,6 +28,8 @@ namespace NLog.Targets.Stackify
         public string callContextKeys { get; set; }
         public bool? logMethodNames { get; set; }
         public bool? logAllParams { get; set; }
+        public bool? logAllProperties { get; set; }
+        public bool? logLastParameter { get; set; }
 
         private List<string> _GlobalContextKeys = new List<string>();
         private List<string> _MappedContextKeys = new List<string>();
@@ -99,16 +98,12 @@ namespace NLog.Targets.Stackify
             {
                 StackifyAPILogger.Log(ex.ToString());
             }
-
         }
 
 
         private Dictionary<string, object> GetDiagnosticContextProperties()
         {
-
-
             Dictionary<string, object> properties = new Dictionary<string, object>();
-
 
             string ndc = NLog.NestedDiagnosticsContext.TopMessage;
 
@@ -117,14 +112,12 @@ namespace NLog.Targets.Stackify
                 properties["ndc"] = ndc;
             }
 
-
             if (!_HasContextKeys)
             {
                 return properties;
             }
 
             // GlobalDiagnosticsContext
-
             foreach (string gdcKey in _GlobalContextKeys)
             {
                 if (NLog.GlobalDiagnosticsContext.Contains(gdcKey))
@@ -137,8 +130,8 @@ namespace NLog.Targets.Stackify
                     }
                 }
             }
-            // MappedDiagnosticsContext
 
+            // MappedDiagnosticsContext
             foreach (string mdcKey in _MappedContextKeys)
             {
                 if (NLog.MappedDiagnosticsContext.Contains(mdcKey))
@@ -151,7 +144,8 @@ namespace NLog.Targets.Stackify
                     }
                 }
             }
-            #if NET45 || NET40
+
+#if NETFULL
 
             foreach (string key in _CallContextKeys)
             {
@@ -163,13 +157,12 @@ namespace NLog.Targets.Stackify
                 }
             }
 #endif
-            return properties;
 
+            return properties;
         }
 
         internal LogMsg Translate(LogEventInfo loggingEvent)
         {
-
             if (loggingEvent == null)
                 return null;
 
@@ -179,13 +172,10 @@ namespace NLog.Targets.Stackify
 
             StackifyLib.Models.LogMsg msg = new LogMsg();
 
-
             if (loggingEvent.Level != null)
             {
                 msg.Level = loggingEvent.Level.Name;
             }
-
-         
 
             if (loggingEvent.HasStackTrace && loggingEvent.UserStackFrame != null)
             {
@@ -200,9 +190,7 @@ namespace NLog.Targets.Stackify
                         msg.SrcLine = frame.GetFileLineNumber();
                     }
                 }
-
             }
-
 
             //if it wasn't set above for some reason we will do it this way as a fallback
             if (string.IsNullOrEmpty(msg.SrcMethod))
@@ -239,47 +227,33 @@ namespace NLog.Targets.Stackify
             msg.Msg = (formattedMessage ?? "").Trim();
 
             object debugObject = null;
-            Dictionary<string, object> args = new Dictionary<string, object>();
 
-            if ((loggingEvent.Parameters != null) && (loggingEvent.Parameters.Length > 0))
+            if ((logAllProperties ?? true) && loggingEvent.Properties.Count > 0)
             {
-
-                for (int i = 0; i < loggingEvent.Parameters.Length; i++)
+                Dictionary<string, object> args = new Dictionary<string, object>();
+                foreach (KeyValuePair<object, object> eventProperty in loggingEvent.Properties)
                 {
-                    var item = loggingEvent.Parameters[i];
-
-                    if (item == null)
+                    string propertyKey = eventProperty.Key.ToString();
+                    if (!string.IsNullOrEmpty(propertyKey))
                     {
-                        continue;
-                    }
-                    else if (item is Exception)
-                    {
-                        if (loggingEvent.Exception == null)
-                        {
-                            loggingEvent.Exception = (Exception)item;
-                        }
-                    }
-                    else if (item.ToString() == msg.Msg)
-                    {
-                        //ignore it.   
-                    }
-                    else if (logAllParams ?? true)
-                    {
-                        args["arg" + i] = loggingEvent.Parameters[i];
-                        debugObject = item;
-                    }
-                    else
-                    {
-                        debugObject = item;
+                        args[propertyKey] = eventProperty.Value;
                     }
                 }
 
-                if ((logAllParams ?? true) && args != null && args.Count > 1)
+                if ((logAllParams ?? false) && loggingEvent.Parameters != null && loggingEvent.Parameters.Length > 0)
+                {
+                    debugObject = CaptureParameters(loggingEvent, msg.Msg, args);
+                }
+                else
                 {
                     debugObject = args;
                 }
             }
-
+            else if (loggingEvent.Parameters != null && loggingEvent.Parameters.Length > 0)
+            { 
+                Dictionary<string, object> args = (logAllParams ?? true) ? new Dictionary<string, object>() : null;
+                debugObject = CaptureParameters(loggingEvent, msg.Msg, args);
+            }
 
             StackifyError error = null;
 
@@ -299,13 +273,6 @@ namespace NLog.Targets.Stackify
                 diags.Remove("transid");
             }
 
-
-     
-
-
-
-
-
             if (debugObject != null)
             {
                 msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(debugObject, true, diags);
@@ -314,7 +281,6 @@ namespace NLog.Targets.Stackify
             {
                 msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(null, false, diags);
             }
-          
 
             if (msg.Msg != null && error != null)
             {
@@ -356,11 +322,51 @@ namespace NLog.Targets.Stackify
                 msg.Msg += " #errorgoverned";
             }
 
-
             return msg;
         }
 
+        private object CaptureParameters(LogEventInfo loggingEvent, string logMessage, Dictionary<string, object> args)
+        {
+            object debugObject = null;
+            if (args != null || (logLastParameter ?? true))
+            {
+                for (int i = 0; i < loggingEvent.Parameters.Length; i++)
+                {
+                    var item = loggingEvent.Parameters[i];
 
-    
+                    if (item == null)
+                    {
+                        continue;
+                    }
+                    else if (item is Exception)
+                    {
+                        if (loggingEvent.Exception == null)
+                        {
+                            loggingEvent.Exception = (Exception)item;
+                        }
+                    }
+                    else if (item.ToString() == logMessage)
+                    {
+                        //ignore it.   
+                    }
+                    else if (args != null)
+                    {
+                        args["arg" + i] = loggingEvent.Parameters[i];
+                        debugObject = item;
+                    }
+                    else
+                    {
+                        debugObject = item;
+                    }
+                }
+
+                if (args != null && args.Count > 1)
+                {
+                    debugObject = args;
+                }
+            }
+
+            return debugObject;
+        }
     }
 }
