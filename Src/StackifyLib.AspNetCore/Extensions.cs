@@ -6,7 +6,7 @@ namespace StackifyLib
 {
     public static class Extensions
     {
-        public static void ConfigureStackifyLogging(this Microsoft.AspNetCore.Builder.IApplicationBuilder app, Microsoft.Extensions.Configuration.IConfigurationRoot configuration)
+        public static void ConfigureStackifyLogging(this Microsoft.AspNetCore.Builder.IApplicationBuilder app, Microsoft.Extensions.Configuration.IConfiguration configuration)
         {
             try
             {

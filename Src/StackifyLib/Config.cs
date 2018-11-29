@@ -13,9 +13,9 @@ namespace StackifyLib
     {
 #if NETCORE || NETCOREX
 
-        private static Microsoft.Extensions.Configuration.IConfigurationRoot _configuration = null;
+        private static Microsoft.Extensions.Configuration.IConfiguration _configuration = null;
 
-        public static void SetConfiguration(Microsoft.Extensions.Configuration.IConfigurationRoot configuration)
+        public static void SetConfiguration(Microsoft.Extensions.Configuration.IConfiguration configuration)
         {
             _configuration = configuration;
         }

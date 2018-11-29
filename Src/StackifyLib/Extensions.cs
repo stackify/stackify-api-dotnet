@@ -32,7 +32,7 @@ namespace StackifyLib
         }
 
 #if NETCORE || NETCOREX
-        public static void ConfigureStackifyLogging(this Microsoft.Extensions.Configuration.IConfigurationRoot configuration)
+        public static void ConfigureStackifyLogging(this Microsoft.Extensions.Configuration.IConfiguration configuration)
         {
             Config.SetConfiguration(configuration);
             //tell it to load all the settings since we now have the config
