@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -82,14 +82,12 @@ namespace StackifyLib.Utils
                             var type = logObject.GetType();
 
                             //do we log the objectType? Not logging it for simple things
-                            if (typeInfo.IsPrimitive || type.Name == "String" || typeInfo.BaseType == typeof(ValueType) || type.Name.Contains("AnonymousType") || type.FullName.Contains("System.Collections.Generic.Dictionary"))
-                            {
-
-                            }
-                            else
+                            if (typeInfo.IsPrimitive == false && type.Name != "String" && typeInfo.BaseType != typeof(ValueType) && type.Name.Contains("AnonymousType") == false && (type.FullName == null || type.FullName.Contains("System.Collections.Generic.Dictionary") == false))
                             {
                                 jObject.Add("objectType", type.FullName);
                             }
+
+                            PruneJObject(jObject, Config.LoggingJsonMaxFields);
                         }
                         else if (token is JArray)
                         {
@@ -114,12 +112,7 @@ namespace StackifyLib.Utils
                                     var childtypeinfo = childtype.GetTypeInfo();
 #endif
 
-                                    if (childtypeinfo.IsPrimitive || childtype.Name == "String" ||
-                                        childtypeinfo.BaseType == typeof (ValueType))
-                                    {
-
-                                    }
-                                    else
+                                    if (childtypeinfo.IsPrimitive == false && childtype.Name != "String" && childtypeinfo.BaseType != typeof(ValueType))
                                     {
                                         jObject.Add("objectType", childtype.FullName);
                                     }
@@ -148,12 +141,7 @@ namespace StackifyLib.Utils
 #else
                                         var childtypeinfo = childtype.GetTypeInfo();
 #endif
-                                        if (childtypeinfo.IsPrimitive || childtype.Name == "String" ||
-                                            childtypeinfo.BaseType == typeof (ValueType))
-                                        {
-
-                                        }
-                                        else
+                                        if (childtypeinfo.IsPrimitive == false && childtype.Name != "String" && childtypeinfo.BaseType != typeof(ValueType))
                                         {
                                             jObject.Add("objectType", childtype.FullName);
                                         }
@@ -164,6 +152,8 @@ namespace StackifyLib.Utils
                                     }
                                 }
                             }
+
+                            PruneJObject(jObject, Config.LoggingJsonMaxFields);
                         }
                         else if (token is JValue)
                         {
@@ -227,6 +217,45 @@ namespace StackifyLib.Utils
 
             return null;
         }
+
+
+        private static void PruneJObject(JObject obj, int maxFields)
+        {
+            var count = 0;
+
+            var itemsToRemove = PruneJTokenRecursive(obj, maxFields, ref count);
+
+            foreach (var item in itemsToRemove)
+            {
+                item.Remove();
+            }
+        }
+
+        private static List<JToken> PruneJTokenRecursive(JToken obj, int maxFields, ref int count)
+        {
+            if (obj is JProperty || obj is JArray)
+            {
+                count++;
+            }
+
+            var itemsToRemove = new List<JToken>();
+
+            foreach (var item in obj.Children())
+            {
+                if (count >= maxFields)
+                {
+                    if (item is JProperty)
+                    {
+                        itemsToRemove.Add(item);
+                    }
+                }
+
+                itemsToRemove.AddRange(PruneJTokenRecursive(item, maxFields, ref count));
+            }
+
+            return itemsToRemove;
+        }
+
 
         public static bool IsValueType(object obj)
         {
