@@ -1,12 +1,9 @@
-using System.Collections;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 
 
@@ -28,7 +25,6 @@ namespace StackifyLib.Utils
         public static string SerializeDebugData(object logObject, bool serializeSimpleTypes, Dictionary<string, object> properties = null)
         {
             Type t = null;
-      //      TypeInfo typeInfo = null;
             JObject jObject = null;
 
             try
@@ -86,8 +82,6 @@ namespace StackifyLib.Utils
                             {
                                 jObject.Add("objectType", type.FullName);
                             }
-
-                            PruneJObject(jObject, Config.LoggingJsonMaxFields);
                         }
                         else if (token is JArray)
                         {
@@ -152,8 +146,6 @@ namespace StackifyLib.Utils
                                     }
                                 }
                             }
-
-                            PruneJObject(jObject, Config.LoggingJsonMaxFields);
                         }
                         else if (token is JValue)
                         {
@@ -212,50 +204,49 @@ namespace StackifyLib.Utils
 
             if (jObject != null)
             {
+
+                jObject = GetPrunedObject(jObject, Config.LoggingJsonMaxFields);
+
                 return JsonConvert.SerializeObject(jObject, serializerSettings);
             }
 
             return null;
         }
 
-
-        private static void PruneJObject(JObject obj, int maxFields)
+        /// <summary>
+        ///     If the <see cref="JObject"/> provided has move fields than maxFields
+        ///     will return a simplified <see cref="JObject"/> with original as an unparsed string message,
+        ///     otherwise will return original <see cref="JObject"/>
+        /// </summary>
+        private static JObject GetPrunedObject(JObject obj, int maxFields)
         {
-            var count = 0;
+            var fieldCount = GetFieldCount(obj);
 
-            var itemsToRemove = PruneJTokenRecursive(obj, maxFields, ref count);
-
-            foreach (var item in itemsToRemove)
+            if (fieldCount > maxFields)
             {
-                item.Remove();
-            }
-        }
-
-        private static List<JToken> PruneJTokenRecursive(JToken obj, int maxFields, ref int count)
-        {
-            if (obj is JProperty || obj is JArray)
-            {
-                count++;
-            }
-
-            var itemsToRemove = new List<JToken>();
-
-            foreach (var item in obj.Children())
-            {
-                if (count >= maxFields)
+                return new JObject
                 {
-                    if (item is JProperty)
-                    {
-                        itemsToRemove.Add(item);
-                    }
-                }
-
-                itemsToRemove.AddRange(PruneJTokenRecursive(item, maxFields, ref count));
+                    { "invalid", true },
+                    { "message", obj.ToString() }
+                };
             }
 
-            return itemsToRemove;
+            return obj;
         }
 
+        private static int GetFieldCount(JToken obj)
+        {
+            switch (obj.Type)
+            {
+                case JTokenType.Array:
+                case JTokenType.Object:
+                    return obj.Children().Sum(i => GetFieldCount(i));
+                case JTokenType.Property:
+                    return GetFieldCount(obj.Value<JProperty>().Value);
+                default:
+                    return 1;
+            }
+        }
 
         public static bool IsValueType(object obj)
         {
@@ -269,18 +260,6 @@ namespace StackifyLib.Utils
             return t.GetTypeInfo().IsPrimitive || t.Equals(typeof(string));
 #endif
         }
-
-
-        //public static dynamic ToDynamic(object value)
-        //{
-        //    IDictionary<string, object> expando = new ExpandoObject();
-
-        //    foreach (PropertyDescriptor property in TypeDescriptor.GetProperties(value.GetType()))
-        //        expando.Add(property.Name, property.GetValue(value));
-
-        //    return expando as ExpandoObject;
-        //}
-
 
         public static string CleanPartialUrl(string url)
         {
