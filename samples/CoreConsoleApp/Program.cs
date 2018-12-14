@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -32,11 +32,11 @@ namespace CoreConsoleApp
             StackifyLib.Utils.StackifyAPILogger.OnLogMessage += StackifyAPILogger_OnLogMessage;
             StackifyLib.Utils.StackifyAPILogger.LogEnabled = true;
 
-
-            NLogTest();
+            //NLogTest();
 
             StackifyLib.Logger.Shutdown(); //best practice for console apps
         }
+
 
         private static void NLogTest()
         {

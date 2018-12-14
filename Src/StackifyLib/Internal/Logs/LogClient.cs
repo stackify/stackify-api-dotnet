@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using StackifyLib.Models;
 using StackifyLib.Utils;
 using System;
@@ -77,7 +77,7 @@ namespace StackifyLib.Internal.Logs
         {
             EnsureHttpClient();
             return _HttpClient.IsAuthorized();
-           
+
         }
 
         public bool CanUpload()
@@ -165,7 +165,7 @@ namespace StackifyLib.Internal.Logs
             {
                 msg.SetLogMsgID(msg.id, isError, msg.Level, null, null);
             }
-            
+
 
             //We need to do everything up to this point for sasquatch. Even if we aren't uploading the log.
             if (this.CanQueue())
@@ -199,7 +199,7 @@ namespace StackifyLib.Internal.Logs
                         var defaults = CreateDefaultMsgGroup();
 
                         //default app, env, and server name if not set to whatever the current one is
-                        //do not default the other fields as they not match what is being set. 
+                        //do not default the other fields as they not match what is being set.
                         //i.e. the default appnameid is not the correct id for a new custom app name being used.
                         var d = message.AppDetails;
                         var group = new LogMsgGroup()
@@ -217,7 +217,7 @@ namespace StackifyLib.Internal.Logs
                             ServerName = d.ServerName ?? defaults.ServerName,
                              Msgs = new List<LogMsg>()
                         };
-                        
+
                         groups[groupKey] = group;
                     }
                 }
@@ -317,7 +317,7 @@ namespace StackifyLib.Internal.Logs
 
                 string jsonData = JsonConvert.SerializeObject(groups, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
 
-                
+
                 string urlToUse = (_HttpClient.BaseAPIUrl) + "Log/SaveMultipleGroups";
 
 
