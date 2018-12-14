@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using FluentAssertions;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -27,7 +29,11 @@ namespace StackifyLib.UnitTests
 
             output.WriteLine(result);
 
-            result.Should().NotContain("FieldSixty");
+            var obj = JObject.Parse(result);
+
+            Assert.True(obj.TryGetValue("invalid", out _));
+            Assert.True(obj.TryGetValue("message", out _));
+            Assert.Equal(2, obj.Count);
         }
 
         [Fact]
@@ -45,7 +51,11 @@ namespace StackifyLib.UnitTests
 
             output.WriteLine(result);
 
-            result.Should().NotContain("FieldSixty");
+            var obj = JObject.Parse(result);
+
+            Assert.True(obj.TryGetValue("invalid", out _));
+            Assert.True(obj.TryGetValue("message", out _));
+            Assert.Equal(2, obj.Count);
         }
 
 
