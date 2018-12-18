@@ -3,6 +3,7 @@ using StackifyLib.Models;
 using StackifyLib.Utils;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -315,8 +316,17 @@ namespace StackifyLib.Internal.Logs
 
                 var groups = SplitLogsToGroups(messages);
 
-                string jsonData = JsonConvert.SerializeObject(groups, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+                var settings = new JsonSerializerSettings() { MaxDepth = Config.LoggingJsonMaxDepth, NullValueHandling = NullValueHandling.Ignore };
 
+                string jsonData;
+                using (var writer = new StringWriter())
+                {
+                    using (var jsonWriter = new MaxDepthJsonTextWriter(writer, settings))
+                    {
+                        JsonSerializer.CreateDefault().Serialize(jsonWriter, groups);
+                        jsonData = writer.ToString();
+                    }
+                }
 
                 string urlToUse = (_HttpClient.BaseAPIUrl) + "Log/SaveMultipleGroups";
 

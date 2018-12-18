@@ -1,7 +1,7 @@
+using StackifyLib.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using StackifyLib.Utils;
 
 namespace StackifyLib
 {
@@ -110,6 +110,15 @@ namespace StackifyLib
                         LoggingJsonMaxFields = maxFields;
                     }
                 }
+
+                var loggingJsonMaxDepth = Get("Stackify.Logging.JsonMaxDepth", "5");
+                if (string.IsNullOrWhiteSpace(loggingJsonMaxDepth) == false)
+                {
+                    if (int.TryParse(loggingJsonMaxDepth, out int maxDepth) && maxDepth > 0 && maxDepth < 20)
+                    {
+                        LoggingJsonMaxDepth = maxDepth;
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -151,6 +160,8 @@ namespace StackifyLib
         public static bool? ApiLog { get; set; }
 
         public static int LoggingJsonMaxFields { get; set; } = 50;
+
+        public static int LoggingJsonMaxDepth { get; set; } = 5;
 
 
         /// <summary>

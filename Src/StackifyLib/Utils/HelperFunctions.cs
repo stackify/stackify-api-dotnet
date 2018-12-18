@@ -1,19 +1,20 @@
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-
+using StackifyLib.Internal;
 
 namespace StackifyLib.Utils
 {
     public class HelperFunctions
     {
-        static List<string> _BadTypes = new List<string>() { "log4net.Util.SystemStringFormat", "System.Object[]" };
-        static JsonSerializer serializer = new JsonSerializer { ReferenceLoopHandling = ReferenceLoopHandling.Ignore };
-        static JsonSerializerSettings serializerSettings = new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore, ReferenceLoopHandling = ReferenceLoopHandling.Ignore };
+        private static List<string> _BadTypes = new List<string>() { "log4net.Util.SystemStringFormat", "System.Object[]" };
+        private static JsonSerializer serializer = new JsonSerializer { ReferenceLoopHandling = ReferenceLoopHandling.Ignore };
+        private static JsonSerializerSettings serializerSettings = new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore, ReferenceLoopHandling = ReferenceLoopHandling.Ignore };
 
         /// <summary>
         /// Trying to serialize something that the user passed in. Sometimes this is used to serialize what we know is additional debug and sometimes it is the primary logged item. This is why the serializeSimpleTypes exists. For additional debug stuff we always serialize it. For the primary logged object we won't because it doesn't make any sense to put a string in the json as well as the main message. It's meant for objects.
@@ -92,7 +93,7 @@ namespace StackifyLib.Utils
 
                             if (type.IsArray)
                             {
-                                var array = (Array) logObject;
+                                var array = (Array)logObject;
 
                                 if (array.Length > 0)
                                 {
@@ -204,10 +205,28 @@ namespace StackifyLib.Utils
 
             if (jObject != null)
             {
+                try
+                {
+                    jObject = GetPrunedObject(jObject, Config.LoggingJsonMaxFields);
 
-                jObject = GetPrunedObject(jObject, Config.LoggingJsonMaxFields);
+                    string json;
+                    using (var writer = new StringWriter())
+                    {
+                        using (var jsonWriter = new MaxDepthJsonTextWriter(writer, Config.LoggingJsonMaxDepth))
+                        {
+                            JsonSerializer.CreateDefault().Serialize(jsonWriter, jObject);
+                            json = writer.ToString();
+                        }
+                    }
 
-                return JsonConvert.SerializeObject(jObject, serializerSettings);
+                    return json;
+                }
+                catch (JsonSerializationException ex)
+                {
+                    Utils.StackifyAPILogger.Log(ex.ToString(), true);
+
+                    return null;
+                }
             }
 
             return null;

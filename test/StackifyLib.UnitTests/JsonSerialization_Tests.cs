@@ -23,7 +23,7 @@ namespace StackifyLib.UnitTests
         [Fact]
         public void Should_Prune_Object()
         {
-            var testMaxFields = GetTestObject();
+            var testMaxFields = GetTestObjectFields();
 
             var result = StackifyLib.Utils.HelperFunctions.SerializeDebugData(testMaxFields, false);
 
@@ -41,10 +41,10 @@ namespace StackifyLib.UnitTests
         {
             var list = new List<object>();
 
-            var testOne = GetTestObject();
+            var testOne = GetTestObjectFields();
             list.Add(testOne);
 
-            var testTwo = GetTestObject();
+            var testTwo = GetTestObjectFields();
             list.Add(testTwo);
 
             var result = StackifyLib.Utils.HelperFunctions.SerializeDebugData(list, false);
@@ -58,8 +58,56 @@ namespace StackifyLib.UnitTests
             Assert.Equal(2, obj.Count);
         }
 
+        [Fact]
+        public void Should_Throw_On_Max_Depth()
+        {
+            var obj = GetTestObjectDepth();
+            var result = StackifyLib.Utils.HelperFunctions.SerializeDebugData(obj, false);
+            Assert.Null(result);
+        }
 
-        private static object GetTestObject()
+
+        private static object GetTestObjectDepth()
+        {
+            var obj = new
+            {
+                One = new
+                {
+                    Two = new
+                    {
+                        Three = new
+                        {
+                            Four = new
+                            {
+                                Five = new
+                                {
+                                    Six = new
+                                    {
+                                        Seven = new
+                                        {
+                                            Eight = new
+                                            {
+                                                Nine = new
+                                                {
+                                                    Ten = new
+                                                    {
+
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            return obj;
+        }
+
+        private static object GetTestObjectFields()
         {
             var obj = new
             {
