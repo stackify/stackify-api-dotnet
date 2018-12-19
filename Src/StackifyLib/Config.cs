@@ -102,12 +102,30 @@ namespace StackifyLib
                     ApiLog = apiLog.Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
                 }
 
-                var loggingJsonMaxFields = Get("Stackify.Logging.JsonMaxFields", "50");
-                if (string.IsNullOrWhiteSpace(loggingJsonMaxFields) == false)
+                var loggingMaxDepth = Get("Stackify.Logging.MaxDepth", "5");
+                if (string.IsNullOrWhiteSpace(loggingMaxDepth) == false)
                 {
-                    if (int.TryParse(loggingJsonMaxFields, out int maxFields) && maxFields > 0 && maxFields < 100)
+                    if (int.TryParse(loggingMaxDepth, out var maxDepth) && maxDepth > 0 && maxDepth < 10)
                     {
-                        LoggingJsonMaxFields = maxFields;
+                        LoggingMaxDepth = maxDepth;
+                    }
+                }
+
+                var loggingMaxFields = Get("Stackify.Logging.MaxFields", "50");
+                if (string.IsNullOrWhiteSpace(loggingMaxFields) == false)
+                {
+                    if (int.TryParse(loggingMaxFields, out var maxFields) && maxFields > 0 && maxFields < 100)
+                    {
+                        LoggingMaxFields = maxFields;
+                    }
+                }
+
+                var loggingMaxStrLength = Get("Stackify.Logging.MaxStringLength", "32766");
+                if (string.IsNullOrWhiteSpace(loggingMaxStrLength) == false)
+                {
+                    if (int.TryParse(loggingMaxStrLength, out var maxStrLen) && maxStrLen > 0 && maxStrLen < 32766)
+                    {
+                        LoggingMaxStringLength = maxStrLen;
                     }
                 }
             }
@@ -150,7 +168,11 @@ namespace StackifyLib
 
         public static bool? ApiLog { get; set; }
 
-        public static int LoggingJsonMaxFields { get; set; } = 50;
+        public static int LoggingMaxDepth { get; set; } = 5;
+
+        public static int LoggingMaxFields { get; set; } = 50;
+
+        public static int LoggingMaxStringLength { get; set; } = 32766;
 
 
         /// <summary>

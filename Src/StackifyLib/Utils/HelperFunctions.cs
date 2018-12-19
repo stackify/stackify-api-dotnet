@@ -1,19 +1,20 @@
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using StackifyLib.Internal.Serialization;
 
 
 namespace StackifyLib.Utils
 {
     public class HelperFunctions
     {
-        static List<string> _BadTypes = new List<string>() { "log4net.Util.SystemStringFormat", "System.Object[]" };
-        static JsonSerializer serializer = new JsonSerializer { ReferenceLoopHandling = ReferenceLoopHandling.Ignore };
-        static JsonSerializerSettings serializerSettings = new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore, ReferenceLoopHandling = ReferenceLoopHandling.Ignore };
+        private static readonly List<string> BadTypes = new List<string> { "log4net.Util.SystemStringFormat", "System.Object[]" };
+        private static readonly JsonSerializer Serializer = new JsonSerializer { ReferenceLoopHandling = ReferenceLoopHandling.Ignore };
+        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate, NullValueHandling = NullValueHandling.Ignore, ReferenceLoopHandling = ReferenceLoopHandling.Ignore };
 
         /// <summary>
         /// Trying to serialize something that the user passed in. Sometimes this is used to serialize what we know is additional debug and sometimes it is the primary logged item. This is why the serializeSimpleTypes exists. For additional debug stuff we always serialize it. For the primary logged object we won't because it doesn't make any sense to put a string in the json as well as the main message. It's meant for objects.
@@ -68,9 +69,9 @@ namespace StackifyLib.Utils
                     {
 
                     }
-                    else if (!_BadTypes.Contains(t.ToString()))
+                    else if (!BadTypes.Contains(t.ToString()))
                     {
-                        var token = JToken.FromObject(logObject, serializer);
+                        var token = JToken.FromObject(logObject, Serializer);
 
                         if (token is JObject)
                         {
@@ -92,7 +93,7 @@ namespace StackifyLib.Utils
 
                             if (type.IsArray)
                             {
-                                var array = (Array) logObject;
+                                var array = (Array)logObject;
 
                                 if (array.Length > 0)
                                 {
@@ -160,9 +161,9 @@ namespace StackifyLib.Utils
             }
             catch (Exception ex)
             {
-                lock (_BadTypes)
+                lock (BadTypes)
                 {
-                    _BadTypes.Add(t.ToString());
+                    BadTypes.Add(t.ToString());
                 }
                 Utils.StackifyAPILogger.Log(ex.ToString());
             }
@@ -187,7 +188,7 @@ namespace StackifyLib.Utils
                         }
                         else
                         {
-                            props.Add(prop.Key, JObject.FromObject(prop.Value, serializer));
+                            props.Add(prop.Key, JObject.FromObject(prop.Value, Serializer));
                         }
 
                     }
@@ -204,10 +205,11 @@ namespace StackifyLib.Utils
 
             if (jObject != null)
             {
+                jObject = GetPrunedObject(jObject, Config.LoggingMaxFields);
 
-                jObject = GetPrunedObject(jObject, Config.LoggingJsonMaxFields);
+                var jdn = new JsonDotNetSerializer(SerializerSettings);
 
-                return JsonConvert.SerializeObject(jObject, serializerSettings);
+                return jdn.SafeSerializeObject(jObject);
             }
 
             return null;

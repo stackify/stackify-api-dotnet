@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading;
+using StackifyLib.Internal.Serialization;
 
 namespace StackifyLib.Internal.Logs
 {
@@ -315,11 +316,11 @@ namespace StackifyLib.Internal.Logs
 
                 var groups = SplitLogsToGroups(messages);
 
-                string jsonData = JsonConvert.SerializeObject(groups, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+                var jdn = new JsonDotNetSerializer(new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate, NullValueHandling = NullValueHandling.Ignore });
 
+                var jsonData = jdn.SafeSerializeObject(groups);
 
-                string urlToUse = (_HttpClient.BaseAPIUrl) + "Log/SaveMultipleGroups";
-
+                var urlToUse = (_HttpClient.BaseAPIUrl) + "Log/SaveMultipleGroups";
 
                 if (!_ServicePointSet)
                 {

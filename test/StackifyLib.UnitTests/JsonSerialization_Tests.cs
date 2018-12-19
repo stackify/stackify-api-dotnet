@@ -12,22 +12,22 @@ namespace StackifyLib.UnitTests
 {
     public class JsonSerialization_Tests
     {
-        private readonly ITestOutputHelper output;
+        private readonly ITestOutputHelper _output;
 
         public JsonSerialization_Tests(ITestOutputHelper output)
         {
-            this.output = output;
+            _output = output;
         }
 
 
         [Fact]
-        public void Should_Prune_Object()
+        public void Should_Prune_MaxFields_Object()
         {
             var testMaxFields = GetTestObject();
 
             var result = StackifyLib.Utils.HelperFunctions.SerializeDebugData(testMaxFields, false);
 
-            output.WriteLine(result);
+            _output.WriteLine(result);
 
             var obj = JObject.Parse(result);
 
@@ -37,7 +37,7 @@ namespace StackifyLib.UnitTests
         }
 
         [Fact]
-        public void Should_Prune_Object_Array()
+        public void Should_Prune_MaxFields_Object_Array()
         {
             var list = new List<object>();
 
@@ -49,7 +49,7 @@ namespace StackifyLib.UnitTests
 
             var result = StackifyLib.Utils.HelperFunctions.SerializeDebugData(list, false);
 
-            output.WriteLine(result);
+            _output.WriteLine(result);
 
             var obj = JObject.Parse(result);
 
