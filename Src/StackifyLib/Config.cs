@@ -164,14 +164,6 @@ namespace StackifyLib
                     }
 #endif
 
-#if NETCOREX
-                    if (_configuration != null)
-                    {
-                        var appSettings = _configuration.GetSection("Stackify");
-                        v = appSettings[key.Replace("Stackify.", string.Empty)];
-                    }
-#endif
-
 #if NETFULL
 				    if (string.IsNullOrEmpty(v))
 				    {

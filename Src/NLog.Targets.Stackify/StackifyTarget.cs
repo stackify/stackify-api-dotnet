@@ -1,41 +1,47 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Reflection;
-#if NETFULL
-using System.Runtime.Remoting.Messaging;
-#endif
+using NLog;
+using NLog.Config;
+using NLog.Common;
+using NLog.Targets;
 using StackifyLib;
-using System.Diagnostics;
 using StackifyLib.Internal.Logs;
 using StackifyLib.Models;
 using StackifyLib.Utils;
-using NLog.Targets;
-using NLog;
 
 namespace NLog.Targets.Stackify
 {
     [Target("StackifyTarget")]
-    public class StackifyTarget : TargetWithLayout 
+    public class StackifyTarget : TargetWithContext 
     {
-        private bool _HasContextKeys = false;
         public string apiKey { get; set; }
         public string uri { get; set; }
+        [Obsolete("Instead use Target ContextProperty with GDC")]
         public string globalContextKeys { get; set; }
+        [Obsolete("Instead use Target ContextProperty with MDLC")]
         public string mappedContextKeys { get; set; }
+        [Obsolete("Instead use Target ContextProperty with MDLC")]
         public string callContextKeys { get; set; }
         public bool? logMethodNames { get; set; }
         public bool? logAllParams { get; set; }
+        [Obsolete("Instead use IncludeEventProperties property")]
         public bool? logAllProperties { get; set; }
         public bool? logLastParameter { get; set; }
 
-        private List<string> _GlobalContextKeys = new List<string>();
-        private List<string> _MappedContextKeys = new List<string>();
         private List<string> _CallContextKeys = new List<string>();
 
         private LogClient _logClient = null;
+
+        [ArrayParameter(typeof(TargetPropertyWithContext), "contextproperty")]
+        public override IList<TargetPropertyWithContext> ContextProperties { get; } = new List<TargetPropertyWithContext>();
+
+        public StackifyTarget()
+        {
+            Layout = "${message}${onexception:${newline}${exception:format=tostring}}";
+            IncludeEventProperties = true;
+            OptimizeBufferReuse = true;
+        }
 
         protected override void CloseTarget()
         {
@@ -47,6 +53,7 @@ namespace NLog.Targets.Stackify
             }
             catch (Exception ex)
             {
+                InternalLogger.Error(ex, "StackifyTarget: Failed to Close");
                 StackifyLib.Utils.StackifyAPILogger.Log("NLog target closing error: " + ex.ToString());
             }
         }
@@ -56,26 +63,50 @@ namespace NLog.Targets.Stackify
             StackifyLib.Utils.StackifyAPILogger.Log("NLog InitializeTarget");
 
             _logClient = new LogClient("StackifyLib.net-nlog", apiKey, uri);
-            if (!String.IsNullOrEmpty(globalContextKeys))
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            if (logAllProperties == false)
+#pragma warning restore CS0618 // Type or member is obsolete
             {
-                _GlobalContextKeys = globalContextKeys.Split(',').Select(s => s.Trim()).ToList();
+                IncludeEventProperties = false;
             }
 
-            if (!String.IsNullOrEmpty(mappedContextKeys))
+            if (logMethodNames == true)
             {
-                _MappedContextKeys = mappedContextKeys.Split(',').Select(s => s.Trim()).ToList();
+                IncludeCallSite = true;
             }
 
-            if (!String.IsNullOrEmpty(callContextKeys))
+            if (ContextProperties.Count == 0)
             {
-                _CallContextKeys = callContextKeys.Split(',').Select(s => s.Trim()).ToList();
+                ContextProperties.Add(new TargetPropertyWithContext() { Name = "ndc", Layout = "${ndc:topFrames=1}" });
+
+#pragma warning disable CS0618 // Type or member is obsolete
+                var globalContextKeyList = globalContextKeys?.Split(',').Select(s => s.Trim()) ?? Enumerable.Empty<string>();
+
+                foreach (var gdcKey in globalContextKeyList)
+                {
+                    if (string.IsNullOrEmpty(gdcKey))
+                        continue;
+                    ContextProperties.Add(new TargetPropertyWithContext() { Name = gdcKey, Layout = $"${{gdc:item={gdcKey}}}" });
+                }
+
+                var mappedContextKeyList = mappedContextKeys?.Split(',').Select(s => s.Trim()) ?? Enumerable.Empty<string>();
+                foreach (var mdcKey in mappedContextKeyList)
+                {
+                    if (string.IsNullOrEmpty(mdcKey))
+                        continue;
+                    ContextProperties.Add(new TargetPropertyWithContext() { Name = mdcKey, Layout = $"${{mdc:item={mdcKey}}}" });
+                }
+
+                if (!String.IsNullOrEmpty(callContextKeys))
+                {
+                    _CallContextKeys = callContextKeys.Split(',').Select(s => s.Trim()).ToList();
+                }
+#pragma warning restore CS0618 // Type or member is obsolete
             }
-
-
-            _HasContextKeys = _GlobalContextKeys.Any() || _MappedContextKeys.Any() || _CallContextKeys.Any();
         }
 
-        protected override void Write(LogEventInfo logEvent)
+        protected override void Write(AsyncLogEventInfo logEvent)
         {
             try
             {
@@ -83,82 +114,26 @@ namespace NLog.Targets.Stackify
                 //if it is skip since we can't do anything with the message
                 if (StackifyLib.Logger.PrefixEnabled() || _logClient.CanQueue())
                 {
-                    var logMsg = Translate(logEvent);
+                    var logMsg = Translate(logEvent.LogEvent);
                     if (logMsg != null)
                     {
                         _logClient.QueueMessage(logMsg);
                     }
+                    logEvent.Continuation(null); // Signal success to NLog
                 }
                 else
                 {
+                    InternalLogger.Warn("StackifyTarget: Cannot send because queue is full");
+                    logEvent.Continuation(new OperationCanceledException("StackifyTarget: Cannot send because queue is full")); // Signal failure to NLog
                     StackifyAPILogger.Log("Unable to send log because the queue is full");
                 }
             }
             catch (Exception ex)
             {
+                InternalLogger.Error("StackifyTarget: Failed to send");
+                logEvent.Continuation(ex);  // Signal failure to NLog
                 StackifyAPILogger.Log(ex.ToString());
             }
-        }
-
-
-        private Dictionary<string, object> GetDiagnosticContextProperties()
-        {
-            Dictionary<string, object> properties = new Dictionary<string, object>();
-
-            string ndc = NLog.NestedDiagnosticsContext.TopMessage;
-
-            if (!String.IsNullOrEmpty(ndc))
-            {
-                properties["ndc"] = ndc;
-            }
-
-            if (!_HasContextKeys)
-            {
-                return properties;
-            }
-
-            // GlobalDiagnosticsContext
-            foreach (string gdcKey in _GlobalContextKeys)
-            {
-                if (NLog.GlobalDiagnosticsContext.Contains(gdcKey))
-                {
-                    string gdcValue = NLog.GlobalDiagnosticsContext.Get(gdcKey);
-
-                    if (gdcValue != null)
-                    {
-                        properties.Add(gdcKey.ToLower(), gdcValue);
-                    }
-                }
-            }
-
-            // MappedDiagnosticsContext
-            foreach (string mdcKey in _MappedContextKeys)
-            {
-                if (NLog.MappedDiagnosticsContext.Contains(mdcKey))
-                {
-                    string mdcValue = NLog.MappedDiagnosticsContext.Get(mdcKey);
-
-                    if (mdcValue != null)
-                    {
-                        properties.Add(mdcKey.ToLower(), mdcValue);
-                    }
-                }
-            }
-
-#if NETFULL
-
-            foreach (string key in _CallContextKeys)
-            {
-                object value = CallContext.LogicalGetData(key);
-
-                if (value != null)
-                {
-                    properties[key.ToLower()] = value;
-                }
-            }
-#endif
-
-            return properties;
         }
 
         internal LogMsg Translate(LogEventInfo loggingEvent)
@@ -177,19 +152,10 @@ namespace NLog.Targets.Stackify
                 msg.Level = loggingEvent.Level.Name;
             }
 
-            if (loggingEvent.HasStackTrace && loggingEvent.UserStackFrame != null)
+            if (!string.IsNullOrEmpty(loggingEvent.CallerMemberName))
             {
-                var frame = loggingEvent.UserStackFrame;
-
-                MethodBase method = frame.GetMethod();
-                if (method != (MethodBase) null && method.DeclaringType != (Type) null)
-                {
-                    if (method.DeclaringType != (Type) null)
-                    {
-                        msg.SrcMethod = method.DeclaringType.FullName + "." + method.Name;
-                        msg.SrcLine = frame.GetFileLineNumber();
-                    }
-                }
+                msg.SrcMethod = loggingEvent.CallerMemberName;
+                msg.SrcLine = loggingEvent.CallerLineNumber;
             }
 
             //if it wasn't set above for some reason we will do it this way as a fallback
@@ -211,26 +177,37 @@ namespace NLog.Targets.Stackify
                 }
             }
 
-            string formattedMessage;
+            msg.Msg = RenderLogEvent(Layout, loggingEvent) ?? string.Empty;
 
-            //Use the layout render to allow custom fields to be logged, but not if it is the default format as it logs a bunch fields we already log
-            //really no reason to use a layout at all
-            if (this.Layout != null && this.Layout.ToString() != "'${longdate}|${level:uppercase=true}|${logger}|${message}'") //do not use if it is the default
+            var contextProperties = GetContextProperties(loggingEvent);
+            Dictionary<string, object> diags = contextProperties as Dictionary<string, object> ?? new Dictionary<string, object>(contextProperties);
+            if (diags.TryGetValue("ndc", out var topFrame) && string.IsNullOrEmpty((topFrame as string)))
             {
-                formattedMessage = this.Layout.Render(loggingEvent);
-            }
-            else
-            {
-                formattedMessage = loggingEvent.FormattedMessage;
+                diags.Remove("ndc");
             }
 
-            msg.Msg = (formattedMessage ?? "").Trim();
+            if (diags.TryGetValue("transid", out var transId))
+            {
+                msg.TransID = diags["transid"].ToString();
+                diags.Remove("transid");
+            }
 
+#if NETFULL
+            foreach (string key in _CallContextKeys)
+            {
+                object value = System.Runtime.Remoting.Messaging.CallContext.LogicalGetData(key);
+                if (value != null)
+                {
+                    diags[key.ToLower()] = value;
+                }
+            }
+#endif
+
+            StackifyError stackifyError = loggingEvent.Exception != null ? StackifyError.New(loggingEvent.Exception) : null;
             object debugObject = null;
-
-            if ((logAllProperties ?? true) && loggingEvent.Properties.Count > 0)
+            if (IncludeEventProperties && loggingEvent.HasProperties)
             {
-                Dictionary<string, object> args = new Dictionary<string, object>();
+                Dictionary<string, object> args = new Dictionary<string, object>(loggingEvent.Properties.Count);
                 foreach (KeyValuePair<object, object> eventProperty in loggingEvent.Properties)
                 {
                     string propertyKey = eventProperty.Key.ToString();
@@ -249,75 +226,54 @@ namespace NLog.Targets.Stackify
                     debugObject = args;
                 }
             }
-            else if (loggingEvent.Parameters != null && loggingEvent.Parameters.Length > 0)
-            { 
-                Dictionary<string, object> args = (logAllParams ?? true) ? new Dictionary<string, object>() : null;
-                debugObject = CaptureParameters(loggingEvent, msg.Msg, args);
-            }
 
-            StackifyError error = null;
+            if (loggingEvent.Parameters?.Length > 0)
+            {
+                for (int i = 0; i < loggingEvent.Parameters.Length; i++)
+                {
+                    var parameter = loggingEvent.Parameters[i];
+                    if (stackifyError == null && parameter is StackifyError error)
+                    {
+                        stackifyError = error;
+                    }
+                    if (debugObject == null && parameter is LogMessage debugMessage)
+                    {
+                        debugObject = debugMessage.json;
+                    }
+                }
 
-            if (loggingEvent.Exception != null && loggingEvent.Exception is StackifyError)
-            {
-                error = (StackifyError) loggingEvent.Exception;
-            }
-            else if (loggingEvent.Exception != null)
-            {
-                error = StackifyError.New((Exception)loggingEvent.Exception);
-            }
-
-            var diags = GetDiagnosticContextProperties();
-            if (diags != null && diags.ContainsKey("transid"))
-            {
-                msg.TransID = diags["transid"].ToString();
-                diags.Remove("transid");
+                if (debugObject == null)
+                {
+                    Dictionary<string, object> args = ((logAllParams ?? true) && loggingEvent.Parameters.Length > 1) ? new Dictionary<string, object>() : null;
+                    debugObject = CaptureParameters(loggingEvent, msg.Msg, args);
+                }
             }
 
             if (debugObject != null)
             {
-                msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(debugObject, true, diags);
+                msg.data = HelperFunctions.SerializeDebugData(debugObject, true, diags);
             }
             else
             {
-                msg.data = StackifyLib.Utils.HelperFunctions.SerializeDebugData(null, false, diags);
+                msg.data = HelperFunctions.SerializeDebugData(null, false, diags);
             }
 
-            if (msg.Msg != null && error != null)
-            {
-                msg.Msg += "\r\n" + error.ToString();
-            }
-            else if (msg.Msg == null && error != null)
-            {
-                msg.Msg = error.ToString();
-            }
-
-            if (error == null && (loggingEvent.Level == LogLevel.Error || loggingEvent.Level == LogLevel.Fatal))
+            if (stackifyError == null && (loggingEvent.Level == LogLevel.Error || loggingEvent.Level == LogLevel.Fatal))
             {
                 StringException stringException = new StringException(msg.Msg);
-
-                stringException.TraceFrames = StackifyLib.Logger.GetCurrentStackTrace(loggingEvent.LoggerName);
-
-                if (!loggingEvent.HasStackTrace || loggingEvent.UserStackFrame == null)
+                if ((logMethodNames ?? false))
                 {
-                    if (stringException.TraceFrames.Any())
-                    {
-                        var first = stringException.TraceFrames.First();
-
-                        msg.SrcMethod = first.Method;
-                        msg.SrcLine = first.LineNum;
-                    }
+                    stringException.TraceFrames = StackifyLib.Logger.GetCurrentStackTrace(loggingEvent.LoggerName);
                 }
-
-                //Make error out of log message
-                error = StackifyError.New(stringException);
+                stackifyError = StackifyError.New(stringException);
             }
 
-            if (error != null && !StackifyError.IgnoreError(error) && _logClient.ErrorShouldBeSent(error))
+            if (stackifyError != null && !StackifyError.IgnoreError(stackifyError) && _logClient.ErrorShouldBeSent(stackifyError))
             {
-                error.SetAdditionalMessage(formattedMessage);
-                msg.Ex = error;
+                stackifyError.SetAdditionalMessage(loggingEvent.FormattedMessage);
+                msg.Ex = stackifyError;
             }
-            else if (error != null && msg.Msg != null)
+            else if (stackifyError != null && msg.Msg != null)
             {
                 msg.Msg += " #errorgoverned";
             }
@@ -351,7 +307,7 @@ namespace NLog.Targets.Stackify
                     }
                     else if (args != null)
                     {
-                        args["arg" + i] = loggingEvent.Parameters[i];
+                        args["arg" + i] = item;
                         debugObject = item;
                     }
                     else

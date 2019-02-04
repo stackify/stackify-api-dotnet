@@ -3,7 +3,7 @@
   <PropertyGroup>
     <AssemblyTitle>NLog.Targets.Stackify</AssemblyTitle>
     <VersionPrefix>2.0.0</VersionPrefix>
-    <TargetFrameworks>netstandard2.0;net40;net45;net451;net452;net46</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net40;net45;net461</TargetFrameworks>
     <AssemblyName>NLog.Targets.Stackify</AssemblyName>
     <PackageId>NLog.Targets.Stackify</PackageId>
     <PackageTags>stackify;errors;logs</PackageTags>
@@ -25,18 +25,14 @@
 
   <ItemGroup>
     <ProjectReference Include="..\StackifyLib\StackifyLib.csproj" />
+    <PackageReference Include="NLog" Version="4.5.0" />
   </ItemGroup>
   
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
     <DefineConstants>NETCORE</DefineConstants>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="NLog" Version="4.5.0" />
-    <Reference Include="Microsoft.CSharp" />
-  </ItemGroup>
-
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net40' OR '$(TargetFramework)' == 'net45' OR '$(TargetFramework)' == 'net451' OR '$(TargetFramework)' == 'net452' OR '$(TargetFramework)' == 'net46' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net40' OR '$(TargetFramework)' == 'net45' OR '$(TargetFramework)' == 'net461' ">
     <DefineConstants>NETFULL</DefineConstants>
   </PropertyGroup>
 
