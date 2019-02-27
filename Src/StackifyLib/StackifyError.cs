@@ -114,7 +114,7 @@ namespace StackifyLib
             TimeSpan ts = DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, 0));
             OccurredEpochMillis = (long)ts.TotalMilliseconds;
 
-            EnvironmentDetail = EnvironmentDetail.Get(false);
+            EnvironmentDetail = EnvironmentDetail.Get();
             ServerVariables = new Dictionary<string, string>();
 
 #if NETFULL
