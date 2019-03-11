@@ -250,7 +250,7 @@ namespace StackifyLib.Internal.Logs
                 }
             }
 
-            var env = EnvironmentDetail.Get(false);
+            var env = EnvironmentDetail.Get();
 
             //We use whatever the identity stuff says, otherwise we use the azure instance name and fall back to the machine name
             if (string.IsNullOrEmpty(group.ServerName))

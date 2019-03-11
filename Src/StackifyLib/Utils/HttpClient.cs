@@ -301,7 +301,7 @@ namespace StackifyLib.Utils
                     return false;
                 }
                 StackifyAPILogger.Log("Calling to Identify App");
-                EnvironmentDetail env = EnvironmentDetail.Get(true);
+                EnvironmentDetail env = EnvironmentDetail.Get();
                 string jsonData = JsonConvert.SerializeObject(env, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
 
                 var response =
