@@ -80,7 +80,7 @@ If you are having problems you can get logging out of the framework by hooking i
 If you log an object with the message, Stackify's log viewer makes it easy to search by these parameters. You can always search by the text in the log message itself, but searching by the logged properties provides a lot more power. If you always logged a "clientid" for example on every log message, you could search in Stackify for "json.clientid:1" and quickly see all logs and errors affecting that specific client. Another big difference and advantage to logging objects is you can do a range type search "json.clientid:[1 TO 10]" which would not be possible by a straight text search.
 
 
-### NLog 2.0.1.2 - v3.1+
+### NLog 4.5
 
 **Install via NuGet package**
 ```
@@ -94,8 +94,10 @@ Sample config:
           <add assembly="NLog.Targets.Stackify"/>
         </extensions>
         <targets>
-          <target name="stackify" type="StackifyTarget" globalContextKeys="examplekey1,key2" 
-                mappedContextKeys="" callContextKeys="" logMethodNames="true" />
+          <target name="stackify" type="StackifyTarget" logAllParams="false">
+            <contextproperty name="gdcKey1" layout="${gdc:item=gdcKey1}" />
+            <contextproperty name="mdlcKey2" layout="${mdlc:item=mdlcKey2}" />
+          </target>
         </targets>
         <rules>
           <logger name="*" writeTo="stackify" minlevel="Debug" />
@@ -110,11 +112,16 @@ Logging custom objects is supported and will be searchable in Stackify's log vie
         dictionary["color"] = "red";
         nlog.Debug("Test message", dictionary);
 
-Options
+Options:
 
-- GlobalContext and MappedContext keys are fully supported by setting the parameters in the config as a comma delimited list of keys. See sample config above.
-- CallContextKeys is an additional feature unrelated to NLog that uses the local thread storage for more advanced tracking of context variables. It is used via CallContext.LogicalSetData(key, value). Research LogicalSetData online to learn more. It is supposed to work better across child Task objects and with async.
-- logMethodNames - Method names will show up in the StackifyLog viewer most of the time as the class name that did the logging. For exceptions it will usually show the method name. To enable the exact method name for all logging, set this property to true. Note that it does cause a small performance hit due to walking the StackTrace.
+- IncludeEventProperties - Include LogEvent-Properties for structured logging.
+- IncludeMdlc - Include NLog MappedDiagnosticsLogicalContext MDLC-Properties for structured logging.
+- IncludeCallSite - Include LogEvent CallSite so method names will show up in the StackifyLog viewer (Replaces old property logMethodNames)
+- logLastParameter - Serialize the last parameter provided with the LogEvent.
+- logAllParams - Serialize all the parameters provided with the LogEvent (arg0, arg1, etc.)
+- GlobalContextKeys - Comma delimited list of keys for NLog GDC. !OBSOLETE! Instead use contextproperty-Layout as shown in sample config above.
+- MappedContextKeys - Comma delimited list of keys for NLog MDC. !OBSOLETE! Instead use contextproperty-Layout as shown in sample config above.
+- CallContextKeys - Comma delimited list of keys for use with CallContext.LogicalSetData(key, value). Research LogicalSetData online to learn more. !OBSOLETE! Instead use contextproperty-Layout as shown in sample config above. 
 
 ### log4net v2.0+ (v1.2.11+)
 
