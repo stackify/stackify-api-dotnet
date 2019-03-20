@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using StackifyLib.Utils;
@@ -13,9 +13,9 @@ namespace StackifyLib
     {
 #if NETCORE || NETCOREX
 
-        private static Microsoft.Extensions.Configuration.IConfigurationRoot _configuration = null;
+        private static Microsoft.Extensions.Configuration.IConfiguration _configuration = null;
 
-        public static void SetConfiguration(Microsoft.Extensions.Configuration.IConfigurationRoot configuration)
+        public static void SetConfiguration(Microsoft.Extensions.Configuration.IConfiguration configuration)
         {
             _configuration = configuration;
         }
@@ -101,6 +101,15 @@ namespace StackifyLib
                 {
                     ApiLog = apiLog.Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
                 }
+
+                var loggingJsonMaxFields = Get("Stackify.Logging.JsonMaxFields", "50");
+                if (string.IsNullOrWhiteSpace(loggingJsonMaxFields) == false)
+                {
+                    if (int.TryParse(loggingJsonMaxFields, out int maxFields) && maxFields > 0 && maxFields < 100)
+                    {
+                        LoggingJsonMaxFields = maxFields;
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -140,6 +149,9 @@ namespace StackifyLib
         public static bool? IsEc2 { get; set; }
 
         public static bool? ApiLog { get; set; }
+
+        public static int LoggingJsonMaxFields { get; set; } = 50;
+
 
         /// <summary>
         /// Attempts to fetch a setting value given the key.

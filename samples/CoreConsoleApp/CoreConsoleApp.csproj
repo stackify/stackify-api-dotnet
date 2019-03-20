@@ -13,9 +13,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\StackifyLib.log4net\StackifyLib.log4net.csproj" />
-    <ProjectReference Include="..\StackifyLib\StackifyLib.csproj" />
-    <ProjectReference Include="..\NLog.Targets.Stackify\NLog.Targets.Stackify.csproj" />
+    <ProjectReference Include="..\..\Src\NLog.Targets.Stackify\NLog.Targets.Stackify.csproj" />
+    <ProjectReference Include="..\..\Src\StackifyLib.log4net\StackifyLib.log4net.csproj" />
+    <ProjectReference Include="..\..\Src\StackifyLib\StackifyLib.csproj" />
   </ItemGroup>
 
   <ItemGroup>

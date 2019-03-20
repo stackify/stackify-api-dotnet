@@ -19,16 +19,13 @@ namespace StackifyLib.Models
     {
         private static EnvironmentDetail _CachedCopy = null;
 
-        public static EnvironmentDetail Get(bool refresh)
+        public static EnvironmentDetail Get()
         {
-            if (refresh || _CachedCopy == null)
-            {
-                _CachedCopy = new EnvironmentDetail(true);
-            }
-
-            return _CachedCopy;
+            return _CachedCopy ?? (_CachedCopy = new EnvironmentDetail());
         }
-
+#if NETSTANDARD
+        private static System.Net.Http.HttpClient Client => new System.Net.Http.HttpClient();
+#endif
         private static bool registryAccessFailure = false;
 
         /// <summary>
@@ -209,43 +206,17 @@ namespace StackifyLib.Models
         {
             string r = null;
 
-            // SF-6804: Frequent Calls to GetEC2InstanceId
-            bool skipEc2InstanceIdUpdate = false;
-
-            if (Config.Ec2InstanceMetadataUpdateThresholdMinutes > 0)
-            {
-                var threshold = TimeSpan.FromMinutes(Config.Ec2InstanceMetadataUpdateThresholdMinutes);
-                lock (ec2InstanceLock)
-                {
-                    skipEc2InstanceIdUpdate = ec2InstanceIdLastUpdate != null && ec2InstanceIdLastUpdate < DateTimeOffset.UtcNow.Subtract(threshold);
-                    r = string.IsNullOrWhiteSpace(ec2InstanceId) ? null : ec2InstanceId;
-                }
-            }
-            else
-            {
-                skipEc2InstanceIdUpdate = true;
-            }
-
-            if (skipEc2InstanceIdUpdate)
-            {
-                return r;
-            }
-
             try
             {
+                Client.Timeout = TimeSpan.FromSeconds(5);
+                var content = await Client.GetAsync(EC2InstanceIdUrl);
 
-                using (var client = new System.Net.Http.HttpClient())
+                int statusCode = (int)content.StatusCode;
+
+                if (statusCode >= 200 && statusCode < 300)
                 {
-                    client.Timeout = TimeSpan.FromSeconds(5);
-                    var content = await client.GetAsync(EC2InstanceIdUrl);
-
-                    int statusCode = (int)content.StatusCode;
-
-                    if (statusCode >= 200 && statusCode < 300)
-                    {
-                        string id = await content.Content.ReadAsStringAsync();
-                        r = string.IsNullOrWhiteSpace(id) ? null : id;
-                    }
+                    string id = await content.Content.ReadAsStringAsync();
+                    r = string.IsNullOrWhiteSpace(id) ? null : id;
                 }
 
             }
@@ -317,10 +288,8 @@ namespace StackifyLib.Models
 #endif
         }
 
-        public EnvironmentDetail(bool loadDetails)
+        public EnvironmentDetail()
         {
-            if (!loadDetails)
-                return;
 
             bool isWebRequest = false;
 #if NETFULL
