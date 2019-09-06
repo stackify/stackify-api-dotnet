@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 #if NETFULL
 using System.Runtime.Remoting.Messaging;
 using StackifyLib.Web;
+using System.Web;
 #endif
 
 namespace StackifyLib.Internal.Logs
@@ -158,7 +159,7 @@ namespace StackifyLib.Internal.Logs
                     }
                     else
                     {
-                        var resolver = new RouteResolver(context);
+                        var resolver = new RouteResolver(new HttpContextWrapper(context));
 
                         var route = resolver.GetRoute();
 

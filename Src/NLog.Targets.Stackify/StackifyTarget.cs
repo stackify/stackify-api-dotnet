@@ -268,6 +268,18 @@ namespace NLog.Targets.Stackify
                 stackifyError = StackifyError.New(stringException);
             }
 
+            if(stackifyError.WebRequestDetail == null && contextProperties.ContainsKey("stackifyhttp"))
+            {
+#if NETFULL
+                string hctx = contextProperties["stackifyhttp"]?.ToString();
+                if (!string.IsNullOrEmpty(hctx))
+                {
+                    var webRequestDetail = Newtonsoft.Json.JsonConvert.DeserializeObject<WebRequestDetail>(hctx);
+                    stackifyError.WebRequestDetail = webRequestDetail;
+                }
+#endif
+            }
+
             if (stackifyError != null && !StackifyError.IgnoreError(stackifyError) && _logClient.ErrorShouldBeSent(stackifyError))
             {
                 stackifyError.SetAdditionalMessage(loggingEvent.FormattedMessage);
