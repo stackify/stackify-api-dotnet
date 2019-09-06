@@ -22,10 +22,12 @@
     <RepositoryUrl>https://github.com/stackify/stackify-api-dotnet</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
-
+  
   <ItemGroup>
     <ProjectReference Include="..\StackifyLib\StackifyLib.csproj" />
     <PackageReference Include="NLog" Version="4.5.0" />
+    <PackageReference Include="NLog.Config" Version="4.5.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
   </ItemGroup>
   
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
@@ -35,5 +37,17 @@
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net40' OR '$(TargetFramework)' == 'net45' OR '$(TargetFramework)' == 'net461' ">
     <DefineConstants>NETFULL</DefineConstants>
   </PropertyGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' != 'netstandard2.0' ">
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Abstractions" />
+    <Reference Include="System.Web.Routing" />
+    <PackageReference Include="NLog.Web" Version="4.5.0" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Routing.Abstractions" Version="2.1.1" />
+    <PackageReference Include="NLog.Web.AspNetCore" Version="4.5.0" />
+  </ItemGroup>
 
 </Project>
