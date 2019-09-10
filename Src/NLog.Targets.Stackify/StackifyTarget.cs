@@ -9,6 +9,7 @@ using StackifyLib;
 using StackifyLib.Internal.Logs;
 using StackifyLib.Models;
 using StackifyLib.Utils;
+using NLog.Layouts;
 
 namespace NLog.Targets.Stackify
 {
@@ -35,6 +36,8 @@ namespace NLog.Targets.Stackify
 
         [ArrayParameter(typeof(TargetPropertyWithContext), "contextproperty")]
         public override IList<TargetPropertyWithContext> ContextProperties { get; } = new List<TargetPropertyWithContext>();
+
+        public Layout StackifyHttpRequestInfo { get; set; }
 
         public StackifyTarget()
         {

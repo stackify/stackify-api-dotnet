@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyTitle>NLog.Targets.Stackify</AssemblyTitle>
+    <AssemblyTitle>NLog.Web.Stackify</AssemblyTitle>
     <VersionPrefix>2.0.0</VersionPrefix>
     <TargetFrameworks>netstandard2.0;net40;net45;net461</TargetFrameworks>
-    <AssemblyName>NLog.Targets.Stackify</AssemblyName>
-    <PackageId>NLog.Targets.Stackify</PackageId>
+    <AssemblyName>NLog.Web.Stackify</AssemblyName>
+    <PackageId>NLog.Web.Stackify</PackageId>
     <PackageTags>stackify;errors;logs</PackageTags>
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
     <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
@@ -22,19 +22,29 @@
     <RepositoryUrl>https://github.com/stackify/stackify-api-dotnet</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <ProjectReference Include="..\StackifyLib\StackifyLib.csproj" />
     <PackageReference Include="NLog" Version="4.5.11" />
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
   </ItemGroup>
   
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
     <DefineConstants>NETCORE</DefineConstants>
   </PropertyGroup>
-
+  
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net40' OR '$(TargetFramework)' == 'net45' OR '$(TargetFramework)' == 'net461' ">
     <DefineConstants>NETFULL</DefineConstants>
   </PropertyGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' != 'netstandard2.0' ">
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Abstractions" />
+    <Reference Include="System.Web.Routing" />
+    <PackageReference Include="NLog.Web" Version="4.8.0" />
+  </ItemGroup>
   
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="NLog.Web.AspNetCore" Version="4.8.0" />
+  </ItemGroup>
 </Project>
