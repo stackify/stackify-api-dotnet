@@ -271,13 +271,23 @@ namespace NLog.Targets.Stackify
                 stackifyError = StackifyError.New(stringException);
             }
 
-            string stackifyHttp = StackifyHttpRequestInfo.Render(loggingEvent);
-            if (stackifyError.WebRequestDetail == null && !String.IsNullOrEmpty(stackifyHttp))
+            if (StackifyHttpRequestInfo != null)
             {
+                string stackifyHttp = StackifyHttpRequestInfo.Render(loggingEvent);
+                if (stackifyError.WebRequestDetail == null && !String.IsNullOrEmpty(stackifyHttp))
+                {
 #if NETFULL
-                var webRequestDetail = Newtonsoft.Json.JsonConvert.DeserializeObject<WebRequestDetail>(stackifyHttp);
-                stackifyError.WebRequestDetail = webRequestDetail;
+                    try
+                    {
+                        var webRequestDetail = Newtonsoft.Json.JsonConvert.DeserializeObject<WebRequestDetail>(stackifyHttp);
+                        stackifyError.WebRequestDetail = webRequestDetail;
+                    }
+                    catch (Exception e)
+                    {
+                        InternalLogger.Warn(e, "StackifyHttpRequestInfo: Failed to DeserializeObject");
+                    }
 #endif
+                }
             }
 
             if (stackifyError != null && !StackifyError.IgnoreError(stackifyError) && _logClient.ErrorShouldBeSent(stackifyError))
