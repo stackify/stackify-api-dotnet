@@ -271,15 +271,12 @@ namespace NLog.Targets.Stackify
                 stackifyError = StackifyError.New(stringException);
             }
 
-            if(stackifyError.WebRequestDetail == null && contextProperties.ContainsKey("stackifyhttp"))
+            string stackifyHttp = StackifyHttpRequestInfo.Render(loggingEvent);
+            if (stackifyError.WebRequestDetail == null && !String.IsNullOrEmpty(stackifyHttp))
             {
 #if NETFULL
-                string hctx = contextProperties["stackifyhttp"]?.ToString();
-                if (!string.IsNullOrEmpty(hctx))
-                {
-                    var webRequestDetail = Newtonsoft.Json.JsonConvert.DeserializeObject<WebRequestDetail>(hctx);
-                    stackifyError.WebRequestDetail = webRequestDetail;
-                }
+                var webRequestDetail = Newtonsoft.Json.JsonConvert.DeserializeObject<WebRequestDetail>(stackifyHttp);
+                stackifyError.WebRequestDetail = webRequestDetail;
 #endif
             }
 

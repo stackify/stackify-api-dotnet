@@ -13,11 +13,6 @@ namespace NLog.Web.Stackify
     [ThreadSafe]
     public class StackifyHttpLayoutRenderer : AspNetLayoutRendererBase
     {
-        public StackifyHttpLayoutRenderer()
-        {
-
-        }
-
         protected override void DoAppend(StringBuilder builder, LogEventInfo logEvent)
         {
             var httpRequest = HttpContextAccessor.HttpContext;
