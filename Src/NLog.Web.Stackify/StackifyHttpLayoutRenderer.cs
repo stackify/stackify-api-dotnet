@@ -7,9 +7,10 @@ using NLog.Web.LayoutRenderers;
 using StackifyLib.Models;
 using Newtonsoft.Json;
 
-namespace NLog.Targets.Stackify
+namespace NLog.Web.Stackify
 {
     [LayoutRenderer("stackify-http")]
+    [ThreadSafe]
     public class StackifyHttpLayoutRenderer : AspNetLayoutRendererBase
     {
         protected override void DoAppend(StringBuilder builder, LogEventInfo logEvent)
