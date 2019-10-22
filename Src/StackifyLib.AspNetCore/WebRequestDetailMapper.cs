@@ -166,7 +166,7 @@ namespace StackifyLib.AspNetCore
             {
                 return;
             }
-            dictionary.Add(key,value);
+            dictionary[key] = value;
         }
     }
 }
