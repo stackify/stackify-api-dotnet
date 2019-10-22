@@ -111,7 +111,7 @@ namespace StackifyLib.AspNetCore
                 {
                     object val = item.Value.ToString();
 
-                    if (val != null && string.IsNullOrWhiteSpace(val.ToString()) == false && items.ContainsKey(key))
+                    if (val != null && string.IsNullOrWhiteSpace(val.ToString()) == false && items.ContainsKey(key) == false)
                     {
                         AddKey(key, val.ToString(), items, goodKeys, badKeys);
                     }
@@ -137,7 +137,7 @@ namespace StackifyLib.AspNetCore
                 {
                     object val = item.Value;
 
-                    if (val != null && string.IsNullOrWhiteSpace(val.ToString()) == false && items.ContainsKey(key))
+                    if (val != null && string.IsNullOrWhiteSpace(val.ToString()) == false && items.ContainsKey(key) == false)
                     {
                         AddKey(key, val.ToString(), items, goodKeys, badKeys);
                     }
@@ -166,7 +166,6 @@ namespace StackifyLib.AspNetCore
             {
                 return;
             }
-
             dictionary[key] = value;
         }
     }
