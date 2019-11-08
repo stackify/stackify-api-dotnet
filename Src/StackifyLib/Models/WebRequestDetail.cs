@@ -9,7 +9,6 @@ using Newtonsoft.Json;
 
 #if NETFULL
 using System.Web;
-using System.Web.Routing;
 using StackifyLib.Web;
 
 #endif
@@ -25,6 +24,12 @@ namespace StackifyLib.Models
         public static event SetWebRequestDetailEventHandler SetWebRequestDetail;
 
         private StackifyError _Error;
+
+        public WebRequestDetail()
+        {
+
+        }
+
         public WebRequestDetail(StackifyError error)
         {
             _Error = error;
@@ -32,7 +37,7 @@ namespace StackifyLib.Models
 #if NETFULL
             if (System.Web.HttpContext.Current != null)
             {
-                Load(System.Web.HttpContext.Current);
+                Load(new HttpContextWrapper(System.Web.HttpContext.Current));
             }
 #endif
 
@@ -93,12 +98,12 @@ namespace StackifyLib.Models
 
 
 #if NETFULL
-        private void Load(HttpContext context)
+        public void Load(HttpContextBase context)
         {
             if (context == null || context.Request == null)
                 return;
 
-            HttpRequest request = context.Request;
+            HttpRequestBase request = context.Request;
 
             try
             {
@@ -204,24 +209,6 @@ namespace StackifyLib.Models
                 {
                     SessionData = ToKeyValues(context.Session, Config.ErrorSessionGoodKeys, null);
                 }
-
-                if (Config.CaptureErrorPostdata)
-                {
-                    var contentType = context.Request.Headers["Content-Type"];
-
-                    if (contentType != "text/html" && contentType != "application/x-www-form-urlencoded" &&
-                        context.Request.RequestType != "GET")
-                    {
-                        int length = 4096;
-                        string postBody = new StreamReader(context.Request.InputStream).ReadToEnd();
-                        if (postBody.Length < length)
-                        {
-                            length = postBody.Length;
-                        }
-
-                        PostDataRaw = postBody.Substring(0, length);
-                    }
-                }
             }
             catch
             {
@@ -248,16 +235,16 @@ namespace StackifyLib.Models
         }
 
 #if NETFULL
-        internal static Dictionary<string, string> ToKeyValues(HttpCookieCollection collection, List<string> goodKeys, List<string> badKeys)
+        internal static Dictionary<string, string> ToKeyValues(HttpSessionStateBase collection, List<string> goodKeys, List<string> badKeys)
         {
-            var keys = collection.AllKeys;
+            var keys = collection.Keys;
             var items = new Dictionary<string, string>();
 
             foreach (string key in keys)
             {
                 try
                 {
-                    HttpCookie cookie = collection[key];
+                    HttpCookie cookie = collection[key] as HttpCookie;
 
                     if (cookie != null &&  !string.IsNullOrWhiteSpace(cookie.Value) && !items.ContainsKey(key))
                     {
@@ -272,6 +259,32 @@ namespace StackifyLib.Models
 
             return items;
         }
+
+        internal static Dictionary<string, string> ToKeyValues(HttpCookieCollection collection, List<string> goodKeys, List<string> badKeys)
+        {
+            var keys = collection.Keys;
+            var items = new Dictionary<string, string>();
+
+            foreach (string key in keys)
+            {
+                try
+                {
+                    HttpCookie cookie = collection[key] as HttpCookie;
+
+                    if (cookie != null && !string.IsNullOrWhiteSpace(cookie.Value) && !items.ContainsKey(key))
+                    {
+                        AddKey(key, cookie.Value, items, goodKeys, badKeys);
+                    }
+                }
+                catch
+                {
+                    // ignored
+                }
+            }
+
+            return items;
+        }
+
 
         internal static Dictionary<string, string> ToKeyValues(NameValueCollection collection, List<string> goodKeys, List<string> badKeys)
         {

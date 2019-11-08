@@ -42,16 +42,16 @@ namespace StackifyLib.Web
             }
         }
 
-        private HttpContext _Context = null;
+        private HttpContextBase _Context = null;
 
         Route _Route = new Route();
 
         public RouteResolver()
-            : this(System.Web.HttpContext.Current)
+            : this(new HttpContextWrapper(System.Web.HttpContext.Current))
         {
         }
 
-        public RouteResolver(HttpContext context)
+        public RouteResolver(HttpContextBase context)
         {
             _Context = context;
 
@@ -139,11 +139,9 @@ namespace StackifyLib.Web
             {
                 if (_Context == null) return route;
 
-                var wrapper = new HttpContextWrapper(_Context);
+                if (_Context == null || RouteTable.Routes == null) return route;
 
-                if (wrapper == null || RouteTable.Routes == null) return route;
-
-                var routeData = RouteTable.Routes.GetRouteData(wrapper);
+                var routeData = RouteTable.Routes.GetRouteData(_Context);
 
                 if (routeData != null && routeData.Values != null && routeData.Values.Any())
                 {

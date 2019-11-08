@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,7 +32,7 @@ namespace StackifyLib.AspNetCore
 
         private static void Load(HttpContext context, WebRequestDetail detail)
         {
-            if (context == null || context.Request == null)
+            if (context?.Request == null)
             {
                 return;
             }
@@ -58,7 +60,7 @@ namespace StackifyLib.AspNetCore
 
             try
             {
-                if (request.QueryString != null)
+                if (request.QueryString.HasValue)
                 {
                     detail.QueryString = ToKeyValues(request.Query, null, null);
                 }
@@ -87,11 +89,6 @@ namespace StackifyLib.AspNetCore
                 {
                     detail.Cookies = ToKeyValues(request.Cookies, Config.ErrorCookiesGoodKeys, Config.ErrorCookiesBadKeys);
                 }
-
-                if (request.Form != null && Config.CaptureErrorPostdata)
-                {
-                    detail.PostData = ToKeyValues(request.Form, null, null);
-                }
             }
             catch (Exception)
             {
@@ -111,7 +108,7 @@ namespace StackifyLib.AspNetCore
                 {
                     object val = item.Value.ToString();
 
-                    if (val != null && string.IsNullOrWhiteSpace(val.ToString()) == false && items.ContainsKey(key))
+                    if (val != null && string.IsNullOrWhiteSpace(val.ToString()) == false && items.ContainsKey(key) == false)
                     {
                         AddKey(key, val.ToString(), items, goodKeys, badKeys);
                     }
@@ -137,7 +134,7 @@ namespace StackifyLib.AspNetCore
                 {
                     object val = item.Value;
 
-                    if (val != null && string.IsNullOrWhiteSpace(val.ToString()) == false && items.ContainsKey(key))
+                    if (val != null && string.IsNullOrWhiteSpace(val.ToString()) == false && items.ContainsKey(key) == false)
                     {
                         AddKey(key, val.ToString(), items, goodKeys, badKeys);
                     }
@@ -166,7 +163,6 @@ namespace StackifyLib.AspNetCore
             {
                 return;
             }
-
             dictionary[key] = value;
         }
     }

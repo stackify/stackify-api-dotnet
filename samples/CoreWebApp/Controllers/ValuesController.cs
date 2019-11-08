@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CoreWebApp.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -19,8 +21,12 @@ namespace CoreWebApp.Controllers
         [HttpGet]
         public IEnumerable<string> Get()
         {
-          //  nlog.Debug("Callng Get() method");
+            //  nlog.Debug("Callng Get() method");
+            var ex1 = new Exception("Failure");
+            //Will create a StackifyError
+            _Logger.LogError(ex1, "Test error");
 
+            //Will not create a StackifyError
             _Logger.LogError("From helper method");
 
             try
@@ -45,10 +51,24 @@ namespace CoreWebApp.Controllers
             return "value";
         }
 
-        // POST api/values
+        //raw
         [HttpPost]
-        public void Post([FromBody]string value)
+        public void Post()
         {
+            var ex1 = new Exception("Failure");
+            //Will create a StackifyError
+            _Logger.LogError(ex1, "Test POST error");
+        }
+
+        [HttpPost]
+        [Route("PostValue")]
+        public void PostValue([FromBody]ValueModel thing)
+        {
+            var test = thing.Value;
+
+            var ex1 = new Exception("Failure");
+            //Will create a StackifyError
+            _Logger.LogError(ex1, "Test VALUE POST error");
         }
 
         // PUT api/values/5

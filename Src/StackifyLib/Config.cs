@@ -31,8 +31,6 @@ namespace StackifyLib
         {
             try
             {
-                CaptureErrorPostdata = Get("Stackify.CaptureErrorPostdata", bool.FalseString).Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
-
                 CaptureServerVariables = Get("Stackify.CaptureServerVariables", bool.FalseString).Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
 
                 CaptureSessionVariables = Get("Stackify.CaptureSessionVariables", bool.FalseString).Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);

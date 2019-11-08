@@ -9,6 +9,7 @@ using StackifyLib;
 using StackifyLib.Internal.Logs;
 using StackifyLib.Models;
 using StackifyLib.Utils;
+using NLog.Layouts;
 
 namespace NLog.Targets.Stackify
 {
@@ -35,6 +36,8 @@ namespace NLog.Targets.Stackify
 
         [ArrayParameter(typeof(TargetPropertyWithContext), "contextproperty")]
         public override IList<TargetPropertyWithContext> ContextProperties { get; } = new List<TargetPropertyWithContext>();
+
+        public Layout StackifyHttpRequestInfo { get; set; }
 
         public StackifyTarget()
         {
@@ -266,6 +269,25 @@ namespace NLog.Targets.Stackify
                     stringException.TraceFrames = StackifyLib.Logger.GetCurrentStackTrace(loggingEvent.LoggerName);
                 }
                 stackifyError = StackifyError.New(stringException);
+            }
+
+            if (StackifyHttpRequestInfo != null)
+            {
+                string stackifyHttp = StackifyHttpRequestInfo.Render(loggingEvent);
+                if (stackifyError.WebRequestDetail == null && !String.IsNullOrEmpty(stackifyHttp))
+                {
+#if NETFULL
+                    try
+                    {
+                        var webRequestDetail = Newtonsoft.Json.JsonConvert.DeserializeObject<WebRequestDetail>(stackifyHttp);
+                        stackifyError.WebRequestDetail = webRequestDetail;
+                    }
+                    catch (Exception e)
+                    {
+                        InternalLogger.Warn(e, "StackifyHttpRequestInfo: Failed to DeserializeObject");
+                    }
+#endif
+                }
             }
 
             if (stackifyError != null && !StackifyError.IgnoreError(stackifyError) && _logClient.ErrorShouldBeSent(stackifyError))
