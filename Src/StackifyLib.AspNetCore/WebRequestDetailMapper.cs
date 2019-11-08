@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,7 +32,7 @@ namespace StackifyLib.AspNetCore
 
         private static void Load(HttpContext context, WebRequestDetail detail)
         {
-            if (context == null || context.Request == null)
+            if (context?.Request == null)
             {
                 return;
             }
@@ -58,7 +60,7 @@ namespace StackifyLib.AspNetCore
 
             try
             {
-                if (request.QueryString != null)
+                if (request.QueryString.HasValue)
                 {
                     detail.QueryString = ToKeyValues(request.Query, null, null);
                 }
@@ -86,11 +88,6 @@ namespace StackifyLib.AspNetCore
                 if (request.Cookies != null && Config.CaptureErrorCookies)
                 {
                     detail.Cookies = ToKeyValues(request.Cookies, Config.ErrorCookiesGoodKeys, Config.ErrorCookiesBadKeys);
-                }
-
-                if (request.Form != null && Config.CaptureErrorPostdata)
-                {
-                    detail.PostData = ToKeyValues(request.Form, null, null);
                 }
             }
             catch (Exception)

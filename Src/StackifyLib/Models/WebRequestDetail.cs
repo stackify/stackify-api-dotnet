@@ -209,24 +209,6 @@ namespace StackifyLib.Models
                 {
                     SessionData = ToKeyValues(context.Session, Config.ErrorSessionGoodKeys, null);
                 }
-
-                if (Config.CaptureErrorPostdata)
-                {
-                    var contentType = context.Request.Headers["Content-Type"];
-
-                    if (contentType != "text/html" && contentType != "application/x-www-form-urlencoded" &&
-                        context.Request.RequestType != "GET")
-                    {
-                        int length = 4096;
-                        string postBody = new StreamReader(context.Request.InputStream).ReadToEnd();
-                        if (postBody.Length < length)
-                        {
-                            length = postBody.Length;
-                        }
-
-                        PostDataRaw = postBody.Substring(0, length);
-                    }
-                }
             }
             catch
             {
