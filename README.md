@@ -19,7 +19,7 @@ Library for Stackify users to integrate Stackify in to their projects. Provides 
 **Read me sections:**
 - [Basics](#basics)
 - [Errors & Logs](#errors-and-logs)
-- [StackifyLib NLog](#nlog-2012---v31)
+- [StackifyLib NLog](#nlog)
 - [StackifyLib log4net 2.0+](#log4net-v20-v1211)
 - [StackifyLib log4net 1.2.10](#log4net-v1210)
 - [Direct API](#direct-api)
@@ -94,7 +94,7 @@ static void StackifyAPILogger_OnLogMessage(string data)
 If you log an object with the message, Stackify's log viewer makes it easy to search by these parameters. You can always search by the text in the log message itself, but searching by the logged properties provides a lot more power. If you always logged a "clientid" for example on every log message, you could search in Stackify for "json.clientid:1" and quickly see all logs and errors affecting that specific client. Another big difference and advantage to logging objects is you can do a range type search "json.clientid:[1 TO 10]" which would not be possible by a straight text search.
 
 
-### NLog 4.5
+### NLog
 
 **Install via NuGet package**
 ```
@@ -119,7 +119,15 @@ Sample config:
 </nlog>
 ```
 
-Logging custom objects is supported and will be searchable in Stackify's log viewer
+
+NLog 4.5 (and newer) supports message templates, where structured properties becomes searchable in Stackify's log viewer
+
+```csharp
+        static NLog.Logger nlog = NLog.LogManager.GetCurrentClassLogger();
+        nLog.Debug("{clientid} chose {color}", 1, "red");
+```
+
+Logging custom objects are also supported and will be searchable in Stackify's log viewer
 
 ```csharp
 static NLog.Logger nlog = NLog.LogManager.GetCurrentClassLogger();
@@ -127,6 +135,8 @@ Dictionary<string, object> dictionary = new Dictionary<string, object>();
 dictionary["clientid"] = 1;
 dictionary["color"] = "red";
 nlog.Debug("Test message", dictionary);
+
+nlog.Debug("Test message", new { clientid = 2, color = "blue" });
 ```
 
 Options:
