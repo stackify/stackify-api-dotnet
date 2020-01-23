@@ -3,7 +3,10 @@ using StackifyLib.Utils;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 
 #if NETFULL
@@ -99,6 +102,7 @@ namespace StackifyLib.Internal.Logs
                     // ignore
                 }
 
+       
 #if NETFULL
                 try
                 {
@@ -176,6 +180,41 @@ namespace StackifyLib.Internal.Logs
                             HelperFunctions.CleanPartialUrl(context.Request.AppRelativeCurrentExecutionFilePath.TrimStart('~'));
                         }
                     }
+                }
+#else
+                // else if .Net Core
+                // get RequestID
+                if (string.IsNullOrEmpty(msg.TransID))
+                {
+                    var trace = Trace.CorrelationManager.ActivityId;
+
+                    var q = AppDomain.CurrentDomain.GetAssemblies();
+                    var a = Assembly.GetEntryAssembly().GetReferencedAssemblies();
+
+                    var s = q.Where(assembly => assembly.FullName.Contains("Stackify.Agent"));
+                    var middleware = s.First();
+                    var midTypes = middleware.GetTypes();
+                    var callContextType = midTypes.Where(type => type.Name.Contains("StackifyCallContext")).First();
+                    var traceCtxType = midTypes.Where(type => type.Name.Contains("TraceContext")).First();
+                    var traceContextProp = callContextType.GetProperty("TraceContext");
+                    var traceFields = Convert.ChangeType(traceContextProp.GetValue(null), traceCtxType);
+                    if(traceFields != null)
+                    {
+                        // var tFields = traceFields.RequestID;
+                        Console.WriteLine("Testing");
+                    }
+                    //var ctxType = Type.GetType("Stackify.Agent.Threading.StackifyCallContext");
+                    
+                    
+                    // check if using log4net or NLog
+                    /*
+                    var correltionManagerId = CallContext.LogicalGetData("E2ETrace.ActivityID");
+
+                    if (correltionManagerId != null && correltionManagerId is Guid && ((Guid)correltionManagerId) != Guid.Empty)
+                    {
+                        msg.TransID = correltionManagerId.ToString();
+                    }
+                    */
                 }
 #endif
 
