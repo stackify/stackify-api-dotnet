@@ -197,24 +197,12 @@ namespace StackifyLib.Internal.Logs
                     var callContextType = midTypes.Where(type => type.Name.Contains("StackifyCallContext")).First();
                     var traceCtxType = midTypes.Where(type => type.Name.Contains("TraceContext")).First();
                     var traceContextProp = callContextType.GetProperty("TraceContext");
-                    var traceFields = Convert.ChangeType(traceContextProp.GetValue(null), traceCtxType);
+                    var traceFields = traceContextProp.GetValue(null);
                     if(traceFields != null)
                     {
-                        // var tFields = traceFields.RequestID;
-                        Console.WriteLine("Testing");
+                        //var tFields = traceCtxType.GetField("RequestId").GetValue(traceFields);
+                        msg.TransID = traceCtxType.GetProperty("RequestId").GetValue(traceFields).ToString();
                     }
-                    //var ctxType = Type.GetType("Stackify.Agent.Threading.StackifyCallContext");
-                    
-                    
-                    // check if using log4net or NLog
-                    /*
-                    var correltionManagerId = CallContext.LogicalGetData("E2ETrace.ActivityID");
-
-                    if (correltionManagerId != null && correltionManagerId is Guid && ((Guid)correltionManagerId) != Guid.Empty)
-                    {
-                        msg.TransID = correltionManagerId.ToString();
-                    }
-                    */
                 }
 #endif
 
