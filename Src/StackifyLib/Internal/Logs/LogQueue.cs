@@ -194,13 +194,12 @@ namespace StackifyLib.Internal.Logs
                     var s = q.Where(assembly => assembly.FullName.Contains("Stackify.Agent"));
                     var middleware = s.First();
                     var midTypes = middleware.GetTypes();
-                    var callContextType = midTypes.Where(type => type.Name.Contains("StackifyCallContext")).First();
-                    var traceCtxType = midTypes.Where(type => type.Name.Contains("TraceContext")).First();
+                    var callContextType = middleware.GetType("Stackify.Agent.Threading.StackifyCallContext");
+                    var traceCtxType = middleware.GetType("Stackify.Agent.Tracing.ITraceContext");
                     var traceContextProp = callContextType.GetProperty("TraceContext");
                     var traceFields = traceContextProp.GetValue(null);
                     if(traceFields != null)
                     {
-                        //var tFields = traceCtxType.GetField("RequestId").GetValue(traceFields);
                         msg.TransID = traceCtxType.GetProperty("RequestId").GetValue(traceFields).ToString();
                     }
                 }
