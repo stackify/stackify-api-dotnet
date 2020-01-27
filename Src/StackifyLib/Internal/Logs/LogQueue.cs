@@ -201,12 +201,22 @@ namespace StackifyLib.Internal.Logs
                             if(traceCtxType != null)
                             {
                                 var traceContextProp = callContextType.GetProperty("TraceContext");
-                                if(traceCtxType != null)
+                                if(traceContextProp != null)
                                 {
                                     var traceFields = traceContextProp.GetValue(null);
                                     if (traceFields != null)
                                     {
-                                        msg.TransID = traceCtxType.GetProperty("RequestId").GetValue(traceFields).ToString();
+                                        var reqIdProp = traceCtxType.GetProperty("RequestId");
+
+                                        if (reqIdProp != null)
+                                        {
+                                            var transIDVal = reqIdProp.GetValue(traceFields);
+                                            if (transIDVal != null)
+                                            {
+                                                msg.TransID = transIDVal.ToString();
+                                            }
+                                        }
+                                       
                                     }
                                 }
                             }
