@@ -189,18 +189,28 @@ namespace StackifyLib.Internal.Logs
                     var trace = Trace.CorrelationManager.ActivityId;
 
                     var q = AppDomain.CurrentDomain.GetAssemblies();
-                    var a = Assembly.GetEntryAssembly().GetReferencedAssemblies();
 
                     var s = q.Where(assembly => assembly.FullName.Contains("Stackify.Agent"));
-                    var middleware = s.First();
-                    var midTypes = middleware.GetTypes();
-                    var callContextType = middleware.GetType("Stackify.Agent.Threading.StackifyCallContext");
-                    var traceCtxType = middleware.GetType("Stackify.Agent.Tracing.ITraceContext");
-                    var traceContextProp = callContextType.GetProperty("TraceContext");
-                    var traceFields = traceContextProp.GetValue(null);
-                    if(traceFields != null)
+                    if(s.Count() > 0)
                     {
-                        msg.TransID = traceCtxType.GetProperty("RequestId").GetValue(traceFields).ToString();
+                        var middleware = s.First();
+                        var callContextType = middleware.GetType("Stackify.Agent.Threading.StackifyCallContext");
+                        if (callContextType != null)
+                        {
+                            var traceCtxType = middleware.GetType("Stackify.Agent.Tracing.ITraceContext");
+                            if(traceCtxType != null)
+                            {
+                                var traceContextProp = callContextType.GetProperty("TraceContext");
+                                if(traceCtxType != null)
+                                {
+                                    var traceFields = traceContextProp.GetValue(null);
+                                    if (traceFields != null)
+                                    {
+                                        msg.TransID = traceCtxType.GetProperty("RequestId").GetValue(traceFields).ToString();
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 #endif
