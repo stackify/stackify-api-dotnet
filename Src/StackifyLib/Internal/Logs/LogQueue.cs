@@ -200,24 +200,12 @@ namespace StackifyLib.Internal.Logs
                             var traceCtxType = middleware.GetType("Stackify.Agent.Tracing.ITraceContext");
                             if(traceCtxType != null)
                             {
-                                var traceContextProp = callContextType.GetProperty("TraceContext");
-                                if(traceContextProp != null)
+                                var traceContextProp = callContextType.GetProperty("TraceContext")?.GetValue(null);
+                                if (traceContextProp != null)
                                 {
-                                    var traceFields = traceContextProp.GetValue(null);
-                                    if (traceFields != null)
-                                    {
-                                        var reqIdProp = traceCtxType.GetProperty("RequestId");
-
-                                        if (reqIdProp != null)
-                                        {
-                                            var transIDVal = reqIdProp.GetValue(traceFields);
-                                            if (transIDVal != null)
-                                            {
-                                                msg.TransID = transIDVal.ToString();
-                                            }
-                                        }
-                                       
-                                    }
+                                    var reqIdProp = traceCtxType.GetProperty("RequestId")?.GetValue(traceContextProp)?.ToString();
+                                    if(!string.IsNullOrEmpty(reqIdProp))
+                                        msg.TransID = reqIdProp;
                                 }
                             }
                         }
