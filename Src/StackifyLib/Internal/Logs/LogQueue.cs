@@ -186,14 +186,12 @@ namespace StackifyLib.Internal.Logs
                 // get RequestID
                 if (string.IsNullOrEmpty(msg.TransID))
                 {
-                    var trace = Trace.CorrelationManager.ActivityId;
+                    var assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
-                    var q = AppDomain.CurrentDomain.GetAssemblies();
-
-                    var s = q.Where(assembly => assembly.FullName.Contains("Stackify.Agent"));
-                    if(s.Count() > 0)
+                    var agentAssemblyQry = assemblies.Where(assembly => assembly.FullName.Contains("Stackify.Agent"));
+                    if(agentAssemblyQry.Count() > 0)
                     {
-                        var middleware = s.First();
+                        var middleware = agentAssemblyQry.First();
                         var callContextType = middleware.GetType("Stackify.Agent.Threading.StackifyCallContext");
                         if (callContextType != null)
                         {
