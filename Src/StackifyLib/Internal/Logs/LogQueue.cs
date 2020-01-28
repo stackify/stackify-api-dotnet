@@ -186,8 +186,6 @@ namespace StackifyLib.Internal.Logs
                 // get RequestID
                 if (string.IsNullOrEmpty(msg.TransID))
                 {
-                    var trace = Trace.CorrelationManager.ActivityId;
-
                     var q = AppDomain.CurrentDomain.GetAssemblies();
 
                     var s = q.Where(assembly => assembly.FullName.Contains("Stackify.Agent"));
