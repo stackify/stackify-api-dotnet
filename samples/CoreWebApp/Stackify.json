@@ -1,4 +1,6 @@
 {
-  "AppName": "Ray Log Test",
-  "Environment":  "Ray Log"
+  "AppName": "ffweb",
+  "Environment": "Ray Stackify Agent ID Test",
+  "ApiUrl": "https://qaapi.stackify.com",
+  "ApiKey": "3Zo5Ba4Nh8By4El7Jl8Uc5Qu4Wc8Ao5Kt9No8Yk"
 }

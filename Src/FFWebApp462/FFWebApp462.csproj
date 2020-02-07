@@ -215,6 +215,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="packages.config" />
+    <None Include="Properties\PublishProfiles\CustomProfile.pubxml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NLog.Targets.Stackify\NLog.Targets.Stackify.csproj">
