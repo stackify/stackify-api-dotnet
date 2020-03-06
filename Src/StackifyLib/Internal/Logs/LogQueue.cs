@@ -3,7 +3,10 @@ using StackifyLib.Utils;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 
 #if NETFULL
@@ -99,6 +102,7 @@ namespace StackifyLib.Internal.Logs
                     // ignore
                 }
 
+       
 #if NETFULL
                 try
                 {
@@ -174,6 +178,34 @@ namespace StackifyLib.Internal.Logs
                         if (string.IsNullOrWhiteSpace(context.Request.AppRelativeCurrentExecutionFilePath) == false)
                         {
                             HelperFunctions.CleanPartialUrl(context.Request.AppRelativeCurrentExecutionFilePath.TrimStart('~'));
+                        }
+                    }
+                }
+#else
+                // else if .Net Core
+                // get RequestID
+                if (string.IsNullOrEmpty(msg.TransID))
+                {
+                    var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+
+                    var agentAssemblyQry = assemblies.Where(assembly => assembly.FullName.Contains("Stackify.Agent"));
+                    if(agentAssemblyQry.Count() > 0)
+                    {
+                        var middleware = agentAssemblyQry.First();
+                        var callContextType = middleware.GetType("Stackify.Agent.Threading.StackifyCallContext");
+                        if (callContextType != null)
+                        {
+                            var traceCtxType = middleware.GetType("Stackify.Agent.Tracing.ITraceContext");
+                            if(traceCtxType != null)
+                            {
+                                var traceContextProp = callContextType.GetProperty("TraceContext")?.GetValue(null);
+                                if (traceContextProp != null)
+                                {
+                                    var reqIdProp = traceCtxType.GetProperty("RequestId")?.GetValue(traceContextProp)?.ToString();
+                                    if(!string.IsNullOrEmpty(reqIdProp))
+                                        msg.TransID = reqIdProp;
+                                }
+                            }
                         }
                     }
                 }
