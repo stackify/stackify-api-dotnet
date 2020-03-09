@@ -12,8 +12,17 @@ namespace StackifyLib.Utils
     public class HelperFunctions
     {
         static List<string> _BadTypes = new List<string>() { "log4net.Util.SystemStringFormat", "System.Object[]" };
-        static JsonSerializer serializer = new JsonSerializer { ReferenceLoopHandling = ReferenceLoopHandling.Ignore };
-        static JsonSerializerSettings serializerSettings = new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore, ReferenceLoopHandling = ReferenceLoopHandling.Ignore };
+        static JsonSerializerSettings serializerSettings = new JsonSerializerSettings()
+        {
+            NullValueHandling = NullValueHandling.Ignore,
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+            Converters = new List<JsonConverter>() {
+                    new ToStringConverter("Module", typeof(Module)),
+                    new ToStringConverter("Method", typeof(MethodBase)),
+                    new ToStringConverter("Assembly", typeof(Assembly)),
+            }
+        };
+        static JsonSerializer serializer = JsonSerializer.Create(serializerSettings);
 
         /// <summary>
         /// Trying to serialize something that the user passed in. Sometimes this is used to serialize what we know is additional debug and sometimes it is the primary logged item. This is why the serializeSimpleTypes exists. For additional debug stuff we always serialize it. For the primary logged object we won't because it doesn't make any sense to put a string in the json as well as the main message. It's meant for objects.
@@ -302,6 +311,42 @@ namespace StackifyLib.Utils
             }
 
             return sbNewUrl.ToString();
+        }
+    }
+
+    public class ToStringConverter : JsonConverter
+    {
+        private string _propName = "";
+        private Type _type;
+
+        public ToStringConverter(string propName, Type t)
+        {
+            _propName = propName;
+            _type = t;
+        }
+
+        public override bool CanConvert(Type objectType)
+        {
+            return _type.IsAssignableFrom(objectType);
+        }
+
+        public override bool CanRead => false;
+
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            if (value != null)
+            {
+                var o = new JObject();
+
+                o.Add(new JProperty(_propName, value.ToString()));
+
+                o.WriteTo(writer);
+            }
         }
     }
 }
