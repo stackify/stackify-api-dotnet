@@ -129,7 +129,7 @@ namespace StackifyLib.Models
                 }
             }
 
-            return deviceName;
+            return deviceName.Substring(0, deviceName.Length > 60 ? 60 : deviceName.Length);
         }
 
         public static string GetEC2InstanceId()
@@ -215,7 +215,7 @@ namespace StackifyLib.Models
                 }
             }
 
-            return deviceName;
+            return deviceName.Substring(0, deviceName.Length > 60 ? 60 : deviceName.Length);
         }
 
         public static async Task<string> GetEC2InstanceId()
@@ -233,6 +233,11 @@ namespace StackifyLib.Models
                 {
                     string id = await content.Content.ReadAsStringAsync();
                     r = string.IsNullOrWhiteSpace(id) ? null : id;
+
+                    if (r.Contains("html"))
+                    {
+                        r = Environment.MachineName;
+                    }
                 }
 
             }
