@@ -18,7 +18,7 @@ namespace StackifyLib.Utils
             ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
             Converters = new List<JsonConverter>() {
                     new ToStringConverter("Module", typeof(Module)),
-                    new ToStringConverter("Method", typeof(MethodBase)),
+                    new ToStringConverter("Method", typeof(MemberInfo)),
                     new ToStringConverter("Assembly", typeof(Assembly)),
             }
         };
