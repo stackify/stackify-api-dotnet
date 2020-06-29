@@ -9,11 +9,10 @@ Library for Stackify users to integrate Stackify in to their projects. Provides 
 - [Stackify homepage](http://www.stackify.com)
 - [Stackify documentation site](https://docs.stackify.com/docs)
 - [NuGet packages](https://www.nuget.org/packages?q=Stackify)
-- [Configure log4net](https://docs.stackify.com/docs/errors-and-logs-log4net)
+- [Supported .NET logging frameworks](https://docs.stackify.com/docs/errors-and-logs-net-supported-frameworks)
 - [Best practices for logging with C#](https://stackify.com/csharp-logging-best-practices/)
 - [Why you should use tags in your logs](https://stackify.com/get-smarter-log-management-with-log-tags/)
 - [Ultimate log4net Tutorial for .Net Logging](https://stackify.com/log4net-guide-dotnet-logging/)
-
 
 
 **Read me sections:**
@@ -101,17 +100,17 @@ If you log an object with the message, Stackify's log viewer makes it easy to se
 PM> Install-Package NLog.Targets.Stackify
 ```
 
-Sample config:
+**Sample config:**
 ```xml
 <nlog>
         <extensions>
                 <add assembly="NLog.Targets.Stackify"/>
         </extensions>
         <targets>
-          <target name="stackify" type="StackifyTarget" logAllParams="false">
-            <contextproperty name="gdcKey1" layout="${gdc:item=gdcKey1}" />
-            <contextproperty name="mdlcKey2" layout="${mdlc:item=mdlcKey2}" />
-          </target>
+                <target name="stackify" type="StackifyTarget" logAllParams="false">
+                        <contextproperty name="gdcKey1" layout="${gdc:item=gdcKey1}" />
+                        <contextproperty name="mdlcKey2" layout="${mdlc:item=mdlcKey2}" />
+                </target>
         </targets>
         <rules>
                 <logger name="*" writeTo="stackify" minlevel="Debug" />
@@ -123,8 +122,8 @@ Sample config:
 NLog 4.5 (and newer) supports message templates, where structured properties becomes searchable in Stackify's log viewer
 
 ```csharp
-        static NLog.Logger nlog = NLog.LogManager.GetCurrentClassLogger();
-        nLog.Debug("{clientid} chose {color}", 1, "red");
+static NLog.Logger nlog = NLog.LogManager.GetCurrentClassLogger();
+nLog.Debug("{clientid} chose {color}", 1, "red");
 ```
 
 Logging custom objects are also supported and will be searchable in Stackify's log viewer
@@ -139,7 +138,7 @@ nlog.Debug("Test message", dictionary);
 nlog.Debug("Test message", new { clientid = 2, color = "blue" });
 ```
 
-Options:
+**Options:**
 
 - IncludeEventProperties - Include LogEvent-Properties for structured logging.
 - IncludeMdlc - Include NLog MappedDiagnosticsLogicalContext MDLC-Properties for structured logging.
@@ -166,7 +165,7 @@ Note: Nuget packages are compiled against 2.0.0 (1.2.11) but any newer version w
 </dependentAssembly>
 ```
 
-Sample config:
+**Sample config:**
 ```xml
 <log4net>
         <root>
@@ -193,7 +192,7 @@ Sample config:
 </log4net>
 ```
 
-Options
+**Options:**
 
 - GlobalContext, ThreadContext, and LogicalThreadContext keys are fully supported by setting the parameters in the config as a comma delimited list of keys. See sample config above.
 - CallContextKeys is an additional feature unrelated to log4net that uses the local thread storage for more advanced tracking of context variables. LogicalThreadContext provides the same functionality but uses an internal property collection. We have seen instances where the serialization of that collection can cause exceptions. This was created as an alternative method to the built in function. It is used via CallContext.LogicalSetData(key, value). Research LogicalSetData online to learn more. It is supposed to work better across child Task objects and with async.
@@ -204,7 +203,7 @@ Options
 
 log4net does not internally have methods for logging a log message along with an object. Stackify's appenders work fine if you log an object directly or we have created some friendly extension methods to make it easy to log an object with your message at the same time.
 
-```cshapr
+```csharp
 using StackifyLib; //extension methods are here
 static log4net.ILog logger = log4net.LogManager.GetLogger(typeof(Program));
 Dictionary<string, object> dictionary = new Dictionary<string, object>();
