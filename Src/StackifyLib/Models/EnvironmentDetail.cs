@@ -237,13 +237,13 @@ namespace StackifyLib.Models
             try
             {
                 Client.Timeout = TimeSpan.FromSeconds(5);
-                var content = await Client.GetAsync(EC2InstanceIdUrl);
+                var content = await Client.GetAsync(EC2InstanceIdUrl).ConfigureAwait(false);
 
                 int statusCode = (int)content.StatusCode;
 
                 if (statusCode >= 200 && statusCode < 300)
                 {
-                    string id = await content.Content.ReadAsStringAsync();
+                    string id = await content.Content.ReadAsStringAsync().ConfigureAwait(false);
                     r = string.IsNullOrWhiteSpace(id) ? null : id;
 
                     if (r.Contains("html"))
