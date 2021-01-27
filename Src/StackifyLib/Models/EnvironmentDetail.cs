@@ -194,9 +194,10 @@ namespace StackifyLib.Models
 #else
         public static string GetDeviceName()
         {
+            //WIN-230 - Set DeviceName to Environment.MachineName.
             var deviceName = Environment.MachineName;
 
-            if (AzureConfig.InAzure && ((AzureConfig.IsWebsite) || (AzureConfig.InAzure && Environment.MachineName.StartsWith("RD"))))
+            /*if (AzureConfig.InAzure && ((AzureConfig.IsWebsite) || (AzureConfig.InAzure && Environment.MachineName.StartsWith("RD"))))
             {
                 deviceName = AzureConfig.AzureInstanceName;
             }
@@ -213,7 +214,7 @@ namespace StackifyLib.Models
                         deviceName = instanceID_task.Result;
                     }
                 }
-            }
+            }*/
 
             return deviceName;
         }
