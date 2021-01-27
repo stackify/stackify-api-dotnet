@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using Newtonsoft.Json.Linq;
 using StackifyLib.Utils;
 
 namespace StackifyLib
@@ -11,6 +13,8 @@ namespace StackifyLib
     /// </summary>
     public class Config
     {
+
+        private static readonly JsonLoadSettings Settings = new JsonLoadSettings { CommentHandling = CommentHandling.Ignore, LineInfoHandling = LineInfoHandling.Ignore };
 #if NETCORE || NETCOREX
 
         private static Microsoft.Extensions.Configuration.IConfiguration _configuration = null;
@@ -196,6 +200,49 @@ namespace StackifyLib
             }
 
             return v;
+        }
+
+        public static void ReadStackifyJSONConfig(string filePath)
+        {
+            string json;
+
+            using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            {
+                using (var sr = new StreamReader(fs))
+                {
+                    json = sr.ReadToEnd();
+                }
+            }
+
+            var obj = JObject.Parse(json, Settings);
+            Config.SetStackifyObj(obj);
+        }
+
+        public static void SetStackifyObj(JObject obj)
+        {
+            AppName = TryGetValue(obj, "AppName");
+            Environment = TryGetValue(obj, "Environment");
+            ApiKey = TryGetValue(obj, "ApiKey");
+        }
+
+        private static string TryGetValue(JToken jToken, string key)
+        {
+            string r = null;
+
+            try
+            {
+                var val = jToken[key];
+                if (val != null)
+                {
+                    r = val.ToString();
+                }
+            }
+            catch (Exception ex)
+            {
+                StackifyAPILogger.Log("#Config #TryGetValue failed", ex);
+            }
+
+            return r;
         }
     }
 }

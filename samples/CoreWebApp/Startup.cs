@@ -29,7 +29,7 @@ namespace CoreWebApp
             StackifyLib.Utils.StackifyAPILogger.OnLogMessage += StackifyAPILogger_OnLogMessage;
             StackifyLib.Utils.StackifyAPILogger.LogEnabled = true;
 
-            var builder = new ConfigurationBuilder()
+            /*var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
@@ -37,7 +37,14 @@ namespace CoreWebApp
             Configuration = builder.Build();
             Configuration.ConfigureStackifyLogging();
 
-            StackifyLib.Config.Environment = env.EnvironmentName;
+            StackifyLib.Config.Environment = env.EnvironmentName;*/
+
+            string filePath = "C:\\Source\\stackify-api-dotnet\\samples\\CoreWebApp\\Stackify.json";
+
+            Config.ReadStackifyJSONConfig(filePath);
+            Debug.WriteLine(StackifyLib.Config.AppName);
+            Debug.WriteLine(StackifyLib.Config.Environment);
+            Debug.WriteLine(StackifyLib.Config.ApiKey);
         }
 
         private void StackifyAPILogger_OnLogMessage(string data)
@@ -82,9 +89,8 @@ namespace CoreWebApp
             // var path = Path.Combine(Directory.GetCurrentDirectory(), "nlog.config");
             //  NLog.LogManager.Configuration = new XmlLoggingConfiguration(path, true);
         //    app.AddNLogWeb();
-            app.ConfigureStackifyLogging(Configuration);
-
-
+            //app.ConfigureStackifyLogging(Configuration);
+            
             app.UseMvc();
         }
     }

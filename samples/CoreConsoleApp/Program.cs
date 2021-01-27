@@ -9,14 +9,17 @@ using System.Xml;
 using log4net.Config;
 using log4net.Repository;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json.Linq;
 using NLog;
 using NLog.Config;
 using StackifyLib;
+using static System.Net.WebRequestMethods;
 
 namespace CoreConsoleApp
 {
     public class Program
     {
+        private static readonly JsonLoadSettings Settings = new JsonLoadSettings { CommentHandling = CommentHandling.Ignore, LineInfoHandling = LineInfoHandling.Ignore };
         static void Main(string[] args)
         {
             var builder = new ConfigurationBuilder()
@@ -32,8 +35,15 @@ namespace CoreConsoleApp
             StackifyLib.Utils.StackifyAPILogger.OnLogMessage += StackifyAPILogger_OnLogMessage;
             StackifyLib.Utils.StackifyAPILogger.LogEnabled = true;
 
-            //NLogTest();
 
+            string filePath = "C:\\Source\\stackify-api-dotnet\\samples\\CoreConsoleApp\\Stackify.json";
+
+            Config.ReadStackifyJSONConfig(filePath);
+
+            //NLogTest();
+            Console.WriteLine($"Stackify Config AppName: {StackifyLib.Config.AppName}");
+            Console.WriteLine($"Stackify Config EnvironmentName: {StackifyLib.Config.Environment}");
+            Console.WriteLine($"Stackify Config ApiKey: {StackifyLib.Config.ApiKey}");
             StackifyLib.Logger.Shutdown(); //best practice for console apps
         }
 
