@@ -228,9 +228,9 @@ namespace StackifyLib
 
         public static void SetStackifyObj(JObject obj)
         {
-            AppName = TryGetValue(obj, "AppName");
-            Environment = TryGetValue(obj, "Environment");
-            ApiKey = TryGetValue(obj, "ApiKey");
+            AppName = TryGetValue(obj, "AppName") ?? AppName;
+            Environment = TryGetValue(obj, "Environment") ?? Environment;
+            ApiKey = TryGetValue(obj, "ApiKey") ?? ApiKey;
         }
 
         private static string TryGetValue(JToken jToken, string key)
@@ -240,14 +240,23 @@ namespace StackifyLib
             try
             {
                 var val = jToken[key];
-                if (val != null)
+                if (val == null)
                 {
-                    r = val.ToString();
+                    StackifyAPILogger.Log($"#Config #TryGetValue #Json failed - Property is null or empty - Property: {key}");
+                    return r;
                 }
+
+                if (val.Type != JTokenType.String || (val.Type == JTokenType.String && string.IsNullOrEmpty(val.ToString())))
+                {
+                    StackifyAPILogger.Log($"#Config #TryGetValue #Json failed - Property is not a string - Property: {key}");
+                    return r;
+                }
+
+                r = val.ToString();
             }
             catch (Exception ex)
             {
-                StackifyAPILogger.Log("#Config #TryGetValue failed", ex);
+                StackifyAPILogger.Log("#Config #TryGetValue #Json failed", ex);
             }
 
             return r;
