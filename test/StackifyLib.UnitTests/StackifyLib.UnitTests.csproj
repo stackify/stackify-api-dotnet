@@ -17,4 +17,22 @@
     <ProjectReference Include="..\..\Src\StackifyLib\StackifyLib.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Fixtures\JsonConfig\Stackify-With-Comment.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Fixtures\JsonConfig\Stackify-Invalid-Property-Type.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Fixtures\JsonConfig\Stackify-Invalid-Format.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Fixtures\JsonConfig\Stackify-Empty.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Fixtures\JsonConfig\Stackify.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
