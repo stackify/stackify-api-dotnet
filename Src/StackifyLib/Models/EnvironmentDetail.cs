@@ -109,25 +109,8 @@ namespace StackifyLib.Models
 
         public static string GetDeviceName()
         {
+            //WIN-230 - Set DeviceName to Environment.MachineName.
             var deviceName = Environment.MachineName;
-
-            if (AzureConfig.InAzure && ((AzureConfig.IsWebsite) || (AzureConfig.InAzure && Environment.MachineName.StartsWith("RD"))))
-            {
-                deviceName = AzureConfig.AzureInstanceName;
-            }
-            else
-            {
-                var isDefaultDeviceNameEc2 = IsEc2MachineName(deviceName);
-
-                if (Config.IsEc2 == null || Config.IsEc2 == true || isDefaultDeviceNameEc2)
-                {
-                    var ec2InstanceId = GetEC2InstanceId();
-                    if (string.IsNullOrWhiteSpace(ec2InstanceId) == false)
-                    {
-                        deviceName = ec2InstanceId;
-                    }
-                }
-            }
 
             return deviceName;
         }
@@ -196,25 +179,6 @@ namespace StackifyLib.Models
         {
             //WIN-230 - Set DeviceName to Environment.MachineName.
             var deviceName = Environment.MachineName;
-
-            /*if (AzureConfig.InAzure && ((AzureConfig.IsWebsite) || (AzureConfig.InAzure && Environment.MachineName.StartsWith("RD"))))
-            {
-                deviceName = AzureConfig.AzureInstanceName;
-            }
-            else
-            {
-                var isDefaultDeviceNameEc2 = IsEc2MachineName(deviceName);
-
-                if (Config.IsEc2 == null || Config.IsEc2 == true || isDefaultDeviceNameEc2)
-                {
-                    var instanceID_task = GetEC2InstanceId();
-                    instanceID_task.Wait();
-                    if (string.IsNullOrWhiteSpace(instanceID_task.Result) == false)
-                    {
-                        deviceName = instanceID_task.Result;
-                    }
-                }
-            }*/
 
             return deviceName;
         }
