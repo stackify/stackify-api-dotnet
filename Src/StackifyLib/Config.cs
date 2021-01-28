@@ -204,18 +204,26 @@ namespace StackifyLib
 
         public static void ReadStackifyJSONConfig(string filePath)
         {
-            string json;
-
-            using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            try
             {
-                using (var sr = new StreamReader(fs))
-                {
-                    json = sr.ReadToEnd();
-                }
-            }
+                string json;
 
-            var obj = JObject.Parse(json, Settings);
-            Config.SetStackifyObj(obj);
+                using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    using (var sr = new StreamReader(fs))
+                    {
+                        json = sr.ReadToEnd();
+                    }
+                }
+
+                var obj = JObject.Parse(json, Settings);
+                Config.SetStackifyObj(obj);
+            }
+            catch (Exception ex)
+            {
+                StackifyAPILogger.Log("#Config #ReadStackifyJSONConfig failed", ex);
+            }
+            
         }
 
         public static void SetStackifyObj(JObject obj)
