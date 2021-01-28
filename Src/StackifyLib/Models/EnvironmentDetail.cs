@@ -109,7 +109,13 @@ namespace StackifyLib.Models
 
         public static string GetDeviceName()
         {
-            var deviceName = Environment.MachineName;
+            var deviceName = Environment.GetEnvironmentVariable("STACKIFY_DEVICE_NAME");
+            if (!String.IsNullOrEmpty(deviceName))
+            {
+                return deviceName.Substring(0, deviceName.Length > 60 ? 60 : deviceName.Length);
+            }
+
+            deviceName = Environment.MachineName;
 
             if (AzureConfig.InAzure && ((AzureConfig.IsWebsite) || (AzureConfig.InAzure && Environment.MachineName.StartsWith("RD"))))
             {
@@ -129,7 +135,7 @@ namespace StackifyLib.Models
                 }
             }
 
-            return deviceName;
+            return deviceName.Substring(0, deviceName.Length > 60 ? 60 : deviceName.Length);
         }
 
         public static string GetEC2InstanceId()
@@ -194,7 +200,13 @@ namespace StackifyLib.Models
 #else
         public static string GetDeviceName()
         {
-            var deviceName = Environment.MachineName;
+            var deviceName = Environment.GetEnvironmentVariable("STACKIFY_DEVICE_NAME");
+            if (!String.IsNullOrEmpty(deviceName))
+            {
+                return deviceName.Substring(0, deviceName.Length > 60 ? 60 : deviceName.Length);
+            }
+
+            deviceName = Environment.MachineName;
 
             if (AzureConfig.InAzure && ((AzureConfig.IsWebsite) || (AzureConfig.InAzure && Environment.MachineName.StartsWith("RD"))))
             {
@@ -215,7 +227,7 @@ namespace StackifyLib.Models
                 }
             }
 
-            return deviceName;
+            return deviceName.Substring(0, deviceName.Length > 60 ? 60 : deviceName.Length);
         }
 
         public static async Task<string> GetEC2InstanceId()
@@ -233,6 +245,11 @@ namespace StackifyLib.Models
                 {
                     string id = await content.Content.ReadAsStringAsync();
                     r = string.IsNullOrWhiteSpace(id) ? null : id;
+
+                    if (r.Contains("html"))
+                    {
+                        r = Environment.MachineName;
+                    }
                 }
 
             }
