@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using StackifyLib.Internal.Logs;
 using StackifyLib.Models;
 using StackifyLib.Utils;
@@ -321,7 +322,7 @@ namespace StackifyLib.log4net
                     }
                 }
             }
-#if NETFULL
+
             foreach (string mdcKey in _LogicalThreadContextKeys)
             {
                 object mdcValue = Apache_log4net.LogicalThreadContext.Properties[mdcKey];
@@ -355,8 +356,8 @@ namespace StackifyLib.log4net
                     properties[mdcKey.ToLower()] = mdcValue;
                 }
             }
-            
 
+#if NETFULL
             foreach (string key in _CallContextKeys)
             {
                 object value = System.Runtime.Remoting.Messaging.CallContext.LogicalGetData(key);
@@ -366,7 +367,6 @@ namespace StackifyLib.log4net
                     properties[key.ToLower()] = value;
                 }
             }
-
 #endif
 
             return properties;
