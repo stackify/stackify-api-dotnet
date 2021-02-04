@@ -118,6 +118,18 @@ namespace StackifyLib.Models
             //WIN-230 - Set DeviceName to Environment.MachineName.
             deviceName = Environment.MachineName;
 
+            var isDefaultDeviceNameEc2 = IsEc2MachineName(deviceName);
+
+            if (Config.IsEc2 == null || Config.IsEc2 == true || isDefaultDeviceNameEc2)
+            {
+                var instanceID_task = GetEC2InstanceId();
+                instanceID_task.Wait();
+                if (string.IsNullOrWhiteSpace(instanceID_task.Result) == false)
+                {
+                    deviceName = instanceID_task.Result;
+                }
+            }
+
             return deviceName.Substring(0, deviceName.Length > 60 ? 60 : deviceName.Length);
         }
 
@@ -191,6 +203,18 @@ namespace StackifyLib.Models
 
             //WIN-230 - Set DeviceName to Environment.MachineName.
             deviceName = Environment.MachineName;
+
+            var isDefaultDeviceNameEc2 = IsEc2MachineName(deviceName);
+
+            if (Config.IsEc2 == null || Config.IsEc2 == true || isDefaultDeviceNameEc2)
+            {
+                var instanceID_task = GetEC2InstanceId();
+                instanceID_task.Wait();
+                if (string.IsNullOrWhiteSpace(instanceID_task.Result) == false)
+                {
+                    deviceName = instanceID_task.Result;
+                }
+            }
 
             return deviceName.Substring(0, deviceName.Length > 60 ? 60 : deviceName.Length);
         }
