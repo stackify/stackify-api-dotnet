@@ -123,10 +123,9 @@ namespace StackifyLib.Models
             if (Config.IsEc2 == null || Config.IsEc2 == true || isDefaultDeviceNameEc2)
             {
                 var instanceID_task = GetEC2InstanceId();
-                instanceID_task.Wait();
-                if (string.IsNullOrWhiteSpace(instanceID_task.Result) == false)
+                if (string.IsNullOrWhiteSpace(instanceID_task) == false)
                 {
-                    deviceName = instanceID_task.Result;
+                    deviceName = instanceID_task;
                 }
             }
 
