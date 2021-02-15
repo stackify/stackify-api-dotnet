@@ -24,7 +24,7 @@ namespace StackifyLib.UnitTests
             this.output = output;
         }
 
-
+#if JSONTEST
         [Fact]
         public void Should_Ignore_Invalid_Format_Json_File()
         {
@@ -121,5 +121,7 @@ namespace StackifyLib.UnitTests
             StackifyLib.Config.Environment = Environment;
             StackifyLib.Config.ApiKey = ApiKey;
         }
+#endif
     }
+
 }

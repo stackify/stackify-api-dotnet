@@ -41,7 +41,7 @@ namespace CoreWebApp
 
             string filePath = "C:\\Source\\stackify-api-dotnet\\samples\\CoreWebApp\\Stackify.json";
 
-            Config.ReadStackifyJSONConfig(filePath);
+            Config.ReadStackifyJSONConfig();
             Debug.WriteLine(StackifyLib.Config.AppName);
             Debug.WriteLine(StackifyLib.Config.Environment);
             Debug.WriteLine(StackifyLib.Config.ApiKey);

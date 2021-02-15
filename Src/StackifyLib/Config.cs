@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Newtonsoft.Json.Linq;
 using StackifyLib.Utils;
 
@@ -202,6 +203,34 @@ namespace StackifyLib
             return v;
         }
 
+        public static void ReadStackifyJSONConfig()
+        {
+            try
+            {
+                string baseDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                string jsonPath = Path.Combine(baseDirectory, "Stackify.json");
+
+                string json;
+
+                using (var fs = new FileStream(jsonPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    using (var sr = new StreamReader(fs))
+                    {
+                        json = sr.ReadToEnd();
+                    }
+                }
+
+                var obj = JObject.Parse(json, Settings);
+                Config.SetStackifyObj(obj);
+            }
+            catch (Exception ex)
+            {
+                StackifyAPILogger.Log("#Config #ReadStackifyJSONConfig failed", ex);
+            }
+            
+        }
+
+#if JSONTEST
         public static void ReadStackifyJSONConfig(string filePath)
         {
             try
@@ -225,11 +254,12 @@ namespace StackifyLib
             }
             
         }
+#endif
 
         public static void SetStackifyObj(JObject obj)
         {
             AppName = TryGetValue(obj, "AppName") ?? AppName;
-            Environment = TryGetValue(obj, "Environment") ?? Environment;
+            Environment = GetEnvironment(obj);
             ApiKey = TryGetValue(obj, "ApiKey") ?? ApiKey;
         }
 
@@ -260,6 +290,18 @@ namespace StackifyLib
             }
 
             return r;
+        }
+        public static string GetEnvironment(JObject envName)
+        {
+            var environmentName = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            if (!String.IsNullOrEmpty(environmentName))
+            {
+                return environmentName;
+            }
+
+            environmentName = TryGetValue(envName, "Environment") ?? Environment;
+
+            return environmentName;
         }
     }
 }

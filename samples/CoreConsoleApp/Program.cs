@@ -38,7 +38,7 @@ namespace CoreConsoleApp
 
             string filePath = "C:\\Source\\stackify-api-dotnet\\samples\\CoreConsoleApp\\Stackify.json";
 
-            Config.ReadStackifyJSONConfig(filePath);
+            Config.ReadStackifyJSONConfig();
 
             //NLogTest();
             Console.WriteLine($"Stackify Config AppName: {StackifyLib.Config.AppName}");
