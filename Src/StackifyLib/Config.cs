@@ -176,6 +176,14 @@ namespace StackifyLib
                     {
                         var appSettings = _configuration.GetSection("Stackify");
                         v = appSettings[key.Replace("Stackify.", string.Empty)];
+
+                        //Get settings from Stackify.json
+                        if (string.IsNullOrEmpty(v))
+                        {
+                            var key2 = key.Replace("Stackify.", string.Empty);
+                            var stackifyJson = _configuration.GetSection(key2);
+                            v = stackifyJson.Value;
+                        }
                     }
 #endif
 
@@ -291,17 +299,26 @@ namespace StackifyLib
 
             return r;
         }
-        public static string GetEnvironment(JObject envName)
+        public static string GetEnvironment(JObject envName = null)
         {
-            var environmentName = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-            if (!String.IsNullOrEmpty(environmentName))
+            var ASPEnvironment = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            var DotnetEnvironment = System.Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+
+            if (!String.IsNullOrEmpty(ASPEnvironment))
             {
+                return ASPEnvironment;
+            }
+            else if (!String.IsNullOrEmpty(DotnetEnvironment))
+            {
+                return DotnetEnvironment;
+            }
+            else
+            {
+                var environmentName = TryGetValue(envName, "Environment") ?? Environment;
+
                 return environmentName;
             }
-
-            environmentName = TryGetValue(envName, "Environment") ?? Environment;
-
-            return environmentName;
+            
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿{
-  "AppName": "CoreWebApp",
-  "Environment": "Dev",
-  "ApiKey": "sampleKey"
+  "AppName": "CoreWebApp_stackifyjson",
+  "Environment": "Dev_stackifyjson",
+  "ApiKey": "sampleKey_stackifyjson"
 }

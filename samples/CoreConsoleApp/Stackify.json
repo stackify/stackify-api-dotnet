@@ -1,5 +1,5 @@
 {
-  "AppName": "CoreConsoleApp",
-  "Environment": "Dev",
-  "ApiKey": "sampleKey"
+  "AppName": "CoreConsoleApp_stackifyjson",
+  "Environment": "Dev_stackifyjson",
+  "ApiKey": "sampleKey_stackifyjson"
 }

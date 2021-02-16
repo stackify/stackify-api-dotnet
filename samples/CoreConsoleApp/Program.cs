@@ -19,12 +19,11 @@ namespace CoreConsoleApp
 {
     public class Program
     {
-        private static readonly JsonLoadSettings Settings = new JsonLoadSettings { CommentHandling = CommentHandling.Ignore, LineInfoHandling = LineInfoHandling.Ignore };
         static void Main(string[] args)
         {
             var builder = new ConfigurationBuilder()
                .SetBasePath(Directory.GetCurrentDirectory())
-               .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+               .AddJsonFile("Stackify.json", optional: true, reloadOnChange: true);
 
             var config = builder.Build();
             config.ConfigureStackifyLogging();
@@ -35,10 +34,7 @@ namespace CoreConsoleApp
             StackifyLib.Utils.StackifyAPILogger.OnLogMessage += StackifyAPILogger_OnLogMessage;
             StackifyLib.Utils.StackifyAPILogger.LogEnabled = true;
 
-
-            string filePath = "C:\\Source\\stackify-api-dotnet\\samples\\CoreConsoleApp\\Stackify.json";
-
-            Config.ReadStackifyJSONConfig();
+            //Config.ReadStackifyJSONConfig();
 
             //NLogTest();
             Console.WriteLine($"Stackify Config AppName: {StackifyLib.Config.AppName}");

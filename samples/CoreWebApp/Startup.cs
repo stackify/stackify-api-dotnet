@@ -29,19 +29,17 @@ namespace CoreWebApp
             StackifyLib.Utils.StackifyAPILogger.OnLogMessage += StackifyAPILogger_OnLogMessage;
             StackifyLib.Utils.StackifyAPILogger.LogEnabled = true;
 
-            /*var builder = new ConfigurationBuilder()
+            var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
+                .AddJsonFile("Stackify.json", optional: true, reloadOnChange: true)
+                .AddJsonFile($"Stackify.{env.EnvironmentName}.json", optional: true)
                 .AddEnvironmentVariables();
             Configuration = builder.Build();
             Configuration.ConfigureStackifyLogging();
 
-            StackifyLib.Config.Environment = env.EnvironmentName;*/
+            //StackifyLib.Config.Environment = env.EnvironmentName;
 
-            string filePath = "C:\\Source\\stackify-api-dotnet\\samples\\CoreWebApp\\Stackify.json";
-
-            Config.ReadStackifyJSONConfig();
+            //Config.ReadStackifyJSONConfig();
             Debug.WriteLine(StackifyLib.Config.AppName);
             Debug.WriteLine(StackifyLib.Config.Environment);
             Debug.WriteLine(StackifyLib.Config.ApiKey);
