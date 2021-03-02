@@ -217,19 +217,45 @@ namespace StackifyLib
             {
                 string baseDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                 string jsonPath = Path.Combine(baseDirectory, "Stackify.json");
-
                 string json;
 
-                using (var fs = new FileStream(jsonPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                if (File.Exists(jsonPath))
                 {
-                    using (var sr = new StreamReader(fs))
+                    StackifyAPILogger.Log($"#jsonPath exists: {jsonPath}");
+
+                    using (var fs = new FileStream(jsonPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     {
-                        json = sr.ReadToEnd();
+                        using (var sr = new StreamReader(fs))
+                        {
+                            json = sr.ReadToEnd();
+                        }
+                    }
+
+                    var obj = JObject.Parse(json, Settings);
+                    Config.SetStackifyObj(obj);
+                }
+#if NETFULL
+                else
+                {
+                    string iisBaseDirectory = System.Web.Hosting.HostingEnvironment.ApplicationPhysicalPath;
+                    string iisJsonPath = Path.Combine(iisBaseDirectory, "Stackify.json");
+
+                    if (File.Exists(iisJsonPath))
+                    {
+                        StackifyAPILogger.Log($"#iisJsonPath exists: {iisJsonPath}");
+                        using (var fs = new FileStream(iisJsonPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                        {
+                            using (var sr = new StreamReader(fs))
+                            {
+                                json = sr.ReadToEnd();
+                            }
+                        }
+
+                        var obj = JObject.Parse(json, Settings);
+                        Config.SetStackifyObj(obj);
                     }
                 }
-
-                var obj = JObject.Parse(json, Settings);
-                Config.SetStackifyObj(obj);
+#endif
             }
             catch (Exception ex)
             {
