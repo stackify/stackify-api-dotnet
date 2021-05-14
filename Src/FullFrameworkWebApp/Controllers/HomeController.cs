@@ -39,6 +39,9 @@ namespace FullFrameworkWebApp.Controllers
             Debug.WriteLine($"ApiKey: {StackifyLib.Config.ApiKey}");
 
             ViewBag.JsonPath = jsonPath;
+            ViewBag.AppName = StackifyLib.Config.AppName;
+            ViewBag.Environment = StackifyLib.Config.Environment;
+            ViewBag.ApiKey = StackifyLib.Config.ApiKey;
             return View();
         }
 

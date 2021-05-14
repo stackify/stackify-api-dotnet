@@ -31,11 +31,11 @@ namespace CoreWebApp
 
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
-                .AddJsonFile("Stackify.json", optional: true, reloadOnChange: true)
-                .AddJsonFile($"Stackify.{env.EnvironmentName}.json", optional: true)
+                //.AddJsonFile("Stackify.json", optional: true, reloadOnChange: true)
+                //.AddJsonFile($"Stackify.{env.EnvironmentName}.json", optional: true)
                 .AddEnvironmentVariables();
             Configuration = builder.Build();
-            Configuration.ConfigureStackifyLogging();
+            //Configuration.ConfigureStackifyLogging();
 
             //StackifyLib.Config.Environment = env.EnvironmentName;
 
@@ -87,7 +87,7 @@ namespace CoreWebApp
             // var path = Path.Combine(Directory.GetCurrentDirectory(), "nlog.config");
             //  NLog.LogManager.Configuration = new XmlLoggingConfiguration(path, true);
         //    app.AddNLogWeb();
-            //app.ConfigureStackifyLogging(Configuration);
+            app.ConfigureStackifyLogging(Configuration);
             
             app.UseMvc();
         }

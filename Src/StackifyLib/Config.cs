@@ -36,6 +36,10 @@ namespace StackifyLib
         {
             try
             {
+                if (IsStackifyJsonLoaded == false) {
+                    ReadStackifyJSONConfig(); // TODO: Better way?
+                }
+
                 CaptureServerVariables = Get("Stackify.CaptureServerVariables", bool.FalseString).Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
 
                 CaptureSessionVariables = Get("Stackify.CaptureSessionVariables", bool.FalseString).Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
@@ -155,6 +159,8 @@ namespace StackifyLib
 
         public static int LoggingJsonMaxFields { get; set; } = 50;
 
+        public static bool? IsStackifyJsonLoaded { get; set; } = false;
+
 
         /// <summary>
         /// Attempts to fetch a setting value given the key.
@@ -221,8 +227,6 @@ namespace StackifyLib
 
                 if (File.Exists(jsonPath))
                 {
-                    StackifyAPILogger.Log($"#jsonPath exists: {jsonPath}");
-
                     using (var fs = new FileStream(jsonPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     {
                         using (var sr = new StreamReader(fs))
@@ -230,7 +234,6 @@ namespace StackifyLib
                             json = sr.ReadToEnd();
                         }
                     }
-
                     var obj = JObject.Parse(json, Settings);
                     Config.SetStackifyObj(obj);
                 }
@@ -242,7 +245,6 @@ namespace StackifyLib
 
                     if (File.Exists(iisJsonPath))
                     {
-                        StackifyAPILogger.Log($"#iisJsonPath exists: {iisJsonPath}");
                         using (var fs = new FileStream(iisJsonPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                         {
                             using (var sr = new StreamReader(fs))
@@ -261,7 +263,7 @@ namespace StackifyLib
             {
                 StackifyAPILogger.Log("#Config #ReadStackifyJSONConfig failed", ex);
             }
-            
+            IsStackifyJsonLoaded = true;
         }
 
 #if JSONTEST
