@@ -221,9 +221,26 @@ namespace StackifyLib
         {
             try
             {
+                var ASPEnvironment = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+                var DotnetEnvironment = System.Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
                 string baseDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                string jsonPath = Path.Combine(baseDirectory, "Stackify.json");
-                string json;
+                string jsonPath = string.Empty;
+                string json = string.Empty;
+
+                ASPEnvironment = "Production";
+
+                if (!String.IsNullOrEmpty(ASPEnvironment))
+                {
+                    jsonPath = Path.Combine(baseDirectory, $"Stackify.{ASPEnvironment}.json");
+                }
+                else if (!String.IsNullOrEmpty(DotnetEnvironment))
+                {
+                    jsonPath = Path.Combine(baseDirectory, $"Stackify.{DotnetEnvironment}.json");
+                }
+                else
+                {
+                    jsonPath = Path.Combine(baseDirectory, "Stackify.json");
+                }
 
                 if (File.Exists(jsonPath))
                 {
@@ -241,7 +258,20 @@ namespace StackifyLib
                 else
                 {
                     string iisBaseDirectory = System.Web.Hosting.HostingEnvironment.ApplicationPhysicalPath;
-                    string iisJsonPath = Path.Combine(iisBaseDirectory, "Stackify.json");
+                    string iisJsonPath = string.Empty;
+
+                    if (!String.IsNullOrEmpty(ASPEnvironment))
+                    {
+                        iisJsonPath = Path.Combine(iisBaseDirectory, $"Stackify.{ASPEnvironment}.json");
+                    }
+                    else if (!String.IsNullOrEmpty(DotnetEnvironment))
+                    {
+                        iisJsonPath = Path.Combine(iisBaseDirectory, $"Stackify.{DotnetEnvironment}.json");
+                    }
+                    else
+                    {
+                        iisJsonPath = Path.Combine(iisBaseDirectory, "Stackify.json");
+                    }
 
                     if (File.Exists(iisJsonPath))
                     {
@@ -295,7 +325,7 @@ namespace StackifyLib
         public static void SetStackifyObj(JObject obj)
         {
             AppName = TryGetValue(obj, "AppName") ?? AppName;
-            Environment = GetEnvironment(obj);
+            Environment = TryGetValue(obj, "Environment") ?? Environment;
             ApiKey = TryGetValue(obj, "ApiKey") ?? ApiKey;
         }
 
@@ -326,27 +356,6 @@ namespace StackifyLib
             }
 
             return r;
-        }
-        public static string GetEnvironment(JObject envName = null)
-        {
-            var ASPEnvironment = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-            var DotnetEnvironment = System.Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
-
-            if (!String.IsNullOrEmpty(ASPEnvironment))
-            {
-                return ASPEnvironment;
-            }
-            else if (!String.IsNullOrEmpty(DotnetEnvironment))
-            {
-                return DotnetEnvironment;
-            }
-            else
-            {
-                var environmentName = TryGetValue(envName, "Environment") ?? Environment;
-
-                return environmentName;
-            }
-            
         }
     }
 }

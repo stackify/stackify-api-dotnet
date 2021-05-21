@@ -22,8 +22,8 @@ namespace CoreConsoleApp
         static void Main(string[] args)
         {
             var builder = new ConfigurationBuilder()
-               .SetBasePath(Directory.GetCurrentDirectory())
-               .AddJsonFile("Stackify.json", optional: true, reloadOnChange: true);
+               .SetBasePath(Directory.GetCurrentDirectory());
+               //.AddJsonFile("Stackify.json", optional: true, reloadOnChange: true);
 
             var config = builder.Build();
             config.ConfigureStackifyLogging();
