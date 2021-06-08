@@ -1,6 +1,7 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Reflection;
 #if NETFRAMEWORK
@@ -552,8 +553,38 @@ namespace StackifyLib.Utils
                 var profilerEnv = "COR_ENABLE_PROFILING";
                 var profilerUuidEnv = "COR_PROFILER";
 #else
-                var profilerEnv = "CORECLR_ENABLE_PROFILING";
-                var profilerUuidEnv = "CORECLR_PROFILER";
+                string profilerEnv = null;
+                string profilerUuidEnv = null;
+
+                // .Net Standard could be .Net Core or .Net Framework, so check
+                var framework = System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription;
+
+                if (string.IsNullOrEmpty(framework))
+                {
+                    return false;
+                }
+
+                if (framework.StartsWith(".NET Native", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Native code can't be profiled
+                    return false;
+                }
+                else if (framework.StartsWith(".NET Framework", StringComparison.OrdinalIgnoreCase))
+                {
+                    profilerEnv = "COR_ENABLE_PROFILING";
+                    profilerUuidEnv = "COR_PROFILER";
+                }
+                else // Assume everything else is .Net Core current values would be .Net Core, .Net 5.x and .Net 6.x
+                {
+                    profilerEnv = "CORECLR_ENABLE_PROFILING";
+                    profilerUuidEnv = "CORECLR_PROFILER";
+                }
+
+                if (profilerEnv == null || profilerUuidEnv == null)
+                {
+                    // This code should be unreachable, but just in case the above checks are changed we handle it
+                    return false;
+                }
 #endif
 
                 var enableString = Environment.GetEnvironmentVariable(profilerEnv);
