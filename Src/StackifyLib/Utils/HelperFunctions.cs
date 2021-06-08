@@ -3,6 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+#if NETFRAMEWORK
+using System.Runtime.Remoting.Messaging;
+#endif
 using System.Text;
 using Newtonsoft.Json.Linq;
 
@@ -312,6 +315,265 @@ namespace StackifyLib.Utils
 
             return sbNewUrl.ToString();
         }
+        public static string GetRequestId()
+        {
+            string reqId = null;
+
+#if NETFULL
+            try
+            {
+                if (string.IsNullOrEmpty(reqId))
+                {
+                    var stackifyRequestID = CallContext.LogicalGetData("Stackify-RequestID");
+
+                    if (stackifyRequestID != null)
+                    {
+                        reqId = stackifyRequestID.ToString();
+                    }
+                }
+
+                if (string.IsNullOrEmpty(reqId))
+                {
+                    //gets from Trace.CorrelationManager.ActivityId but doesnt assume it is guid since it technically doesn't have to be
+                    //not calling the CorrelationManager method because it blows up if it isn't a guid
+                    var correltionManagerId = CallContext.LogicalGetData("E2ETrace.ActivityID");
+
+                    if (correltionManagerId != null && correltionManagerId is Guid &&
+                        ((Guid) correltionManagerId) != Guid.Empty)
+                    {
+                        reqId = correltionManagerId.ToString();
+                    }
+                }
+            }
+            catch (System.Web.HttpException ex)
+            {
+                StackifyAPILogger.Log("Request not available \r\n" + ex.ToString());
+            }
+            catch (Exception ex)
+            {
+                StackifyAPILogger.Log("Error figuring out TransID \r\n" + ex.ToString());
+            }
+#endif
+
+            try
+            {
+                if (string.IsNullOrEmpty(reqId))
+                {
+                    reqId = getContextProperty("RequestId") as string;
+                }
+            }
+            catch (Exception ex)
+            {
+                StackifyAPILogger.Log("Error figuring out TransID \r\n" + ex.ToString());
+            }
+
+            return reqId;
+        }
+
+        public static string GetReportingUrl()
+        {
+            return GetStackifyProperty("REPORTING_URL");
+        }
+
+        public static string GetAppName()
+        {
+            if (!IsBeingProfiled)
+            {
+                return Config.AppName;
+            }
+
+            // Getting profiler app name and environment are a side effect of checking the profiler wrapper
+            GetWrapperAssembly();
+
+            return _profilerAppName ?? Config.AppName;
+        }
+
+        public static string GetAppEnvironment()
+        {
+            if (!IsBeingProfiled)
+            {
+                return Config.AppName;
+            }
+
+            // Getting profiler app name and environment are a side effect of checking the profiler wrapper
+            GetWrapperAssembly();
+
+            return _profilerEnvironment ?? Config.Environment;
+        }
+
+        private static Assembly _wrapperAssembly = null;
+        private static Type _stackifyCallContextType = null;
+
+        protected static Assembly GetWrapperAssembly()
+        {
+            if (!IsBeingProfiled)
+            {
+                return null;
+            }
+
+            if (_wrapperAssembly != null)
+            {
+                return _wrapperAssembly;
+            }
+
+            try
+            {
+                var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+
+                var agentAssemblyQry = assemblies.Where(assembly => assembly.FullName.StartsWith("Stackify.Agent,"));
+
+                foreach (var middleware in agentAssemblyQry)
+                {
+                    var stackifyCallContextType = middleware?.GetType("Stackify.Agent.Threading.StackifyCallContext");
+
+                    if (stackifyCallContextType != null)
+                    {
+                        GetProfilerAppNameAndEnvironment(middleware);
+
+                        _stackifyCallContextType = stackifyCallContextType;
+                        _wrapperAssembly = middleware;
+                    }
+                }
+            }
+            catch
+            {
+                // Ignore errors
+            }
+
+            return _wrapperAssembly;
+        }
+
+        private static string _profilerAppName = null;
+        private static string _profilerEnvironment = null;
+
+        private static void GetProfilerAppNameAndEnvironment(Assembly middleware)
+        {
+            try
+            {
+                // Get AppName and Environment and cache them, so we won't query over and over.
+                var agentConfigType = middleware?.GetType("Stackify.Agent.Configuration.AgentConfig");
+
+                if (agentConfigType != null)
+                {
+                    var profilerSettings = agentConfigType.GetProperty("Settings")?.GetValue(null, null);
+
+                    if (profilerSettings != null)
+                    {
+                        var settingsType = profilerSettings.GetType();
+
+                        _profilerAppName = settingsType?.GetProperty("AppName")?.GetValue(profilerSettings, null) as string;
+                        _profilerEnvironment = settingsType?.GetProperty("Environment")?.GetValue(profilerSettings, null) as string;
+                    }
+                }
+            }
+            catch
+            {
+                // Ignore errors here
+            }
+        }
+
+        private static object getContextProperty(string propName)
+        {
+            if (!IsBeingProfiled || string.IsNullOrWhiteSpace(propName))
+            {
+                return null;
+            }
+
+            if (_wrapperAssembly == null)
+            {
+                GetWrapperAssembly();
+            }
+
+            try
+            {
+                if (_stackifyCallContextType != null)
+                {
+                    var traceContextProp = _stackifyCallContextType.GetProperty("TraceContext")?.GetValue(null, null);
+                    if (traceContextProp != null)
+                    {
+                        var traceContextType = traceContextProp.GetType();
+                        var contextProp = traceContextType.GetProperty(propName);
+                        var propValue =  contextProp?.GetValue(traceContextProp, null);
+                        return propValue;
+                    }
+                }
+            }
+            catch
+            {
+                // Ignore errors
+            }
+
+            return null;
+        }
+
+        private static string GetStackifyProperty(string propName)
+        {
+            if (!IsBeingProfiled || string.IsNullOrWhiteSpace(propName))
+            {
+                return null;
+            }
+
+            try
+            {
+                var stackifyProps = getContextProperty("props");
+
+                if (stackifyProps != null)
+                {
+                    var propsType = stackifyProps.GetType();
+
+                    var getItemMethod = propsType.GetMethod("get_Item", new[] {typeof(string)});
+
+                    if (getItemMethod != null)
+                    {
+                        return getItemMethod.Invoke(stackifyProps, new[] {propName}) as string;
+                    }
+                }
+            }
+            catch
+            {
+                // Ignore Errors
+            }
+
+            return null;
+        }
+
+        private static Boolean? _isBeingProfiled = null;
+
+        protected static bool IsBeingProfiled
+        {
+            get
+            {
+                if (_isBeingProfiled.HasValue)
+                {
+                    return _isBeingProfiled.Value;
+                }
+
+#if NETFRAMEWORK
+                var profilerEnv = "COR_ENABLE_PROFILING";
+                var profilerUuidEnv = "COR_PROFILER";
+#else
+                var profilerEnv = "CORECLR_ENABLE_PROFILING";
+                var profilerUuidEnv = "CORECLR_PROFILER";
+#endif
+
+                var enableString = Environment.GetEnvironmentVariable(profilerEnv);
+                var uuidString = Environment.GetEnvironmentVariable(profilerUuidEnv);
+
+                if (!string.IsNullOrWhiteSpace(enableString) &&
+                    !string.IsNullOrWhiteSpace(uuidString))
+                {
+                    _isBeingProfiled = string.Equals("1", enableString?.Trim())
+                        && string.Equals("{cf0d821e-299b-5307-a3d8-b283c03916da}", uuidString.Trim(), StringComparison.OrdinalIgnoreCase);
+                }
+                else
+                {
+                    _isBeingProfiled = false;
+                }
+
+                return _isBeingProfiled.Value;
+            }
+        }
+
     }
 
     public class ToStringConverter : JsonConverter
