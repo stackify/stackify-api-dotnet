@@ -11,6 +11,15 @@ namespace StackifyLib.Web
     {
         public static string GetHeaderScript()
         {
+            var rumScriptUrl = Config.RumScriptUrl;
+            var rumKey = Config.RumKey;
+
+            if (string.IsNullOrWhiteSpace(rumScriptUrl) || string.IsNullOrWhiteSpace(rumKey))
+            {
+                // If we don't have a key and url, don't insert the script
+                return "";
+            }
+
             var settings = new JObject();
             var reqId = HelperFunctions.GetRequestId();
             if (reqId != null)
@@ -33,10 +42,12 @@ namespace StackifyLib.Web
             var reportingUrl = HelperFunctions.GetReportingUrl();
             if (reportingUrl != null)
             {
+                reportingUrl = HelperFunctions.MaskReportingUrl(reportingUrl);
                 settings["Trans"] = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(reportingUrl));
             }
 
-            return string.Format(@"<script type=""text/javascript"">var StackifySettings = {0};</script>", settings.ToString(Formatting.None));
+            return string.Format(@"<script type=""text/javascript"">(window.StackifySetting || (window.StackifySettings = {0};))</script><script src=""{1}"" data-key=""{2}"" async></script>",
+                settings.ToString(Formatting.None), rumScriptUrl, rumKey);
         }
     }
 }

@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Runtime.Remoting.Messaging;
 #endif
 using System.Text;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 
 
@@ -605,6 +606,83 @@ namespace StackifyLib.Utils
             }
         }
 
+        public static String MaskReportingUrl(String url)
+        {
+            String maskedUrl = "";
+
+            try
+            {
+                String[] pathFields = url.Split('/');
+
+                List<String> stripFields = new List<String>(pathFields.Length);
+
+                foreach (String field in pathFields)
+                {
+                    stripFields.Add(Mask(field));
+                }
+
+                maskedUrl = string.Join("/", stripFields);
+
+                if (maskedUrl.EndsWith("/"))
+                {
+                    maskedUrl = maskedUrl.Substring(0, maskedUrl.Length - 1);
+                }
+            }
+            catch
+            {
+                // If we had errors, just return what we got.
+                return url;
+            }
+
+            return maskedUrl;
+        }
+
+
+        private static readonly Regex ID_REGEX = new Regex("^(\\d+)$", RegexOptions.Compiled);
+
+        private static readonly Regex GUID_REGEX =
+            new Regex("^(?i)(\\b[A-F0-9]{8}(?:-[A-F0-9]{4}){3}-[A-F0-9]{12}\\b)$", RegexOptions.Compiled);
+
+        private static readonly Regex EMAIL_REGEX =
+            new Regex(
+                "^((([!#$%&'*+\\-/=?^_`{|}~\\w])|([!#$%&'*+\\-/=?^_`{|}~\\w][!#$%&'*+\\-/=?^_`{|}~\\.\\w]{0,}[!#$%&'*+\\-/=?^_`{|}~\\w]))[@]\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*)$",
+                RegexOptions.Compiled);
+
+        private static readonly Regex IP_REGEX =
+            new Regex(
+                "^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
+                RegexOptions.Compiled);
+
+        private static String Mask(String field)
+        {
+
+            if (ID_REGEX.IsMatch(field))
+            {
+                return "{id}";
+            }
+
+            if (GUID_REGEX.IsMatch(field))
+            {
+                return "{guid}";
+            }
+
+            if (EMAIL_REGEX.IsMatch(field))
+            {
+                return "{email}";
+            }
+
+            if (IP_REGEX.IsMatch(field))
+            {
+                return "{ip}";
+            }
+
+            if (field.Contains(';'))
+            {
+                return field.Substring(0, field.IndexOf(';'));
+            }
+
+            return field;
+        }
     }
 
     public class ToStringConverter : JsonConverter
