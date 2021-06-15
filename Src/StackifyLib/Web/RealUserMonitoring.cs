@@ -46,7 +46,7 @@ namespace StackifyLib.Web
                 settings["Trans"] = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(reportingUrl));
             }
 
-            return string.Format(@"<script type=""text/javascript"">(window.StackifySetting || (window.StackifySettings = {0};))</script><script src=""{1}"" data-key=""{2}"" async></script>",
+            return string.Format(@"<script type=""text/javascript"">(window.StackifySettings || (window.StackifySettings = {0};))</script><script src=""{1}"" data-key=""{2}"" async></script>",
                 settings.ToString(Formatting.None), rumScriptUrl, rumKey);
         }
     }
