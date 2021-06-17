@@ -125,7 +125,7 @@ namespace StackifyLib
                 }
 
                 var rumKey = Get("Stackify.Rum_Key");
-                if (Regex.IsMatch(rumKey, "^[A-Za-z0-9-]+$"))
+                if (Regex.IsMatch(rumKey, "^[A-Za-z0-9_-]+$"))
                 {
                     RumKey = rumKey;
                 }
