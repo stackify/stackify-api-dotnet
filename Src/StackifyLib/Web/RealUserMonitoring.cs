@@ -26,6 +26,11 @@ namespace StackifyLib.Web
             {
                 settings["ID"] = reqId;
             }
+            else
+            {
+                // If there is no request ID, don't write the script
+                return "";
+            }
 
             var appName = HelperFunctions.GetAppName();
             if (!string.IsNullOrWhiteSpace(appName))
