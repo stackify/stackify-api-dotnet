@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 #if NETFULL
-using System.Runtime.Remoting.Messaging;
 using StackifyLib.Web;
 using System.Web;
 #endif
@@ -106,27 +105,7 @@ namespace StackifyLib.Internal.Logs
 #if NETFULL
                 try
                 {
-                    if (string.IsNullOrEmpty(msg.TransID))
-                    {
-                        var stackifyRequestID = CallContext.LogicalGetData("Stackify-RequestID");
-
-                        if (stackifyRequestID != null)
-                        {
-                            msg.TransID = stackifyRequestID.ToString();
-                        }
-                    }
-
-                    if (string.IsNullOrEmpty(msg.TransID))
-                    {
-                        //gets from Trace.CorrelationManager.ActivityId but doesnt assume it is guid since it technically doesn't have to be
-                        //not calling the CorrelationManager method because it blows up if it isn't a guid
-                        var correltionManagerId = CallContext.LogicalGetData("E2ETrace.ActivityID");
-
-                        if (correltionManagerId != null && correltionManagerId is Guid && ((Guid)correltionManagerId) != Guid.Empty)
-                        {
-                            msg.TransID = correltionManagerId.ToString();
-                        }
-                    }
+                    msg.TransID = StackifyLib.Utils.HelperFunctions.GetRequestId();
 
                     if (string.IsNullOrEmpty(msg.TransID))
                     {
@@ -186,27 +165,11 @@ namespace StackifyLib.Internal.Logs
                 // get RequestID
                 if (string.IsNullOrEmpty(msg.TransID))
                 {
-                    var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+                    string reqId = StackifyLib.Utils.HelperFunctions.GetRequestId();
 
-                    var agentAssemblyQry = assemblies.Where(assembly => assembly.FullName.Contains("Stackify.Agent"));
-                    if(agentAssemblyQry.Count() > 0)
+                    if (reqId != null)
                     {
-                        var middleware = agentAssemblyQry.First();
-                        var callContextType = middleware.GetType("Stackify.Agent.Threading.StackifyCallContext");
-                        if (callContextType != null)
-                        {
-                            var traceCtxType = middleware.GetType("Stackify.Agent.Tracing.ITraceContext");
-                            if(traceCtxType != null)
-                            {
-                                var traceContextProp = callContextType.GetProperty("TraceContext")?.GetValue(null);
-                                if (traceContextProp != null)
-                                {
-                                    var reqIdProp = traceCtxType.GetProperty("RequestId")?.GetValue(traceContextProp)?.ToString();
-                                    if(!string.IsNullOrEmpty(reqIdProp))
-                                        msg.TransID = reqIdProp;
-                                }
-                            }
-                        }
+                        msg.TransID = reqId;
                     }
                 }
 #endif

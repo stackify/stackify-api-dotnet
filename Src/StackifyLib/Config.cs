@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using StackifyLib.Utils;
 
 namespace StackifyLib
@@ -108,6 +109,26 @@ namespace StackifyLib
                         LoggingJsonMaxFields = maxFields;
                     }
                 }
+
+                var rumScriptUrl = Get("Stackify.Rum_Script_Url", "https://stckjs.stackify.com/stckjs.js");
+
+                if (Uri.IsWellFormedUriString(rumScriptUrl, UriKind.Absolute))
+                {
+                    var uri = new Uri(rumScriptUrl);
+
+                    var scheme = uri.Scheme;
+
+                    if (string.Equals(scheme, "https", StringComparison.OrdinalIgnoreCase))
+                    {
+                        RumScriptUrl = rumScriptUrl;
+                    }
+                }
+
+                var rumKey = Get("Stackify.Rum_Key");
+                if (Regex.IsMatch(rumKey, "^[A-Za-z0-9_-]+$"))
+                {
+                    RumKey = rumKey;
+                }
             }
             catch (Exception ex)
             {
@@ -150,6 +171,10 @@ namespace StackifyLib
 
         public static int LoggingJsonMaxFields { get; set; } = 50;
 
+        public static string RumScriptUrl { get; set; }
+
+        public static string RumKey { get; set; }
+
 
         /// <summary>
         /// Attempts to fetch a setting value given the key.
@@ -171,6 +196,13 @@ namespace StackifyLib
                     {
                         var appSettings = _configuration.GetSection("Stackify");
                         v = appSettings[key.Replace("Stackify.", string.Empty)];
+
+                        if (string.IsNullOrEmpty(v))
+                        {
+                            // Search in Retrace, but key will likely still be Stackify.name, not Retrace.name in the code
+                            var retraceAppSettings = _configuration.GetSection("Retrace");
+                            v = retraceAppSettings[key.Replace("Stackify.", string.Empty)];
+                        }
                     }
 #endif
 
@@ -184,6 +216,22 @@ namespace StackifyLib
                     if (string.IsNullOrEmpty(v))
                     {
                         v = System.Environment.GetEnvironmentVariable(key);
+                    }
+
+                    if (string.IsNullOrEmpty(v))
+                    {
+                        v = System.Environment.GetEnvironmentVariable(key.ToUpperInvariant());
+                    }
+
+                    if (string.IsNullOrEmpty(v))
+                    {
+                        // Linux systems do not allow period in an environment variable name
+                        v = System.Environment.GetEnvironmentVariable(key.Replace('.', '_').ToUpperInvariant());
+                    }
+
+                    if (string.IsNullOrEmpty(v) && key.StartsWith("Stackify."))
+                    {
+                        v = System.Environment.GetEnvironmentVariable("RETRACE_" + key.Substring(9).Replace('.', '_').ToUpperInvariant());
                     }
                 }
             }
