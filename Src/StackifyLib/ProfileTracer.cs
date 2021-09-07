@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Specialized;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using StackifyLib.Utils;
@@ -22,6 +23,18 @@ namespace StackifyLib
 
         private readonly string _transactionId = Guid.NewGuid().ToString();
         private string _requestId = null;
+        private NameValueCollection _distributedHeaders;
+        public NameValueCollection DistributedHeader
+        {
+            get
+            {
+                if(_distributedHeaders == null)
+                {
+                    _distributedHeaders = new NameValueCollection();
+                }
+                return _distributedHeaders;
+            }
+        }
 
 #if NETFULL
 #if !NET40
@@ -201,6 +214,18 @@ namespace StackifyLib
         {
             _ignoreChildFrames = value;
             return this;
+        }
+
+        [MethodImpl(MethodImplOptions.PreserveSig | MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        public void StartDistributedTracing()
+        {
+            
+        }
+
+        [MethodImpl(MethodImplOptions.PreserveSig | MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        public void EndDistributedTracing()
+        {
+
         }
 
         //Method the profiler looks for
