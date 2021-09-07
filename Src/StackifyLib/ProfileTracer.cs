@@ -217,15 +217,12 @@ namespace StackifyLib
         }
 
         [MethodImpl(MethodImplOptions.PreserveSig | MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-        public void StartDistributedTracing()
+        public void ApplyDistributedHeaders(string traceparent,string tracestate)
         {
-            
-        }
-
-        [MethodImpl(MethodImplOptions.PreserveSig | MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-        public void EndDistributedTracing()
-        {
-
+            DistributedHeader.Remove("traceparent");
+            DistributedHeader.Add("traceparent", traceparent);
+            DistributedHeader.Remove("tracestate");
+            DistributedHeader.Add("tracestate", tracestate);
         }
 
         //Method the profiler looks for
