@@ -23,18 +23,6 @@ namespace StackifyLib
 
         private readonly string _transactionId = Guid.NewGuid().ToString();
         private string _requestId = null;
-        private NameValueCollection _distributedHeaders;
-        public NameValueCollection DistributedHeader
-        {
-            get
-            {
-                if(_distributedHeaders == null)
-                {
-                    _distributedHeaders = new NameValueCollection();
-                }
-                return _distributedHeaders;
-            }
-        }
 
 #if NETFULL
 #if !NET40
@@ -219,10 +207,7 @@ namespace StackifyLib
         [MethodImpl(MethodImplOptions.PreserveSig | MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public void ApplyDistributedHeaders(string traceparent,string tracestate)
         {
-            DistributedHeader.Remove("traceparent");
-            DistributedHeader.Add("traceparent", traceparent);
-            DistributedHeader.Remove("tracestate");
-            DistributedHeader.Add("tracestate", tracestate);
+
         }
 
         //Method the profiler looks for
