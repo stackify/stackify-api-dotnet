@@ -38,6 +38,13 @@ namespace StackifyLib
             //tell it to load all the settings since we now have the config
             Config.LoadSettings();
         }
+
+        public static void ConfigureStackifyLib(this Microsoft.Extensions.Configuration.IConfiguration configuration)
+        {
+            Config.SetConfiguration(configuration);
+            //tell it to load all the settings since we now have the config
+            Config.LoadSettings();
+        }
 #endif
     }
 }

@@ -115,23 +115,17 @@ namespace StackifyLib.Models
                 return deviceName.Substring(0, deviceName.Length > 60 ? 60 : deviceName.Length);
             }
 
+            //WIN-230 - Set DeviceName to Environment.MachineName.
             deviceName = Environment.MachineName;
 
-            if (AzureConfig.InAzure && ((AzureConfig.IsWebsite) || (AzureConfig.InAzure && Environment.MachineName.StartsWith("RD"))))
-            {
-                deviceName = AzureConfig.AzureInstanceName;
-            }
-            else
-            {
-                var isDefaultDeviceNameEc2 = IsEc2MachineName(deviceName);
+            var isDefaultDeviceNameEc2 = IsEc2MachineName(deviceName);
 
-                if (Config.IsEc2 == null || Config.IsEc2 == true || isDefaultDeviceNameEc2)
+            if (Config.IsEc2 == null || Config.IsEc2 == true || isDefaultDeviceNameEc2)
+            {
+                var instanceID_task = GetEC2InstanceId();
+                if (string.IsNullOrWhiteSpace(instanceID_task) == false)
                 {
-                    var ec2InstanceId = GetEC2InstanceId();
-                    if (string.IsNullOrWhiteSpace(ec2InstanceId) == false)
-                    {
-                        deviceName = ec2InstanceId;
-                    }
+                    deviceName = instanceID_task;
                 }
             }
 
@@ -206,24 +200,18 @@ namespace StackifyLib.Models
                 return deviceName.Substring(0, deviceName.Length > 60 ? 60 : deviceName.Length);
             }
 
+            //WIN-230 - Set DeviceName to Environment.MachineName.
             deviceName = Environment.MachineName;
 
-            if (AzureConfig.InAzure && ((AzureConfig.IsWebsite) || (AzureConfig.InAzure && Environment.MachineName.StartsWith("RD"))))
-            {
-                deviceName = AzureConfig.AzureInstanceName;
-            }
-            else
-            {
-                var isDefaultDeviceNameEc2 = IsEc2MachineName(deviceName);
+            var isDefaultDeviceNameEc2 = IsEc2MachineName(deviceName);
 
-                if (Config.IsEc2 == null || Config.IsEc2 == true || isDefaultDeviceNameEc2)
+            if (Config.IsEc2 == null || Config.IsEc2 == true || isDefaultDeviceNameEc2)
+            {
+                var instanceID_task = GetEC2InstanceId();
+                instanceID_task.Wait();
+                if (string.IsNullOrWhiteSpace(instanceID_task.Result) == false)
                 {
-                    var instanceID_task = GetEC2InstanceId();
-                    instanceID_task.Wait();
-                    if (string.IsNullOrWhiteSpace(instanceID_task.Result) == false)
-                    {
-                        deviceName = instanceID_task.Result;
-                    }
+                    deviceName = instanceID_task.Result;
                 }
             }
 
