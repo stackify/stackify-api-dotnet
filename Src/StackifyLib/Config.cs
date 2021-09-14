@@ -202,27 +202,6 @@ namespace StackifyLib
             {
                 if (string.IsNullOrWhiteSpace(key) == false)
                 {
-                    if (string.IsNullOrEmpty(v))
-                    {
-                        v = System.Environment.GetEnvironmentVariable(key);
-                    }
-
-                    if (string.IsNullOrEmpty(v))
-                    {
-                        v = System.Environment.GetEnvironmentVariable(key.ToUpperInvariant());
-                    }
-
-                    if (string.IsNullOrEmpty(v))
-                    {
-                        // Linux systems do not allow period in an environment variable name
-                        v = System.Environment.GetEnvironmentVariable(key.Replace('.', '_').ToUpperInvariant());
-                    }
-
-                    if (string.IsNullOrEmpty(v) && key.StartsWith("Stackify."))
-                    {
-                        v = System.Environment.GetEnvironmentVariable("RETRACE_" + key.Substring(9).Replace('.', '_').ToUpperInvariant());
-                    }
-
 #if NETCORE || NETCOREX
                     if (_configuration != null)
                     {
@@ -250,6 +229,27 @@ namespace StackifyLib
 				        v = System.Configuration.ConfigurationManager.AppSettings[key];
 				    }
 #endif
+
+                        if (string.IsNullOrEmpty(v))
+                        {
+                            v = System.Environment.GetEnvironmentVariable(key);
+                        }
+
+                        if (string.IsNullOrEmpty(v))
+                        {
+                            v = System.Environment.GetEnvironmentVariable(key.ToUpperInvariant());
+                        }
+
+                        if (string.IsNullOrEmpty(v))
+                        {
+                            // Linux systems do not allow period in an environment variable name
+                            v = System.Environment.GetEnvironmentVariable(key.Replace('.', '_').ToUpperInvariant());
+                        }
+
+                        if (string.IsNullOrEmpty(v) && key.StartsWith("Stackify."))
+                        {
+                            v = System.Environment.GetEnvironmentVariable("RETRACE_" + key.Substring(9).Replace('.', '_').ToUpperInvariant());
+                        }
                     }
                 }
             }
