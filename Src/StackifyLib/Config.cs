@@ -292,6 +292,8 @@ namespace StackifyLib
                 if (File.Exists(jsonPath))
                 {
                     using (var fs = new FileStream(jsonPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+
+                    if (string.IsNullOrEmpty(v))
                     {
                         using (var sr = new StreamReader(fs))
                         {
@@ -356,6 +358,29 @@ namespace StackifyLib
                     {
                         json = sr.ReadToEnd();
                     }
+
+#if NETCORE || NETCOREX
+                    if (_configuration != null && string.IsNullOrEmpty(v))
+                    {
+                        var appSettings = _configuration.GetSection("Stackify");
+                        v = appSettings[key.Replace("Stackify.", string.Empty)];
+
+                        if (string.IsNullOrEmpty(v))
+                        {
+                            // Search in Retrace, but key will likely still be Stackify.name, not Retrace.name in the code
+                            var retraceAppSettings = _configuration.GetSection("Retrace");
+                            v = retraceAppSettings[key.Replace("Stackify.", string.Empty)];
+                        }
+                    }
+#endif
+
+#if NETFULL
+				    if (string.IsNullOrEmpty(v))
+				    {
+				        v = System.Configuration.ConfigurationManager.AppSettings[key];
+				    }
+#endif
+                    
                 }
 
                 var obj = JObject.Parse(json, Settings);

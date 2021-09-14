@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Specialized;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using StackifyLib.Utils;
@@ -201,6 +202,12 @@ namespace StackifyLib
         {
             _ignoreChildFrames = value;
             return this;
+        }
+
+        [MethodImpl(MethodImplOptions.PreserveSig | MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        public void ApplyDistributedHeaders(string traceparent,string tracestate)
+        {
+
         }
 
         //Method the profiler looks for
