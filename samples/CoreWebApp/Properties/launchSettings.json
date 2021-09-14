@@ -13,7 +13,7 @@
       "launchBrowser": true,
       "launchUrl": "api/values",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "DOTNET_ENVIRONMENT": "Production"
       }
     },
     "CoreWebApp": {
@@ -21,7 +21,7 @@
       "launchBrowser": true,
       "launchUrl": "http://localhost:5000/api/values",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "DOTNET_ENVIRONMENT": "Production"
       }
     }
   }

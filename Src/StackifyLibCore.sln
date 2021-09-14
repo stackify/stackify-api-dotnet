@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2024
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30907.101
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StackifyLib", "StackifyLib\StackifyLib.csproj", "{03CF7411-65E2-4998-A157-9224ECA6199B}"
 EndProject
@@ -35,7 +35,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NLog.Web.Stackify", "NLog.W
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FFWebApp462", "FFWebApp462\FFWebApp462.csproj", "{ADBD2138-9DE7-4211-AF58-84C7F0F9BEA5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreWebApp2.2", "CoreWebApp2.2\CoreWebApp2.2.csproj", "{99C81723-20FB-4241-862C-32F7ADDB7A9B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWebApp2.2", "CoreWebApp2.2\CoreWebApp2.2.csproj", "{99C81723-20FB-4241-862C-32F7ADDB7A9B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FullFrameworkWebApp", "FullFrameworkWebApp\FullFrameworkWebApp.csproj", "{EC5742DF-C1A8-4A7A-81DC-B6E0A4D3472D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{03CF7411-65E2-4998-A157-9224ECA6199B} = {03CF7411-65E2-4998-A157-9224ECA6199B}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -99,6 +104,10 @@ Global
 		{99C81723-20FB-4241-862C-32F7ADDB7A9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{99C81723-20FB-4241-862C-32F7ADDB7A9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{99C81723-20FB-4241-862C-32F7ADDB7A9B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC5742DF-C1A8-4A7A-81DC-B6E0A4D3472D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC5742DF-C1A8-4A7A-81DC-B6E0A4D3472D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC5742DF-C1A8-4A7A-81DC-B6E0A4D3472D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC5742DF-C1A8-4A7A-81DC-B6E0A4D3472D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -117,6 +126,7 @@ Global
 		{647F27AD-13D7-40C2-A7BB-97A5D19CE3D5} = {709EEA1C-81B6-4369-AB25-6A03D4BEC75F}
 		{ADBD2138-9DE7-4211-AF58-84C7F0F9BEA5} = {CA786C31-57B0-4FA4-919D-8B24D2FBCDCB}
 		{99C81723-20FB-4241-862C-32F7ADDB7A9B} = {CA786C31-57B0-4FA4-919D-8B24D2FBCDCB}
+		{EC5742DF-C1A8-4A7A-81DC-B6E0A4D3472D} = {CA786C31-57B0-4FA4-919D-8B24D2FBCDCB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6AB55A24-BCFF-4641-90E0-7921CAD32F49}
