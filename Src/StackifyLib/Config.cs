@@ -253,6 +253,10 @@ namespace StackifyLib
                     }
                 }
             }
+	    catch (Exception ex)
+            {
+                StackifyAPILogger.Log("#Config #Get failed", ex);
+            }
             finally
             {
                 if (v == null)
