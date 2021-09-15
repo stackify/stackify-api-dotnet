@@ -221,6 +221,7 @@ namespace StackifyLib
                                 v = retraceAppSettings[key.Replace("Stackify.", string.Empty)];
                             }
                         }
+                    }
 #endif
 
 #if NETFULL
@@ -250,7 +251,6 @@ namespace StackifyLib
                         {
                             v = System.Environment.GetEnvironmentVariable("RETRACE_" + key.Substring(9).Replace('.', '_').ToUpperInvariant());
                         }
-                    }
                 }
             }
             finally
