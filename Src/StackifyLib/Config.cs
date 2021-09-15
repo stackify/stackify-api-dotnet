@@ -292,14 +292,13 @@ namespace StackifyLib
                 if (File.Exists(jsonPath))
                 {
                     using (var fs = new FileStream(jsonPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-
-                    if (string.IsNullOrEmpty(v))
                     {
                         using (var sr = new StreamReader(fs))
                         {
                             json = sr.ReadToEnd();
                         }
                     }
+                    
                     var obj = JObject.Parse(json, Settings);
                     Config.SetStackifyObj(obj);
                 }
