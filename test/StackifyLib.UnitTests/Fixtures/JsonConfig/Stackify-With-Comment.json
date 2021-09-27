@@ -1,0 +1,6 @@
+{
+  "AppName": "CoreConsoleApp",
+  "Environment": "Dev",
+  "ApiKey": "sampleKey"
+  // "AppName": "CoreConsoleApp2",
+}

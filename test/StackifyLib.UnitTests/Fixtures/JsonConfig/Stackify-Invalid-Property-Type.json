@@ -1,0 +1,9 @@
+{
+  "AppName": true,
+  "Environment": {
+    "Test":  "Test"
+  },
+  "ApiKey": [
+    "Test"
+  ]
+}

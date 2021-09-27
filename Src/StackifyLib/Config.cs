@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
+using Newtonsoft.Json.Linq;
 using System.Text.RegularExpressions;
 using StackifyLib.Utils;
 
@@ -12,6 +15,8 @@ namespace StackifyLib
     /// </summary>
     public class Config
     {
+
+        private static readonly JsonLoadSettings Settings = new JsonLoadSettings { CommentHandling = CommentHandling.Ignore, LineInfoHandling = LineInfoHandling.Ignore };
 #if NETCORE || NETCOREX
 
         private static Microsoft.Extensions.Configuration.IConfiguration _configuration = null;
@@ -32,6 +37,10 @@ namespace StackifyLib
         {
             try
             {
+                if (IsStackifyJsonLoaded == false) {
+                    ReadStackifyJSONConfig(); // TODO: Better way?
+                }
+
                 CaptureServerVariables = Get("Stackify.CaptureServerVariables", bool.FalseString).Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
 
                 CaptureSessionVariables = Get("Stackify.CaptureSessionVariables", bool.FalseString).Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
@@ -171,6 +180,8 @@ namespace StackifyLib
 
         public static int LoggingJsonMaxFields { get; set; } = 50;
 
+        public static bool? IsStackifyJsonLoaded { get; set; } = false;
+
         public static string RumScriptUrl { get; set; }
 
         public static string RumKey { get; set; }
@@ -197,6 +208,166 @@ namespace StackifyLib
                         var appSettings = _configuration.GetSection("Stackify");
                         v = appSettings[key.Replace("Stackify.", string.Empty)];
 
+                        //Get settings from Stackify.json
+                        if (string.IsNullOrEmpty(v))
+                        {
+                            var key2 = key.Replace("Stackify.", string.Empty);
+                            var stackifyJson = _configuration.GetSection(key2);
+                            v = stackifyJson.Value;
+                            if (string.IsNullOrEmpty(v))
+                            {
+                                // Search in Retrace, but key will likely still be Stackify.name, not Retrace.name in the code
+                                var retraceAppSettings = _configuration.GetSection("Retrace");
+                                v = retraceAppSettings[key.Replace("Stackify.", string.Empty)];
+                            }
+                        }
+                    }
+#endif
+
+#if NETFULL
+				    if (string.IsNullOrEmpty(v))
+				    {
+				        v = System.Configuration.ConfigurationManager.AppSettings[key];
+				    }
+#endif
+
+                        if (string.IsNullOrEmpty(v))
+                        {
+                            v = System.Environment.GetEnvironmentVariable(key);
+                        }
+
+                        if (string.IsNullOrEmpty(v))
+                        {
+                            v = System.Environment.GetEnvironmentVariable(key.ToUpperInvariant());
+                        }
+
+                        if (string.IsNullOrEmpty(v))
+                        {
+                            // Linux systems do not allow period in an environment variable name
+                            v = System.Environment.GetEnvironmentVariable(key.Replace('.', '_').ToUpperInvariant());
+                        }
+
+                        if (string.IsNullOrEmpty(v) && key.StartsWith("Stackify."))
+                        {
+                            v = System.Environment.GetEnvironmentVariable("RETRACE_" + key.Substring(9).Replace('.', '_').ToUpperInvariant());
+                        }
+                }
+            }
+	    catch (Exception ex)
+            {
+                StackifyAPILogger.Log("#Config #Get failed", ex);
+            }
+            finally
+            {
+                if (v == null)
+                {
+                    v = defaultValue;
+                }
+            }
+
+            return v;
+        }
+
+        public static void ReadStackifyJSONConfig()
+        {
+            try
+            {
+                var ASPEnvironment = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+                var DotnetEnvironment = System.Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+                string baseDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                string jsonPath = string.Empty;
+                string json = string.Empty;
+
+                ASPEnvironment = "Production";
+
+                if (!String.IsNullOrEmpty(ASPEnvironment))
+                {
+                    jsonPath = Path.Combine(baseDirectory, $"Stackify.{ASPEnvironment}.json");
+                }
+                else if (!String.IsNullOrEmpty(DotnetEnvironment))
+                {
+                    jsonPath = Path.Combine(baseDirectory, $"Stackify.{DotnetEnvironment}.json");
+                }
+                else
+                {
+                    jsonPath = Path.Combine(baseDirectory, "Stackify.json");
+                }
+
+                if (File.Exists(jsonPath))
+                {
+                    using (var fs = new FileStream(jsonPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    {
+                        using (var sr = new StreamReader(fs))
+                        {
+                            json = sr.ReadToEnd();
+                        }
+                    }
+                    
+                    var obj = JObject.Parse(json, Settings);
+                    Config.SetStackifyObj(obj);
+                }
+#if NETFULL
+                else
+                {
+                    string iisBaseDirectory = System.Web.Hosting.HostingEnvironment.ApplicationPhysicalPath;
+                    string iisJsonPath = string.Empty;
+
+                    if (!String.IsNullOrEmpty(ASPEnvironment))
+                    {
+                        iisJsonPath = Path.Combine(iisBaseDirectory, $"Stackify.{ASPEnvironment}.json");
+                    }
+                    else if (!String.IsNullOrEmpty(DotnetEnvironment))
+                    {
+                        iisJsonPath = Path.Combine(iisBaseDirectory, $"Stackify.{DotnetEnvironment}.json");
+                    }
+                    else
+                    {
+                        iisJsonPath = Path.Combine(iisBaseDirectory, "Stackify.json");
+                    }
+
+                    if (File.Exists(iisJsonPath))
+                    {
+                        using (var fs = new FileStream(iisJsonPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                        {
+                            using (var sr = new StreamReader(fs))
+                            {
+                                json = sr.ReadToEnd();
+                            }
+                        }
+
+                        var obj = JObject.Parse(json, Settings);
+                        Config.SetStackifyObj(obj);
+                    }
+                }
+#endif
+            }
+            catch (Exception ex)
+            {
+                StackifyAPILogger.Log("#Config #ReadStackifyJSONConfig failed", ex);
+            }
+            IsStackifyJsonLoaded = true;
+        }
+
+#if JSONTEST
+        public static void ReadStackifyJSONConfig(string filePath)
+        {
+            try
+            {
+                string json;
+
+                using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    using (var sr = new StreamReader(fs))
+                    {
+                        json = sr.ReadToEnd();
+                    }
+
+#if NETCORE || NETCOREX
+                    if (_configuration != null && string.IsNullOrEmpty(v))
+                    {
+                        var appSettings = _configuration.GetSection("Stackify");
+                        v = appSettings[key.Replace("Stackify.", string.Empty)];
+
                         if (string.IsNullOrEmpty(v))
                         {
                             // Search in Retrace, but key will likely still be Stackify.name, not Retrace.name in the code
@@ -212,38 +383,54 @@ namespace StackifyLib
 				        v = System.Configuration.ConfigurationManager.AppSettings[key];
 				    }
 #endif
-
-                    if (string.IsNullOrEmpty(v))
-                    {
-                        v = System.Environment.GetEnvironmentVariable(key);
-                    }
-
-                    if (string.IsNullOrEmpty(v))
-                    {
-                        v = System.Environment.GetEnvironmentVariable(key.ToUpperInvariant());
-                    }
-
-                    if (string.IsNullOrEmpty(v))
-                    {
-                        // Linux systems do not allow period in an environment variable name
-                        v = System.Environment.GetEnvironmentVariable(key.Replace('.', '_').ToUpperInvariant());
-                    }
-
-                    if (string.IsNullOrEmpty(v) && key.StartsWith("Stackify."))
-                    {
-                        v = System.Environment.GetEnvironmentVariable("RETRACE_" + key.Substring(9).Replace('.', '_').ToUpperInvariant());
-                    }
+                    
                 }
+
+                var obj = JObject.Parse(json, Settings);
+                Config.SetStackifyObj(obj);
             }
-            finally
+            catch (Exception ex)
             {
-                if (v == null)
+                StackifyAPILogger.Log("#Config #ReadStackifyJSONConfig failed", ex);
+            }
+            
+        }
+#endif
+
+        public static void SetStackifyObj(JObject obj)
+        {
+            AppName = TryGetValue(obj, "AppName") ?? AppName;
+            Environment = TryGetValue(obj, "Environment") ?? Environment;
+            ApiKey = TryGetValue(obj, "ApiKey") ?? ApiKey;
+        }
+
+        private static string TryGetValue(JToken jToken, string key)
+        {
+            string r = null;
+
+            try
+            {
+                var val = jToken[key];
+                if (val == null)
                 {
-                    v = defaultValue;
+                    StackifyAPILogger.Log($"#Config #TryGetValue #Json failed - Property is null or empty - Property: {key}");
+                    return r;
                 }
+
+                if (val.Type != JTokenType.String || (val.Type == JTokenType.String && string.IsNullOrEmpty(val.ToString())))
+                {
+                    StackifyAPILogger.Log($"#Config #TryGetValue #Json failed - Property is not a string - Property: {key}");
+                    return r;
+                }
+
+                r = val.ToString();
+            }
+            catch (Exception ex)
+            {
+                StackifyAPILogger.Log("#Config #TryGetValue #Json failed", ex);
             }
 
-            return v;
+            return r;
         }
     }
 }
