@@ -11,18 +11,30 @@ namespace StackifyLib
             try
             {
                 Configure.SubscribeToWebRequestDetails(app.ApplicationServices);
-
-                if (configuration != null)
-                {
-                    StackifyLib.Config.SetConfiguration(configuration);
-
-                    //tell it to load all the settings since we now have the config
-                    Config.LoadSettings();
-                }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error in ConfigureStackifyLogging {ex}");
+                Debug.WriteLine($"#Extensions - #AspNetCore - Error Subscribing to WebRequestDetails {ex}");
+                StackifyLib.Utils.StackifyAPILogger.Log("#Extensions - #AspNetCore - Error Subscribing to WebRequestDetails", ex);
+            }
+
+            try
+            {
+                if (configuration == null)
+                {
+                    StackifyLib.Utils.StackifyAPILogger.Log("#Extensions - #AspNetCore - Empty configuration, ignoring");
+                    return;
+                }
+
+                StackifyLib.Utils.StackifyAPILogger.Log("#Extensions - #AspNetCore - ConfigureStackifyLogging - Initialize");
+                StackifyLib.Config.SetConfiguration(configuration);
+                StackifyLib.Utils.StackifyAPILogger.Log("#Extensions - #AspNetCore - ConfigureStackifyLogging - Settings Loaded");
+                Config.LoadSettings();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"#Extensions - #AspNetCore - Error in ConfigureStackifyLogging {ex}");
+                StackifyLib.Utils.StackifyAPILogger.Log("#Extensions - #AspNetCore - Error in ConfigureStackifyLogging", ex);
             }
         }
     }
