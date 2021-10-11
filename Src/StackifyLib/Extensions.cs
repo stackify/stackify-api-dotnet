@@ -34,16 +34,20 @@ namespace StackifyLib
 #if NETCORE || NETCOREX
         public static void ConfigureStackifyLogging(this Microsoft.Extensions.Configuration.IConfiguration configuration)
         {
+            StackifyAPILogger.Log("#Extensions - ConfigureStackifyLogging - Initialize");
             Config.SetConfiguration(configuration);
             //tell it to load all the settings since we now have the config
             Config.LoadSettings();
+            StackifyAPILogger.Log("#Extensions - ConfigureStackifyLogging - Settings Loaded");
         }
 
         public static void ConfigureStackifyLib(this Microsoft.Extensions.Configuration.IConfiguration configuration)
         {
+            StackifyAPILogger.Log("#Extensions - ConfigureStackifyLib - Initialize");
             Config.SetConfiguration(configuration);
             //tell it to load all the settings since we now have the config
             Config.LoadSettings();
+            StackifyAPILogger.Log("#Extensions - ConfigureStackifyLib - Settings Loaded");
         }
 #endif
     }
