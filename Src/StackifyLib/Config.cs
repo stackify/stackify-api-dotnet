@@ -38,6 +38,7 @@ namespace StackifyLib
             try
             {
                 if (IsStackifyJsonLoaded == false) {
+                    StackifyAPILogger.Log($"#Config - LoadSettings - Stackify JSON - Read");
                     ReadStackifyJSONConfig(); // TODO: Better way?
                 }
 
@@ -154,6 +155,15 @@ namespace StackifyLib
             catch (Exception ex)
             {
                 StackifyAPILogger.Log("#Config #LoadSettings failed", ex);
+            }
+
+            try
+            {
+                StackifyAPILogger.EvaluateLogEnabled();
+            }
+            catch (Exception ex)
+            {
+                StackifyAPILogger.Log("#Config #LoadSettings StackifyAPILogger.EvaluateLogEnabled failed", ex);
             }
         }
 
@@ -299,7 +309,7 @@ namespace StackifyLib
         {
             try
             {
-                var ASPEnvironment = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+                var ASPEnvironment = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
                 var DotnetEnvironment = System.Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
                 string baseDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                 string jsonPath = string.Empty;
@@ -318,6 +328,7 @@ namespace StackifyLib
                     jsonPath = Path.Combine(baseDirectory, "Stackify.json");
                 }
 
+                StackifyAPILogger.Log($"#Config #Json Load - Path: {jsonPath}");
                 if (File.Exists(jsonPath))
                 {
                     using (var fs = new FileStream(jsonPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
@@ -350,6 +361,7 @@ namespace StackifyLib
                         iisJsonPath = Path.Combine(iisBaseDirectory, "Stackify.json");
                     }
 
+                    StackifyAPILogger.Log($"#Config #Json Load - Path: {iisJsonPath}");
                     if (File.Exists(iisJsonPath))
                     {
                         using (var fs = new FileStream(iisJsonPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
@@ -427,6 +439,7 @@ namespace StackifyLib
             AppName = TryGetValue(obj, "AppName") ?? AppName;
             Environment = TryGetValue(obj, "Environment") ?? Environment;
             ApiKey = TryGetValue(obj, "ApiKey") ?? ApiKey;
+            StackifyAPILogger.Log($"#Config #Json #SetStackifyObj Load - AppName: {AppName} - Environment: {Environment} - ApiKey: {ApiKey}");
         }
 
         private static string TryGetValue(JToken jToken, string key)
@@ -449,6 +462,7 @@ namespace StackifyLib
                 }
 
                 r = val.ToString();
+                StackifyAPILogger.Log($"#Config #TryGetValue #Json Success - Key: {key} - Value: {r ?? "Empty"}");
             }
             catch (Exception ex)
             {

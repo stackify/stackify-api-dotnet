@@ -302,6 +302,16 @@ namespace StackifyLib.Utils
                 }
                 StackifyAPILogger.Log("Calling to Identify App");
                 EnvironmentDetail env = EnvironmentDetail.Get();
+                env.UpdateEnvironmentName();
+                env.UpdateAppName();
+                if (string.IsNullOrEmpty(env.ConfiguredAppName) && !string.IsNullOrEmpty(Config.AppName)) {
+                    env.ConfiguredAppName = Config.AppName;
+                }
+
+                if (string.IsNullOrEmpty(env.ConfiguredEnvironmentName) && !string.IsNullOrEmpty(Config.Environment)) {
+                    env.ConfiguredAppName = Config.Environment;
+                }
+
                 string jsonData = JsonConvert.SerializeObject(env, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
 
                 var response =
