@@ -19,7 +19,6 @@ namespace StackifyLib.Utils
 
         static StackifyAPILogger()
         {
-            EvaluateLogEnabled();
         }
 
         public static bool LogEnabled
@@ -85,7 +84,7 @@ namespace StackifyLib.Utils
             }
         }
 
-        private static void EvaluateLogEnabled()
+        public static void EvaluateLogEnabled()
         {
             if (_logEnabled == null)
             {

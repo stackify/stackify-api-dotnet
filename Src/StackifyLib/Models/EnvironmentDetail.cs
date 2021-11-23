@@ -490,5 +490,37 @@ namespace StackifyLib.Models
 
             return AppName;
         }
+
+        public void UpdateAppName()
+        {
+            if (!string.IsNullOrEmpty(ConfiguredAppName))
+            {
+                return;
+            }
+            
+            if (!string.IsNullOrEmpty(Config.AppName))
+            {
+                ConfiguredAppName = Config.AppName;
+                return;
+            }
+
+            ConfiguredAppName = Config.Get("Stackify.AppName");
+        }
+
+        public void UpdateEnvironmentName()
+        {
+            if (!string.IsNullOrEmpty(ConfiguredEnvironmentName))
+            {
+                return;
+            }
+            
+            if (!string.IsNullOrEmpty(Config.Environment))
+            {
+                ConfiguredEnvironmentName = Config.Environment;
+                return;
+            }
+
+            ConfiguredEnvironmentName = Config.Get("Stackify.Environment");
+        }
     }
 }
