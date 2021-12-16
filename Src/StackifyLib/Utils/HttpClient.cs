@@ -309,7 +309,7 @@ namespace StackifyLib.Utils
                 }
 
                 if (string.IsNullOrEmpty(env.ConfiguredEnvironmentName) && !string.IsNullOrEmpty(Config.Environment)) {
-                    env.ConfiguredAppName = Config.Environment;
+                    env.ConfiguredEnvironmentName = Config.Environment;
                 }
 
                 string jsonData = JsonConvert.SerializeObject(env, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
