@@ -38,8 +38,21 @@ namespace StackifyLib
             try
             {
                 if (IsStackifyJsonLoaded == false) {
+                    StackifyAPILogger.Log($"#Config - LoadSettings - Stackify JSON - Read");
                     ReadStackifyJSONConfig(); // TODO: Better way?
                 }
+
+                if (IsStackifyJsonLoaded == true)
+                {
+                    StackifyAPILogger.Log($"#Config - LoadSettings - Stackify JSON Loaded");
+                }
+
+#if NETCORE || NETCOREX
+                if (_configuration != null)
+                {
+                    StackifyAPILogger.Log($"#Config - LoadSettings - Configuration Set");
+                }
+#endif
 
                 CaptureServerVariables = Get("Stackify.CaptureServerVariables", bool.FalseString).Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
 
@@ -134,7 +147,7 @@ namespace StackifyLib
                 }
 
                 var rumKey = Get("Stackify.Rum_Key");
-                if (Regex.IsMatch(rumKey, "^[A-Za-z0-9_-]+$"))
+                if (string.IsNullOrWhiteSpace(rumKey) == false && Regex.IsMatch(rumKey, "^[A-Za-z0-9_-]+$"))
                 {
                     RumKey = rumKey;
                 }
@@ -142,6 +155,15 @@ namespace StackifyLib
             catch (Exception ex)
             {
                 StackifyAPILogger.Log("#Config #LoadSettings failed", ex);
+            }
+
+            try
+            {
+                StackifyAPILogger.EvaluateLogEnabled();
+            }
+            catch (Exception ex)
+            {
+                StackifyAPILogger.Log("#Config #LoadSettings StackifyAPILogger.EvaluateLogEnabled failed", ex);
             }
         }
 
@@ -197,6 +219,7 @@ namespace StackifyLib
         internal static string Get(string key, string defaultValue = null)
         {
             string v = null;
+            string section = null;
 
             try
             {
@@ -207,55 +230,69 @@ namespace StackifyLib
                     {
                         var appSettings = _configuration.GetSection("Stackify");
                         v = appSettings[key.Replace("Stackify.", string.Empty)];
+                        section = "ConfigStackify";
 
                         //Get settings from Stackify.json
-                        if (string.IsNullOrEmpty(v))
+                        if (string.IsNullOrWhiteSpace(v))
                         {
                             var key2 = key.Replace("Stackify.", string.Empty);
                             var stackifyJson = _configuration.GetSection(key2);
                             v = stackifyJson.Value;
-                            if (string.IsNullOrEmpty(v))
+                            section = "ConfigDirect";
+
+                            if (string.IsNullOrWhiteSpace(v))
                             {
                                 // Search in Retrace, but key will likely still be Stackify.name, not Retrace.name in the code
                                 var retraceAppSettings = _configuration.GetSection("Retrace");
                                 v = retraceAppSettings[key.Replace("Stackify.", string.Empty)];
+                                section = "ConfigRetrace";
                             }
                         }
                     }
 #endif
 
 #if NETFULL
-				    if (string.IsNullOrEmpty(v))
-				    {
-				        v = System.Configuration.ConfigurationManager.AppSettings[key];
-				    }
+                    if (string.IsNullOrWhiteSpace(v))
+                    {
+                        v = System.Configuration.ConfigurationManager.AppSettings[key];
+                        section = "AppSettings";
+                    }
 #endif
 
-                        if (string.IsNullOrEmpty(v))
-                        {
-                            v = System.Environment.GetEnvironmentVariable(key);
-                        }
+                    if (string.IsNullOrWhiteSpace(v))
+                    {
+                        v = System.Environment.GetEnvironmentVariable(key);
+                        section = "Env";
+                    }
 
-                        if (string.IsNullOrEmpty(v))
-                        {
-                            v = System.Environment.GetEnvironmentVariable(key.ToUpperInvariant());
-                        }
+                    if (string.IsNullOrWhiteSpace(v))
+                    {
+                        v = System.Environment.GetEnvironmentVariable(key.ToUpperInvariant());
+                        section = "EnvUpper";
+                    }
 
-                        if (string.IsNullOrEmpty(v))
-                        {
-                            // Linux systems do not allow period in an environment variable name
-                            v = System.Environment.GetEnvironmentVariable(key.Replace('.', '_').ToUpperInvariant());
-                        }
+                    if (string.IsNullOrWhiteSpace(v))
+                    {
+                        // Linux systems do not allow period in an environment variable name
+                        v = System.Environment.GetEnvironmentVariable(key.Replace('.', '_').ToUpperInvariant());
+                        section = "EnvUpperLinux";
+                    }
 
-                        if (string.IsNullOrEmpty(v) && key.StartsWith("Stackify."))
-                        {
-                            v = System.Environment.GetEnvironmentVariable("RETRACE_" + key.Substring(9).Replace('.', '_').ToUpperInvariant());
-                        }
+                    if (string.IsNullOrWhiteSpace(v) && key.StartsWith("Stackify."))
+                    {
+                        v = System.Environment.GetEnvironmentVariable("RETRACE_" + key.Substring(9).Replace('.', '_').ToUpperInvariant());
+                        section = "EnvUpperLinuxRetrace";
+                    }
+
+                    if (string.IsNullOrWhiteSpace(v) == false)
+                    {
+                        StackifyAPILogger.Log($"#Config - #Get - Section: {section} - Key: {key} - Value: {v ?? "Empty"}");
+                    }
                 }
             }
-	    catch (Exception ex)
+            catch (Exception ex)
             {
-                StackifyAPILogger.Log("#Config #Get failed", ex);
+                StackifyAPILogger.Log("#Config - #Get - #Failed", ex);
             }
             finally
             {
@@ -278,13 +315,11 @@ namespace StackifyLib
                 string jsonPath = string.Empty;
                 string json = string.Empty;
 
-                ASPEnvironment = "Production";
-
-                if (!String.IsNullOrEmpty(ASPEnvironment))
+                if (!String.IsNullOrWhiteSpace(ASPEnvironment))
                 {
                     jsonPath = Path.Combine(baseDirectory, $"Stackify.{ASPEnvironment}.json");
                 }
-                else if (!String.IsNullOrEmpty(DotnetEnvironment))
+                else if (!String.IsNullOrWhiteSpace(DotnetEnvironment))
                 {
                     jsonPath = Path.Combine(baseDirectory, $"Stackify.{DotnetEnvironment}.json");
                 }
@@ -293,6 +328,7 @@ namespace StackifyLib
                     jsonPath = Path.Combine(baseDirectory, "Stackify.json");
                 }
 
+                StackifyAPILogger.Log($"#Config #Json Load - Path: {jsonPath}");
                 if (File.Exists(jsonPath))
                 {
                     using (var fs = new FileStream(jsonPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
@@ -312,11 +348,11 @@ namespace StackifyLib
                     string iisBaseDirectory = System.Web.Hosting.HostingEnvironment.ApplicationPhysicalPath;
                     string iisJsonPath = string.Empty;
 
-                    if (!String.IsNullOrEmpty(ASPEnvironment))
+                    if (!String.IsNullOrWhiteSpace(ASPEnvironment))
                     {
                         iisJsonPath = Path.Combine(iisBaseDirectory, $"Stackify.{ASPEnvironment}.json");
                     }
-                    else if (!String.IsNullOrEmpty(DotnetEnvironment))
+                    else if (!String.IsNullOrWhiteSpace(DotnetEnvironment))
                     {
                         iisJsonPath = Path.Combine(iisBaseDirectory, $"Stackify.{DotnetEnvironment}.json");
                     }
@@ -325,6 +361,7 @@ namespace StackifyLib
                         iisJsonPath = Path.Combine(iisBaseDirectory, "Stackify.json");
                     }
 
+                    StackifyAPILogger.Log($"#Config #Json Load - Path: {iisJsonPath}");
                     if (File.Exists(iisJsonPath))
                     {
                         using (var fs = new FileStream(iisJsonPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
@@ -402,6 +439,7 @@ namespace StackifyLib
             AppName = TryGetValue(obj, "AppName") ?? AppName;
             Environment = TryGetValue(obj, "Environment") ?? Environment;
             ApiKey = TryGetValue(obj, "ApiKey") ?? ApiKey;
+            StackifyAPILogger.Log($"#Config #Json #SetStackifyObj Load - AppName: {AppName} - Environment: {Environment} - ApiKey: {ApiKey}");
         }
 
         private static string TryGetValue(JToken jToken, string key)
@@ -424,6 +462,7 @@ namespace StackifyLib
                 }
 
                 r = val.ToString();
+                StackifyAPILogger.Log($"#Config #TryGetValue #Json Success - Key: {key} - Value: {r ?? "Empty"}");
             }
             catch (Exception ex)
             {
