@@ -42,6 +42,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FullFrameworkWebApp", "Full
 		{03CF7411-65E2-4998-A157-9224ECA6199B} = {03CF7411-65E2-4998-A157-9224ECA6199B}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StackifyLib.log4net.Tests", "StackifyLib.log4net.Tests\StackifyLib.log4net.Tests.csproj", "{18F96933-468E-4104-961E-0C68A5EF2B29}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -108,6 +110,10 @@ Global
 		{EC5742DF-C1A8-4A7A-81DC-B6E0A4D3472D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EC5742DF-C1A8-4A7A-81DC-B6E0A4D3472D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EC5742DF-C1A8-4A7A-81DC-B6E0A4D3472D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18F96933-468E-4104-961E-0C68A5EF2B29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18F96933-468E-4104-961E-0C68A5EF2B29}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18F96933-468E-4104-961E-0C68A5EF2B29}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18F96933-468E-4104-961E-0C68A5EF2B29}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -127,6 +133,7 @@ Global
 		{ADBD2138-9DE7-4211-AF58-84C7F0F9BEA5} = {CA786C31-57B0-4FA4-919D-8B24D2FBCDCB}
 		{99C81723-20FB-4241-862C-32F7ADDB7A9B} = {CA786C31-57B0-4FA4-919D-8B24D2FBCDCB}
 		{EC5742DF-C1A8-4A7A-81DC-B6E0A4D3472D} = {CA786C31-57B0-4FA4-919D-8B24D2FBCDCB}
+		{18F96933-468E-4104-961E-0C68A5EF2B29} = {36B13547-8CBC-4985-9495-555500880F1D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6AB55A24-BCFF-4641-90E0-7921CAD32F49}
