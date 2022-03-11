@@ -40,7 +40,18 @@ namespace CoreConsoleApp
             Console.WriteLine($"Stackify Config AppName: {StackifyLib.Config.AppName}");
             Console.WriteLine($"Stackify Config EnvironmentName: {StackifyLib.Config.Environment}");
             Console.WriteLine($"Stackify Config ApiKey: {StackifyLib.Config.ApiKey}");
+
+            StackifyLib.ProfileTracer.SetApplicationName("Test Name");
+            StackifyLib.ProfileTracer.SetEnvironmentName("Test Environment");
+
+            var tracer = StackifyLib.ProfileTracer.CreateAsOperation("Operation Name", Trace.CorrelationManager.ActivityId.ToString());
+            tracer.Exec(() =>   //FYI, async code is also supported via tracer.ExecAsync()
+            {
+                //Do some stuff here
+                Task.Delay(1000).GetAwaiter().GetResult();
+            });
             StackifyLib.Logger.Shutdown(); //best practice for console apps
+            Console.ReadLine();
         }
 
 
