@@ -41,19 +41,37 @@ namespace CoreConsoleApp
             Console.WriteLine($"Stackify Config EnvironmentName: {StackifyLib.Config.Environment}");
             Console.WriteLine($"Stackify Config ApiKey: {StackifyLib.Config.ApiKey}");
 
-            StackifyLib.ProfileTracer.SetApplicationName("Test Name");
-            StackifyLib.ProfileTracer.SetEnvironmentName("Test Environment");
+            StackifyLib.ProfileTracer.SetApplicationName("Test Name 2");
+            StackifyLib.ProfileTracer.SetEnvironmentName("Test Environment 2");
 
             var tracer = StackifyLib.ProfileTracer.CreateAsOperation("Operation Name", Trace.CorrelationManager.ActivityId.ToString());
             tracer.Exec(() =>   //FYI, async code is also supported via tracer.ExecAsync()
             {
                 //Do some stuff here
                 Task.Delay(1000).GetAwaiter().GetResult();
+                Console.WriteLine($"StackifyLib Operation");
             });
+
+            StackifyLib.ProfileTracer.SetApplicationName("Test Name 3");
+            StackifyLib.ProfileTracer.SetEnvironmentName("Test Environment 3");
+
+            TestInstrument();
             StackifyLib.Logger.Shutdown(); //best practice for console apps
             Console.ReadLine();
         }
 
+        private static void TestInstrument()
+        {
+            Task.Delay(1000).GetAwaiter().GetResult();
+            Console.WriteLine($"Custom Operation");
+            TestInstrumentNested();
+        }
+
+        private static void TestInstrumentNested()
+        {
+            Task.Delay(1000).GetAwaiter().GetResult();
+            Console.WriteLine($"Custom Operation Nested");
+        }
 
         private static void NLogTest()
         {

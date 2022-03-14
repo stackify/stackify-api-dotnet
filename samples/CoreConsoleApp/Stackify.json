@@ -1,5 +1,20 @@
 {
   "AppName": "CoreConsoleApp_stackifyjson",
   "Environment": "Dev_stackifyjson",
-  "ApiKey": "sampleKey_stackifyjson"
+  "ApiKey": "sampleKey_stackifyjson",
+  "EnableDebugging":  true,
+  "Instrumentation": [
+    {
+      "Assembly": "CoreConsoleApp",
+      "Class": "CoreConsoleApp.Program",
+      "Method": "TestInstrument",
+      "StartTrace": true
+    },
+    {
+      "Assembly": "CoreConsoleApp",
+      "Class": "CoreConsoleApp.Program",
+      "Method": "TestInstrumentNested",
+      "StartTrace": true
+    }
+  ]
 }
