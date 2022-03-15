@@ -380,5 +380,15 @@ namespace StackifyLib
         {
 
         }
+
+        [MethodImpl(MethodImplOptions.PreserveSig | MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        public static void SetEnvironmentName(string environmentName)
+        {
+        }
+
+        [MethodImpl(MethodImplOptions.PreserveSig | MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        public static void SetApplicationName(string applicationName)
+        {
+        }
     }
 }
