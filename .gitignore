@@ -30,3 +30,5 @@ packages/
 **/bin/*
 **/obj/*
 BuildOutput/
+*.pfx
+*.snk
