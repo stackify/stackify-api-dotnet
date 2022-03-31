@@ -23,6 +23,7 @@
     <AssemblyVersion>2.2.7.0</AssemblyVersion>
     <FileVersion>2.2.7.0</FileVersion>
     <PackageReleaseNotes>Remove default internal file logger</PackageReleaseNotes>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
 
   <ItemGroup>
