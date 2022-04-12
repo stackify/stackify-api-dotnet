@@ -1,0 +1,185 @@
+# Variable 'BuildVersion' was defined in the Variables tab
+# Variable 'certpfxname' was defined in the Variables tab
+# Variable 'certpfxname-pw' was defined in the Variables tab
+# Variable 'SRCCLR_API_TOKEN' was defined in the Variables tab
+# Variable 'veracodeSCA' was defined in the Variables tab
+trigger:
+  branches:
+    include:
+    - develop
+resources:
+  repositories:
+  - repository: self
+    type: git
+    ref: refs/heads/feature/DOTNET-107
+jobs:
+- job: Job_1
+  displayName: Build StackifyLib
+  pool:
+    vmImage: windows-2019
+  steps:
+  - checkout: self
+    clean: true
+    lfs: true
+  - task: AzureKeyVault@2
+    displayName: 'Azure Key Vault: keyvault-build-resources'
+    inputs:
+      ConnectedServiceName: 514ed7d6-3846-4422-8013-af27483dd22c
+      KeyVaultName: keyvault-build-resources
+      RunAsPreJob: true
+  - task: PowerShell@2
+    displayName: PowerShell Script
+    condition: and(succeeded(), eq('${{ veracodeSCA }}', 'true'))
+    inputs:
+      targetType: inline
+      script: >
+        $Env:SRCCLR_API_TOKEN="$(SRCCLR_API_TOKEN)"; Set-ExecutionPolicy AllSigned -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://download.srcclr.com/ci.ps1')); srcclr scan .\Src\StackifyLib;
+  - task: DownloadSecureFile@1
+    name: SNK
+    displayName: Download Strong Name Key
+    inputs:
+      secureFile: 9d810a2d-d090-431c-9012-df939a4b1afe
+  - task: PowerShell@2
+    displayName: Move Signing Key To Project Directory
+    inputs:
+      targetType: inline
+      filePath: Src/StackifyLib
+      script: >-
+        # Write your PowerShell commands here.
+
+        ls
+
+        Move-Item $(SNK.secureFilePath) Src/StackifyLib/Netreo.snk
+  - task: PowerShell@2
+    displayName: Update csproj for .snk
+    inputs:
+      targetType: inline
+      script: >
+        (Get-Content -path Src\StackifyLib\StackifyLib.csproj -Raw) -replace '<PackageId>StackifyLib</PackageId>','<PackageId>StackifyLib.signed</PackageId>' | Set-Content -Path Src\StackifyLib\StackifyLib.csproj
+  - task: PowerShell@2
+    displayName: Create Certificate.pfx file and password text file
+    inputs:
+      filePath: Scripts/codesign.ps1
+      arguments: $(certpfxname)  $(certpfxname-pw)
+      script: >-
+        function generate-cert {
+                  [CmdletBinding()]
+                  param ([Parameter(Position=0)][string]$pfxSecretStringValue,  [Parameter(Position=1)][string]$pfxPswrd)
+
+                  Write-Host("Certificate bytes size = $($pfxSecretStringValue.Length)")
+                  Write-Host("Certificate password length = $($pfxPswrd.Length)")
+
+
+                  # construct the certificate
+                  $kvSecretBytes = [System.Convert]::FromBase64String($pfxSecretStringValue)
+                  $certCollection = [System.Security.Cryptography.X509Certificates.X509Certificate2Collection]::new()
+                  $certCollection.Import($kvSecretBytes, $null, [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable)
+
+                  # Get the file created
+                  $protectedCertificateBytes = $certCollection.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Pkcs12, $pfxPswrd)
+                  $pfxPath ="./certificate.pfx"
+                  [System.IO.File]::WriteAllBytes($pfxPath, $protectedCertificateBytes)
+
+                  # write password file for use in nsis
+                  [System.IO.File]::WriteAllText("./passwd.txt", $pfxPswrd)
+
+                  # write file names for debugging
+                  $colItems =  (get-childitem  "./" -include *.* -recurse | tee-object -variable files | measure-object -property length -sum)
+                  $files | foreach-object {write-host $_.FullName}
+                }
+
+        generate-cert $(certpfxname) $(certpfxname-pw)
+  - task: DotNetCoreCLI@2
+    displayName: dotnet restore
+    inputs:
+      command: restore
+      restoreArguments: .\Src
+  - task: DotNetCoreCLI@2
+    displayName: dotnet build
+    inputs:
+      projects: >
+        Src\StackifyLib
+        Src\StackifyLib.AspNetCore
+        Src\StackifyLib.CoreLogger
+        Src\StackifyLib.log4net
+        Src\Nlog.Targets.Stackify
+        Src\NLog.Web.Stackify
+        Src\StackifyLib.StackifyTraceListener
+      arguments: -c $(BuildConfiguration)
+  - task: DotNetCoreCLI@2
+    displayName: dotnet pack signed stackify lib
+    inputs:
+      command: pack
+      searchPatternPack: Src\StackifyLib\*.csproj;
+      nobuild: true
+  - task: PowerShell@2
+    displayName: Rename signed assemblies
+    enabled: False
+    inputs:
+      targetType: inline
+      script: "$files = @(Get-ChildItem -Path . -File -Filter *.nupkg)\n\nforeach($file in $files) {\n  $BaseFilename = $file.BaseName\n  $BaseFilenameSplit = $file.BaseName.Split(\".\")\n  $LastVersionDigit = \"\"\n  $NewFilenameBase = \"\"\n  $PackageVersion = \"\"\n  $IsBeta = \"False\"\n  if ($BaseFilename.contains(\"beta\")) {\n    $IsBeta = \"True\"\n    $LastVersionDigit = $file.BaseName.Substring($BaseFilename.length - 6,1)\n  }\n  else {\n    $LastVersionDigit = $file.BaseName.Substring($BaseFilename.length - 1)\n  }\n  foreach($namePart in $BaseFilenameSplit) {\n    if (!$namePart.contains(\"beta\") -and $namePart -notmatch \"^\\d+$\") {\n      $NewFilenameBase = $NewFilenameBase + $namePart + \".\"\n    } else {\n      # check for beta\n      if ($namePart.contains(\"beta\")) {\n        $PackageVersion = $PackageVersion + $namePart.Substring(0,1)\n      } else {\n        $PackageVersion = $PackageVersion + $namePart\n      }\n      # check length to append a .\n      if ($namePart -notmatch $LastVersionDigit) {\n        $PackageVersion = $PackageVersion + \".\"\n      }\n    }\n  }\n  \n  # check beta\n  $FinalFilenameBase = \"\"\n  if ($IsBeta -match \"True\") {\n    $FinalFilenameBase = $NewFilenameBase + \"snk.\" + $PackageVersion + \"-beta\"\n  } else {\n    $FinalFilenameBase = $NewFilenameBase + \"snk.\" + $PackageVersion\n  }\n  $FinalFilename = $FinalFilenameBase + $file.Extension\n  Rename-Item -Path $file -NewName $FinalFilename\n}"
+      workingDirectory: $(Build.ArtifactStagingDirectory)
+  - task: PublishPipelineArtifact@1
+    displayName: Publish Pipeline Artifact
+    inputs:
+      path: $(Build.ArtifactStagingDirectory)
+      artifactName: Signed NuGet Packages
+  - task: PowerShell@2
+    displayName: Delete signed assemblies
+    enabled: False
+    inputs:
+      targetType: inline
+      script: >
+        Remove-Item *.snk*.nupkg
+      workingDirectory: $(Build.ArtifactStagingDirectory)
+  - task: PowerShell@2
+    displayName: Remove Sign Code
+    inputs:
+      filePath: Scripts/RemoveSignCode.ps1
+  - task: PowerShell@2
+    displayName: Update csproj for no .snk
+    inputs:
+      targetType: inline
+      script: >
+        (Get-Content -path Src\StackifyLib\StackifyLib.csproj -Raw) -replace '<PackageId>StackifyLib.signed</PackageId>','<PackageId>StackifyLib</PackageId>' | Set-Content -Path Src\StackifyLib\StackifyLib.csproj
+  - task: DotNetCoreCLI@2
+    displayName: dotnet build [Unsigned]
+    inputs:
+      projects: >
+        Src\StackifyLib
+        Src\StackifyLib.AspNetCore
+        Src\StackifyLib.CoreLogger
+        Src\StackifyLib.log4net
+        Src\Nlog.Targets.Stackify
+        Src\NLog.Web.Stackify
+        Src\StackifyLib.StackifyTraceListener
+      arguments: -c $(BuildConfiguration)
+  - task: DotNetCoreCLI@2
+    displayName: dotnet pack copy [Unsigned]
+    inputs:
+      command: pack
+      searchPatternPack: 'Src\StackifyLib\*.csproj;Src\StackifyLib.AspNetCore\*.csproj;Src\StackifyLib.CoreLogger\*.csproj;Src\StackifyLib.log4net\*.csproj;Src\Nlog.Targets.Stackify\*.csproj;Src\NLog.Web.Stackify\*.csproj;Src\StackifyLib.StackifyTraceListener\*.csproj '
+      nobuild: true
+  - task: PublishPipelineArtifact@1
+    displayName: Publish Pipeline Artifact [Unsigned]
+    inputs:
+      path: $(Build.ArtifactStagingDirectory)
+      artifactName: Unsigned NuGet Packages
+  - task: PowerShell@2
+    displayName: PowerShell Script
+    inputs:
+      targetType: inline
+      script: >
+        $xml = [Xml] (Get-Content .\Src\StackifyLib\StackifyLib.csproj)
+        $version = $xml.Project.PropertyGroup.Version
+        echo $version
+        echo "##vso[task.setvariable variable=version]$version"
+        echo "StackifyLib."$version".nupkg"
+  - task: Veracode@3
+    displayName: 'Upload and scan: $(Build.ArtifactStagingDirectory)/StackifyLib.$(BuildVersion).nupkg'
+    enabled: False
+    inputs:
+      AnalysisService: 51003f89-58ab-463c-8e20-41484888d9c7
+      veracodeAppProfile: Retrace .Net StackifyLib
+      version: AZ-Devops-Build-$(build.buildNumber)
+      filepath: $(Build.ArtifactStagingDirectory)/StackifyLib.$(BuildVersion).nupkg
