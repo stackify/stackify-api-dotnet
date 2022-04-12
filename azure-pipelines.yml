@@ -3,6 +3,7 @@
 # Variable 'certpfxname-pw' was defined in the Variables tab
 # Variable 'SRCCLR_API_TOKEN' was defined in the Variables tab
 # Variable 'veracodeSCA' was defined in the Variables tab
+
 trigger:
   branches:
     include:
