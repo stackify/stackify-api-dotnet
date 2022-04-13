@@ -15,15 +15,12 @@ resources:
     type: git
     ref: refs/heads/feature/DOTNET-107
 
-pool:
-    name: win2016-vs2017
-#    vmImage: 'windows-latest'
-
 jobs:
 - job: Job_1
   displayName: Build StackifyLib
   pool:
-    vmImage: windows-2019
+    name: win2016-vs2017
+#    vmImage: win2016-vs2017
   steps:
   - checkout: self
     clean: true
@@ -53,9 +50,7 @@ jobs:
       filePath: Src/StackifyLib
       script: >-
         # Write your PowerShell commands here.
-
         ls
-
         Move-Item $(SNK.secureFilePath) Src/StackifyLib/Netreo.snk
   - task: PowerShell@2
     displayName: Update csproj for .snk
