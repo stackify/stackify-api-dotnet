@@ -95,6 +95,14 @@ steps:
     inputs:
       command: 'custom'
       arguments: 'sign $(Build.ArtifactStagingDirectory)\StackifyLib.signed.2.2.6.nupkg -CertificatePath $(Build.SourcesDirectory)/certificate.pfx'
+  - task: DotNetCoreCLI@2
+    displayName: 'Sign NuGet Packages'
+    enabled: false
+    inputs:
+      command: 'custom'
+      custom: 
+      arguments: 'nuget sign *.nupkg --certificate-path $(Build.SourcesDirectory)/certificate.pfx'
+      workingDirectory: $(Build.ArtifactStagingDirectory)
   - task: PowerShell@2
     displayName: Rename signed assemblies
     enabled: False
@@ -165,14 +173,6 @@ steps:
       command: pack
       searchPatternPack: 'Src\StackifyLib\*.csproj;Src\StackifyLib.AspNetCore\*.csproj;Src\StackifyLib.CoreLogger\*.csproj;Src\StackifyLib.log4net\*.csproj;Src\Nlog.Targets.Stackify\*.csproj;Src\NLog.Web.Stackify\*.csproj;Src\StackifyLib.StackifyTraceListener\*.csproj '
       nobuild: true
-  - task: DotNetCoreCLI@2
-    displayName: 'Sign NuGet Packages'
-    enabled: false
-    inputs:
-      command: 'custom'
-      custom: 
-      arguments: 'nuget sign *.nupkg --certificate-path $(Build.SourcesDirectory)/certificate.pfx'
-      workingDirectory: $(Build.ArtifactStagingDirectory)
   - task: PublishPipelineArtifact@1
     displayName: Publish Pipeline Artifact [Unsigned]
     inputs:
