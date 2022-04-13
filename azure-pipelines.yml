@@ -120,7 +120,9 @@ steps:
   - task: PowerShell@2
     displayName: Remove Sign Code
     inputs:
+      targetType: filePath
       filePath: ./Scripts/RemoveSignCode.ps1
+      workingDirectory: $(Build.SourcesDirectory)
   - task: PowerShell@2
     displayName: Update csproj for no .snk
     inputs:
@@ -130,15 +132,15 @@ steps:
   - task: DotNetCoreCLI@2
     displayName: dotnet build [Unsigned]
     inputs:
-      projects: >
-        Src\StackifyLib
-        Src\StackifyLib.AspNetCore
-        Src\StackifyLib.CoreLogger
-        Src\StackifyLib.log4net
-        Src\Nlog.Targets.Stackify
-        Src\NLog.Web.Stackify
-        Src\StackifyLib.StackifyTraceListener
-      arguments: -c $(BuildConfiguration)
+      projects: |
+        Src\StackifyLib\*.csproj
+        Src\StackifyLib.AspNetCore\*.csproj
+        Src\StackifyLib.CoreLogger\*.csproj
+        Src\StackifyLib.log4net\*.csproj
+        Src\Nlog.Targets.Stackify\*.csproj
+        Src\NLog.Web.Stackify\*.csproj
+        Src\StackifyLib.StackifyTraceListener\*.csproj
+      arguments: '-c $(BuildConfiguration)'
   - task: DotNetCoreCLI@2
     displayName: dotnet pack copy [Unsigned]
     inputs:
