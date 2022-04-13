@@ -94,7 +94,7 @@ steps:
     displayName: Sign Nuget Packages Nuget
     inputs:
       command: 'custom'
-      arguments: 'sign *.nupkg --certificate-path $(Build.SourcesDirectory)/certificate.pfx'
+      arguments: 'sign *.nupkg -CertificatePath $(Build.SourcesDirectory)/certificate.pfx'
   - task: PowerShell@2
     displayName: Rename signed assemblies
     enabled: False
