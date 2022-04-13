@@ -15,8 +15,8 @@ trigger:
 #    type: git
 #    ref: refs/heads/feature/DOTNET-107
 pool:
-#  name: win2016-vs2017
-  name: Azure Pipelines
+  name: win2016-vs2017
+#  name: Azure Pipelines
 
 #jobs:
 #- job: Job_1
