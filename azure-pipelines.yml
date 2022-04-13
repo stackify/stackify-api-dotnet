@@ -121,7 +121,8 @@ steps:
     displayName: Remove Sign Code
     inputs:
       targetType: filePath
-      filePath: ./Scripts/RemoveSignCode.ps1
+      arguments: ''
+      filePath: Scripts/RemoveSignCode.ps1
       workingDirectory: $(Build.SourcesDirectory)
   - task: PowerShell@2
     displayName: Update csproj for no .snk
