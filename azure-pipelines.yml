@@ -167,10 +167,17 @@ steps:
       command: pack
       searchPatternPack: 'Src\StackifyLib\*.csproj;Src\StackifyLib.AspNetCore\*.csproj;Src\StackifyLib.CoreLogger\*.csproj;Src\StackifyLib.log4net\*.csproj;Src\Nlog.Targets.Stackify\*.csproj;Src\NLog.Web.Stackify\*.csproj;Src\StackifyLib.StackifyTraceListener\*.csproj '
       nobuild: true
+  - task: PowerShell@2
+    displayName: 'Sign NuGet Packages Inline'
+    inputs:
+      targetType: 'inline'
+      script: 'nuget sign *.nupkg --certificate-path $(Build.SourcesDirectory)/certificate.pfx'
   - task: DotNetCoreCLI@2
     displayName: 'Sign NuGet Packages'
+    enabled: false
     inputs:
       command: 'custom'
+      custom: 
       arguments: 'nuget sign *.nupkg --certificate-path $(Build.SourcesDirectory)/certificate.pfx'
       workingDirectory: $(Build.ArtifactStagingDirectory)
   - task: PublishPipelineArtifact@1
