@@ -61,7 +61,7 @@ jobs:
     displayName: 'Setup Code Signing'
     inputs:
       targetType: filePath
-      filePath: ./common/codesign.ps1
+      filePath: ./codesign.ps1
       arguments: '$(codeSigning2023) $(codeSigning2023-pw)'
       workingDirectory: $(Build.SourcesDirectory)
   - task: DotNetCoreCLI@2
