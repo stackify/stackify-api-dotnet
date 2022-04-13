@@ -8,11 +8,17 @@ trigger:
   branches:
     include:
     - develop
+
 resources:
   repositories:
   - repository: self
     type: git
     ref: refs/heads/feature/DOTNET-107
+
+pool:
+    name: win2016-vs2017
+#    vmImage: 'windows-latest'
+
 jobs:
 - job: Job_1
   displayName: Build StackifyLib
