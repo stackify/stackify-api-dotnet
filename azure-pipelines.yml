@@ -94,6 +94,13 @@ jobs:
       targetType: inline
       script: "$files = @(Get-ChildItem -Path . -File -Filter *.nupkg)\n\nforeach($file in $files) {\n  $BaseFilename = $file.BaseName\n  $BaseFilenameSplit = $file.BaseName.Split(\".\")\n  $LastVersionDigit = \"\"\n  $NewFilenameBase = \"\"\n  $PackageVersion = \"\"\n  $IsBeta = \"False\"\n  if ($BaseFilename.contains(\"beta\")) {\n    $IsBeta = \"True\"\n    $LastVersionDigit = $file.BaseName.Substring($BaseFilename.length - 6,1)\n  }\n  else {\n    $LastVersionDigit = $file.BaseName.Substring($BaseFilename.length - 1)\n  }\n  foreach($namePart in $BaseFilenameSplit) {\n    if (!$namePart.contains(\"beta\") -and $namePart -notmatch \"^\\d+$\") {\n      $NewFilenameBase = $NewFilenameBase + $namePart + \".\"\n    } else {\n      # check for beta\n      if ($namePart.contains(\"beta\")) {\n        $PackageVersion = $PackageVersion + $namePart.Substring(0,1)\n      } else {\n        $PackageVersion = $PackageVersion + $namePart\n      }\n      # check length to append a .\n      if ($namePart -notmatch $LastVersionDigit) {\n        $PackageVersion = $PackageVersion + \".\"\n      }\n    }\n  }\n  \n  # check beta\n  $FinalFilenameBase = \"\"\n  if ($IsBeta -match \"True\") {\n    $FinalFilenameBase = $NewFilenameBase + \"snk.\" + $PackageVersion + \"-beta\"\n  } else {\n    $FinalFilenameBase = $NewFilenameBase + \"snk.\" + $PackageVersion\n  }\n  $FinalFilename = $FinalFilenameBase + $file.Extension\n  Rename-Item -Path $file -NewName $FinalFilename\n}"
       workingDirectory: $(Build.ArtifactStagingDirectory)
+  - task: PowerShell@2
+    displayName: 'Setup Code Signing'
+    inputs:
+      targetType: filePath
+      filePath: ./Scripts/codesign.ps1
+      arguments: '$(codeSigning2023) $(codeSigning2023-pw)'
+      workingDirectory: $(Build.SourcesDirectory)
   - task: PublishPipelineArtifact@1
     displayName: Publish Pipeline Artifact
     inputs:
@@ -135,6 +142,12 @@ jobs:
       command: pack
       searchPatternPack: 'Src\StackifyLib\*.csproj;Src\StackifyLib.AspNetCore\*.csproj;Src\StackifyLib.CoreLogger\*.csproj;Src\StackifyLib.log4net\*.csproj;Src\Nlog.Targets.Stackify\*.csproj;Src\NLog.Web.Stackify\*.csproj;Src\StackifyLib.StackifyTraceListener\*.csproj '
       nobuild: true
+  - task: DotNetCoreCLI@2
+    displayName: 'Sign NuGet Packages'
+    inputs:
+      command: 'custom'
+      arguments: 'nuget sign *.nupkg --certificate-path $(Build.SourcesDirectory)/certificate.pfx'
+      workingDirectory: $(Build.ArtifactStagingDirectory)
   - task: PublishPipelineArtifact@1
     displayName: Publish Pipeline Artifact [Unsigned]
     inputs:
