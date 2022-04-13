@@ -14,14 +14,16 @@ trigger:
 #  - repository: self
 #    type: git
 #    ref: refs/heads/feature/DOTNET-107
+pool:
+  name: win2016-vs2017
 
-jobs:
-- job: Job_1
-  displayName: Build StackifyLib
-  pool:
-    name: win2016-vs2017
+#jobs:
+#- job: Job_1
+#  displayName: Build StackifyLib
+#  pool:
+#    name: win2016-vs2017
 #    vmImage: win2016-vs2017
-  steps:
+steps:
   - checkout: self
     clean: true
     lfs: true
@@ -81,7 +83,7 @@ jobs:
         Src\Nlog.Targets.Stackify\*.csproj
         Src\NLog.Web.Stackify\*.csproj
         Src\StackifyLib.StackifyTraceListener\*.csproj
-      arguments: '-c $(BuildConfiguration)''
+      arguments: '-c $(BuildConfiguration)'
   - task: DotNetCoreCLI@2
     displayName: dotnet pack signed stackify lib
     inputs:
