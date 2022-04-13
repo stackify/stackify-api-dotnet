@@ -101,7 +101,7 @@ steps:
     enabled: true
     inputs:
       command: 'custom'
-      custom: 'nuget sign *.nupkg --certificate-path $(Build.SourcesDirectory)/certificate.pfx'
+      custom: 'nuget sign $(Build.ArtifactStagingDirectory)\StackifyLib.signed.2.2.6.nupkg --certificate-path $(Build.SourcesDirectory)/certificate.pfx'
       workingDirectory: $(Build.ArtifactStagingDirectory)
   - task: PowerShell@2
     displayName: Rename signed assemblies
