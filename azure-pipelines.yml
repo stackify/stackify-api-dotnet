@@ -119,11 +119,30 @@ steps:
       workingDirectory: $(Build.ArtifactStagingDirectory)
   - task: PowerShell@2
     displayName: Remove Sign Code
+    enabled: false
     inputs:
       targetType: filePath
       arguments: ''
       filePath: Scripts/RemoveSignCode.ps1
       workingDirectory: $(Build.SourcesDirectory)
+  - task: PowerShell@2
+    displayName: Remove Sign Code Inline
+    inputs:
+      targetType: 'inline'
+      script: |
+        function Remove-SignCode {
+            param (
+                $ASMFile
+            )
+            Set-Content -Path $ASMFile -Value (Get-Content -Path $ASMFile | Select-String -Pattern AssemblyKeyFileAttribute -NotMatch )
+        }
+        
+        $files = @(Get-ChildItem -Path . -Directory -Filter Stackify*)
+        
+        foreach ($file in $files) {
+            $asmInfo = Get-ChildItem -Path $file/Properties/AssemblyInfo.cs
+            Remove-SignCode -ASMFile $asmInfo
+        }
   - task: PowerShell@2
     displayName: Update csproj for no .snk
     inputs:
