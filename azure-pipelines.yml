@@ -30,7 +30,7 @@ jobs:
       RunAsPreJob: true
   - task: PowerShell@2
     displayName: PowerShell Script
-    condition: and(succeeded(), eq('${{ veracodeSCA }}', 'true'))
+    condition: and(succeeded(), eq('${{ variables.veracodeSCA }}', 'true'))
     inputs:
       targetType: inline
       script: >
@@ -58,38 +58,12 @@ jobs:
       script: >
         (Get-Content -path Src\StackifyLib\StackifyLib.csproj -Raw) -replace '<PackageId>StackifyLib</PackageId>','<PackageId>StackifyLib.signed</PackageId>' | Set-Content -Path Src\StackifyLib\StackifyLib.csproj
   - task: PowerShell@2
-    displayName: Create Certificate.pfx file and password text file
+    displayName: 'Setup Code Signing'
     inputs:
-      filePath: Scripts/codesign.ps1
-      arguments: $(certpfxname)  $(certpfxname-pw)
-      script: >-
-        function generate-cert {
-                  [CmdletBinding()]
-                  param ([Parameter(Position=0)][string]$pfxSecretStringValue,  [Parameter(Position=1)][string]$pfxPswrd)
-
-                  Write-Host("Certificate bytes size = $($pfxSecretStringValue.Length)")
-                  Write-Host("Certificate password length = $($pfxPswrd.Length)")
-
-
-                  # construct the certificate
-                  $kvSecretBytes = [System.Convert]::FromBase64String($pfxSecretStringValue)
-                  $certCollection = [System.Security.Cryptography.X509Certificates.X509Certificate2Collection]::new()
-                  $certCollection.Import($kvSecretBytes, $null, [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable)
-
-                  # Get the file created
-                  $protectedCertificateBytes = $certCollection.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Pkcs12, $pfxPswrd)
-                  $pfxPath ="./certificate.pfx"
-                  [System.IO.File]::WriteAllBytes($pfxPath, $protectedCertificateBytes)
-
-                  # write password file for use in nsis
-                  [System.IO.File]::WriteAllText("./passwd.txt", $pfxPswrd)
-
-                  # write file names for debugging
-                  $colItems =  (get-childitem  "./" -include *.* -recurse | tee-object -variable files | measure-object -property length -sum)
-                  $files | foreach-object {write-host $_.FullName}
-                }
-
-        generate-cert $(certpfxname) $(certpfxname-pw)
+      targetType: filePath
+      filePath: ./common/codesign.ps1
+      arguments: '$(codeSigning2023) $(codeSigning2023-pw)'
+      workingDirectory: dotnet-apm/windows
   - task: DotNetCoreCLI@2
     displayName: dotnet restore
     inputs:
