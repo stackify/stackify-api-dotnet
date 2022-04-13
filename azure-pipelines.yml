@@ -63,7 +63,7 @@ jobs:
       targetType: filePath
       filePath: ./common/codesign.ps1
       arguments: '$(codeSigning2023) $(codeSigning2023-pw)'
-      workingDirectory: dotnet-apm/windows
+      workingDirectory: $(Build.SourcesDirectory)
   - task: DotNetCoreCLI@2
     displayName: dotnet restore
     inputs:
