@@ -92,16 +92,16 @@ steps:
       nobuild: true
   - task: NuGetCommand@2
     displayName: Sign Nuget Packages Nuget
+    enabled: false
     inputs:
       command: 'custom'
       arguments: 'sign $(Build.ArtifactStagingDirectory)\StackifyLib.signed.2.2.6.nupkg -CertificatePath $(Build.SourcesDirectory)/certificate.pfx'
   - task: DotNetCoreCLI@2
     displayName: 'Sign NuGet Packages'
-    enabled: false
+    enabled: true
     inputs:
       command: 'custom'
-      custom: 
-      arguments: 'nuget sign *.nupkg --certificate-path $(Build.SourcesDirectory)/certificate.pfx'
+      custom: 'nuget sign *.nupkg --certificate-path $(Build.SourcesDirectory)/certificate.pfx'
       workingDirectory: $(Build.ArtifactStagingDirectory)
   - task: PowerShell@2
     displayName: Rename signed assemblies
