@@ -78,7 +78,7 @@ steps:
     displayName: 'Sign Nuget Packages'
     inputs:
       targetType: inline
-      script: dotnet nuget sign $(Build.ArtifactStagingDirectory)\StackifyLib.signed.2.2.6.nupkg --certificate-path $(Build.SourcesDirectory)/certificate.pfx --certificate-password $(codeSigning2023-pw) --timestamper http://timestamp.sectigo.com
+      script: dotnet nuget sign $(Build.ArtifactStagingDirectory)\*.nupkg --certificate-path $(Build.SourcesDirectory)/certificate.pfx --certificate-password $(codeSigning2023-pw) --timestamper http://timestamp.sectigo.com
       workingDirectory: $(Build.SourcesDirectory)
   - task: PowerShell@2
     displayName: Rename signed assemblies
