@@ -91,12 +91,12 @@ steps:
       command: pack
       searchPatternPack: Src\StackifyLib\*.csproj;
       nobuild: true
-  - task: NuGetCommand@2
-    displayName: Sign Nuget Packages Nuget
-    enabled: false
+  - task: PowerShell@2
+    displayName: 'Sign Nuget Packages Nuget'
     inputs:
-      command: 'custom'
-      arguments: 'sign $(Build.ArtifactStagingDirectory)\StackifyLib.signed.2.2.6.nupkg -CertificatePath $(Build.SourcesDirectory)/certificate.pfx'
+      targetType: inline
+      script: dotnet nuget sign $(Build.ArtifactStagingDirectory)\StackifyLib.signed.2.2.6.nupkg --certificate-path $(Build.SourcesDirectory)/certificate.pfx --certificate-password $(codeSigning2023-pw)
+      workingDirectory: $(Build.SourcesDirectory)
   - task: DotNetCoreCLI@2
     displayName: 'Sign NuGet Packages'
     enabled: true
