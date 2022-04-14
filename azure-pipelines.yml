@@ -56,6 +56,13 @@ steps:
     inputs:
       command: restore
       restoreArguments: .\Src
+  - task: PowerShell@2
+    displayName: 'List files'
+    inputs:
+      targetType: inline
+      script: |
+        cd $(Build.SourcesDirectory)
+        ls Src\StackifyLib
   - task: DotNetCoreCLI@2
     displayName: dotnet build
     inputs:
