@@ -182,6 +182,7 @@ steps:
         echo $version
         echo "##vso[task.setvariable variable=version]$version"
         echo "StackifyLib."$version".nupkg"
+      workingDirectory: $(Build.ArtifactStagingDirectory)
   - task: Veracode@3
     displayName: 'Upload and scan: $(Build.ArtifactStagingDirectory)/StackifyLib.$(BuildVersion).nupkg'
     enabled: False
