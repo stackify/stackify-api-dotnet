@@ -1,29 +1,12 @@
-# Variable 'BuildVersion' was defined in the Variables tab
-# Variable 'certpfxname' was defined in the Variables tab
-# Variable 'certpfxname-pw' was defined in the Variables tab
-# Variable 'SRCCLR_API_TOKEN' was defined in the Variables tab
-# Variable 'veracodeSCA' was defined in the Variables tab
-
 trigger:
   branches:
     include:
     - develop
 
-#resources:
-#  repositories:
-#  - repository: self
-#    type: git
-#    ref: refs/heads/feature/DOTNET-107
 pool:
   name: win2016-vs2017
 #  name: Azure Pipelines
 
-#jobs:
-#- job: Job_1
-#  displayName: Build StackifyLib
-#  pool:
-#    name: win2016-vs2017
-#    vmImage: win2016-vs2017
 steps:
   - checkout: self
     clean: true
