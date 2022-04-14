@@ -97,13 +97,6 @@ steps:
       targetType: inline
       script: dotnet nuget sign $(Build.ArtifactStagingDirectory)\StackifyLib.signed.2.2.6.nupkg --certificate-path $(Build.SourcesDirectory)/certificate.pfx --certificate-password $(codeSigning2023-pw)
       workingDirectory: $(Build.SourcesDirectory)
-  - task: DotNetCoreCLI@2
-    displayName: 'Sign NuGet Packages'
-    enabled: true
-    inputs:
-      command: 'custom'
-      custom: 'nuget sign $(Build.ArtifactStagingDirectory)\StackifyLib.signed.2.2.6.nupkg --certificate-path $(Build.SourcesDirectory)/certificate.pfx'
-      workingDirectory: $(Build.ArtifactStagingDirectory)
   - task: PowerShell@2
     displayName: Rename signed assemblies
     enabled: False
