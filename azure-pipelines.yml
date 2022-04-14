@@ -94,11 +94,11 @@ steps:
       artifactName: Signed NuGet Packages
   - task: PowerShell@2
     displayName: Delete signed assemblies
-    enabled: False
+    enabled: true
     inputs:
       targetType: inline
       script: >
-        Remove-Item *.snk*.nupkg
+        Remove-Item *.signed*.nupkg
       workingDirectory: $(Build.ArtifactStagingDirectory)
   - task: PowerShell@2
     displayName: Remove Sign Code
