@@ -34,7 +34,7 @@ steps:
     inputs:
       targetType: inline
       filePath: Src/StackifyLib
-      script: >-
+      script: |
         # Write your PowerShell commands here.
         ls
         Move-Item $(SNK.secureFilePath) Src/StackifyLib/Netreo.snk
@@ -62,7 +62,7 @@ steps:
       targetType: inline
       script: |
         cd $(Build.SourcesDirectory)
-        ls Src\StackifyLib
+        ls Src\StackifyLib\
   - task: DotNetCoreCLI@2
     displayName: dotnet build
     inputs:
