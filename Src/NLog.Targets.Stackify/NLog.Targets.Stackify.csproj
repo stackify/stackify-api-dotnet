@@ -27,7 +27,6 @@
   <ItemGroup>
     <ProjectReference Include="..\StackifyLib\StackifyLib.csproj" />
     <PackageReference Include="NLog" Version="4.5.11" />
-    <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
   </ItemGroup>
   
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
