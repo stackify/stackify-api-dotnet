@@ -153,7 +153,7 @@ namespace StackifyLib
                 {
                     WebRequestDetail = new WebRequestDetail(this);
 
-                    if (HttpContext.Current.User != null && HttpContext.Current.User.Identity != null)
+                    if (Config.CaptureErrorUserName && HttpContext.Current.User != null && HttpContext.Current.User.Identity != null)
                     {
                         UserName = HttpContext.Current.User.Identity.Name;
                     }
@@ -163,7 +163,7 @@ namespace StackifyLib
 #else
             WebRequestDetail = new WebRequestDetail(this);
 #endif
-
+            
             //Fire event
             OnCaptureDetail?.Invoke(this);
 

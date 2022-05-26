@@ -62,6 +62,10 @@ namespace StackifyLib
 
                 CaptureErrorCookies = Get("Stackify.CaptureErrorCookies", bool.FalseString).Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
 
+                CaptureErrorUserName = Get("Stackify.CaptureErrorUserName", bool.TrueString).Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
+
+                CaptureErrorPostdata = Get("Stackify.CaptureErrorPostdata", bool.FalseString).Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
+
                 ApiKey = Get("Stackify.ApiKey", ApiKey ?? string.Empty);
 
                 AppName = Get("Stackify.AppName", AppName ?? string.Empty);
@@ -183,21 +187,14 @@ namespace StackifyLib
         public static bool CaptureErrorPostdata { get; set; }
         public static bool CaptureErrorHeaders { get; set; } = true;
         public static bool CaptureErrorCookies { get; set; }
-
+        public static bool CaptureErrorUserName { get; set; } = true;
         public static string CaptureErrorSessionWhitelist { get; set; }
-
         public static string CaptureErrorHeadersWhitelist { get; set; }
-
         public static string CaptureErrorHeadersBlacklist { get; set; } = "cookie,authorization";
-
         public static string CaptureErrorCookiesWhitelist { get; set; }
-
         public static string CaptureErrorCookiesBlacklist { get; set; } = ".ASPXAUTH";
-
         public static int Ec2InstanceMetadataUpdateThresholdMinutes { get; set; } = 60;
-
         public static bool? IsEc2 { get; set; }
-
         public static bool? ApiLog { get; set; }
 
         public static int LoggingJsonMaxFields { get; set; } = 50;
