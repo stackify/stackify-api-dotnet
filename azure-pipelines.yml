@@ -43,7 +43,16 @@ steps:
     inputs:
       targetType: inline
       script: >
-        (Get-Content -path Src\StackifyLib\StackifyLib.csproj -Raw) -replace '<PackageId>StackifyLib</PackageId>','<PackageId>StackifyLib.signed</PackageId>' | Set-Content -Path Src\StackifyLib\StackifyLib.csproj
+        (Get-Content -path Src\StackifyLib\StackifyLib.csproj -Raw) -replace '<PackageId>StackifyLib</PackageId>','<PackageId>StackifyLib.signed</PackageId>' | Set-Content -Path Src\StackifyLib\StackifyLib.csproj -Encoding utf8
+  
+  # note: the signing attribute here is commented out so we can build locally
+  - powershell: |
+      $filename = Get-ChildItem ".\src\*\AssemblyInfo.cs" -Recurse
+      $filename | %{
+         (gc $_) -replace ([regex]::Escape("//[assembly: AssemblyKeyFile")), "[assembly: AssemblyKeyFile" | Set-Content $_.FullName -Encoding utf8
+      }
+    displayName: Uncoment signing attribute
+  
   - task: PowerShell@2
     displayName: 'Setup Code Signing'
     inputs:
