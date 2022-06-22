@@ -3,10 +3,28 @@ trigger:
     include:
     - develop
 
+schedules:
+  - cron: "0 21-22 31 * *"
+    displayName: Monthly build
+    branches:
+      include:
+      - develop
+    always: true
+
 pool:
   name: win2016-vs2017
 #  name: Azure Pipelines
 
+parameters:
+  - name: RUN_VERACODE_SCAN
+    displayName: 'Upload to Veracode'
+    type: boolean
+    default: true
+  - name: RUN_VERACODE_SCA
+    displayName: 'Execute Veracode SCA'
+    type: boolean
+    default: false
+    
 steps:
   - checkout: self
     clean: true
@@ -19,7 +37,7 @@ steps:
       RunAsPreJob: true
   - task: PowerShell@2
     displayName: PowerShell Script
-    condition: and(succeeded(), eq('${{ variables.veracodeSCA }}', 'true'))
+    condition: and(succeeded(), eq('${{ parameters.RUN_VERACODE_SCA }}', 'true'))
     inputs:
       targetType: inline
       script: >
@@ -178,6 +196,7 @@ steps:
       workingDirectory: $(Build.SourcesDirectory)
   - task: Veracode@3
     displayName: 'Upload and scan: $(Build.ArtifactStagingDirectory)/StackifyLib.$(version).nupkg'
+    condition: and(succeeded(), eq('${{ parameters.RUN_VERACODE_SCAN }}', 'true'))
     enabled: True
     inputs:
       AnalysisService: 51003f89-58ab-463c-8e20-41484888d9c7
