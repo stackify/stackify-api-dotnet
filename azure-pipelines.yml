@@ -172,10 +172,9 @@ steps:
         $xml = [Xml] (Get-Content .\Src\StackifyLib\StackifyLib.csproj)
         $version = $xml.Project.PropertyGroup.Version
         echo $version
+        $version = "$version".Trim()
         echo "##vso[task.setvariable variable=version]$version"
         echo "StackifyLib."$version".nupkg"
-        $versionNew = ($xml.Project.PropertyGroup.Version).Trim()
-        echo $versionNew
       workingDirectory: $(Build.SourcesDirectory)
   - task: Veracode@3
     displayName: 'Upload and scan: $(Build.ArtifactStagingDirectory)/StackifyLib.$(version).nupkg'
