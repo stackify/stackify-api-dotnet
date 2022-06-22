@@ -177,7 +177,7 @@ steps:
       workingDirectory: $(Build.SourcesDirectory)
   - task: Veracode@3
     displayName: 'Upload and scan: $(Build.ArtifactStagingDirectory)/StackifyLib.$(BuildVersion).nupkg'
-    enabled: False
+    enabled: True
     inputs:
       AnalysisService: 51003f89-58ab-463c-8e20-41484888d9c7
       veracodeAppProfile: Retrace .Net StackifyLib
