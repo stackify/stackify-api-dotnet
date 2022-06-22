@@ -176,10 +176,10 @@ steps:
         echo "StackifyLib."$version".nupkg"
       workingDirectory: $(Build.SourcesDirectory)
   - task: Veracode@3
-    displayName: 'Upload and scan: $(Build.ArtifactStagingDirectory)/StackifyLib.$(BuildVersion).nupkg'
+    displayName: 'Upload and scan: $(Build.ArtifactStagingDirectory)/StackifyLib.$(version).nupkg'
     enabled: True
     inputs:
       AnalysisService: 51003f89-58ab-463c-8e20-41484888d9c7
       veracodeAppProfile: Retrace .Net StackifyLib
       version: AZ-Devops-Build-$(build.buildNumber)
-      filepath: $(Build.ArtifactStagingDirectory)/StackifyLib.$(BuildVersion).nupkg
+      filepath: $(Build.ArtifactStagingDirectory)/StackifyLib.$(version).nupkg
