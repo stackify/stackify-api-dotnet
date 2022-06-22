@@ -87,6 +87,21 @@ static void StackifyAPILogger_OnLogMessage(string data)
 }
 ```
 
+## Additional Settings
+
+These settings are available to further customize what information is captured and transmitted to Stackify.
+
+```xml
+<appSettings>
+       <add key="Stackify.CaptureErrorHeaders" value="true" />
+       <add key="Stackify.CaptureServerVariables" value="false" />
+       <add key="Stackify.CaptureSessionVariables" value="false" />
+       <add key="Stackify.CaptureErrorCookies" value="false" />
+       <add key="Stackify.CaptureErrorUserName" value="true" />
+       <add key="Stackify.CaptureErrorPostdata" value="false" />
+</appSettings>
+```
+
 
 ## Errors and Logs
 

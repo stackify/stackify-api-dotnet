@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System;
+using System.Security.Cryptography;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using StackifyLib.Utils;
@@ -9,6 +8,8 @@ namespace StackifyLib.Web
 {
     public static class RealUserMonitoring
     {
+        private static readonly RandomNumberGenerator Rng = new RNGCryptoServiceProvider();
+
         public static string GetHeaderScript()
         {
             var rumScriptUrl = Config.RumScriptUrl;
@@ -51,8 +52,13 @@ namespace StackifyLib.Web
                 settings["Trans"] = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(reportingUrl));
             }
 
-            return string.Format(@"<script type=""text/javascript"">(window.StackifySettings || (window.StackifySettings = {0}))</script><script src=""{1}"" data-key=""{2}"" async></script>",
-                settings.ToString(Formatting.None), rumScriptUrl, rumKey);
+            // generate nonce for strict CSP rules
+            var nonceBytes = new byte[20];
+            Rng.GetNonZeroBytes(nonceBytes);
+            var nonce = Convert.ToBase64String(nonceBytes);
+
+            return string.Format("<script type=\"text/javascript\" nonce=\"{3}\">(window.StackifySettings || (window.StackifySettings = {0}))</script><script src=\"{1}\" data-key=\"{2}\" async></script>",
+                settings.ToString(Formatting.None), rumScriptUrl, rumKey, nonce);
         }
     }
 }
