@@ -3,10 +3,28 @@ trigger:
     include:
     - develop
 
+schedules:
+  - cron: "0 21-22 31 * *"
+    displayName: Monthly build
+    branches:
+      include:
+      - develop
+    always: true
+
 pool:
   name: win2016-vs2017
 #  name: Azure Pipelines
 
+parameters:
+  - name: RUN_VERACODE_SCAN
+    displayName: 'Upload to Veracode'
+    type: boolean
+    default: true
+  - name: RUN_VERACODE_SCA
+    displayName: 'Execute Veracode SCA'
+    type: boolean
+    default: false
+    
 steps:
   - checkout: self
     clean: true
@@ -19,7 +37,7 @@ steps:
       RunAsPreJob: true
   - task: PowerShell@2
     displayName: PowerShell Script
-    condition: and(succeeded(), eq('${{ variables.veracodeSCA }}', 'true'))
+    condition: and(succeeded(), eq('${{ parameters.RUN_VERACODE_SCA }}', 'true'))
     inputs:
       targetType: inline
       script: >
@@ -43,7 +61,16 @@ steps:
     inputs:
       targetType: inline
       script: >
-        (Get-Content -path Src\StackifyLib\StackifyLib.csproj -Raw) -replace '<PackageId>StackifyLib</PackageId>','<PackageId>StackifyLib.signed</PackageId>' | Set-Content -Path Src\StackifyLib\StackifyLib.csproj
+        (Get-Content -path Src\StackifyLib\StackifyLib.csproj -Raw) -replace '<PackageId>StackifyLib</PackageId>','<PackageId>StackifyLib.signed</PackageId>' | Set-Content -Path Src\StackifyLib\StackifyLib.csproj -Encoding utf8
+  
+  # note: the signing attribute here is commented out so we can build locally
+  - powershell: |
+      $filename = Get-ChildItem ".\src\*\AssemblyInfo.cs" -Recurse
+      $filename | %{
+         (gc $_) -replace ([regex]::Escape("//[assembly: AssemblyKeyFile")), "[assembly: AssemblyKeyFile" | Set-Content $_.FullName -Encoding utf8
+      }
+    displayName: Uncoment signing attribute
+  
   - task: PowerShell@2
     displayName: 'Setup Code Signing'
     inputs:
@@ -163,14 +190,16 @@ steps:
         $xml = [Xml] (Get-Content .\Src\StackifyLib\StackifyLib.csproj)
         $version = $xml.Project.PropertyGroup.Version
         echo $version
+        $version = "$version".Trim()
         echo "##vso[task.setvariable variable=version]$version"
         echo "StackifyLib."$version".nupkg"
       workingDirectory: $(Build.SourcesDirectory)
   - task: Veracode@3
-    displayName: 'Upload and scan: $(Build.ArtifactStagingDirectory)/StackifyLib.$(BuildVersion).nupkg'
-    enabled: False
+    displayName: 'Upload and scan: $(Build.ArtifactStagingDirectory)/StackifyLib.$(version).nupkg'
+    condition: and(succeeded(), eq('${{ parameters.RUN_VERACODE_SCAN }}', 'true'))
+    enabled: True
     inputs:
       AnalysisService: 51003f89-58ab-463c-8e20-41484888d9c7
       veracodeAppProfile: Retrace .Net StackifyLib
       version: AZ-Devops-Build-$(build.buildNumber)
-      filepath: $(Build.ArtifactStagingDirectory)/StackifyLib.$(BuildVersion).nupkg
+      filepath: $(Build.ArtifactStagingDirectory)/StackifyLib.$(version).nupkg
