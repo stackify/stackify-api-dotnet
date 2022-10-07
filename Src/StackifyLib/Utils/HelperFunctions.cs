@@ -379,15 +379,24 @@ namespace StackifyLib.Utils
 
         public static string GetAppName()
         {
+            string appName = string.Empty;
             if (!IsBeingProfiled)
             {
-                return Config.AppName;
+                appName =  Config.AppName;
             }
 
             // Getting profiler app name and environment are a side effect of checking the profiler wrapper
             GetWrapperAssembly();
+            
+            appName = _profilerAppName ?? Config.AppName;
 
-            return _profilerAppName ?? Config.AppName;
+            if (Config.EnableCleanName)
+            {
+                return appName.GetCleanName();
+            } else
+            {
+                return appName;
+            }
         }
 
         public static string GetAppEnvironment()
