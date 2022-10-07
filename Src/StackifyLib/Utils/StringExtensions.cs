@@ -66,5 +66,71 @@ namespace StackifyLib.Utils
             //Return the string
             return sValue;
         }
+
+        public static string GetCleanName(this string name, bool isAppName = false)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return null;
+            /*
+            if (EnvironmentMemoryCache[name] is string cachedEnvironment)
+            {
+                // Found in cache, quick return of already processed value
+                // cached value may be empty string if all characters are foreign characters
+                return string.IsNullOrWhiteSpace(cachedEnvironment) ? null : cachedEnvironment;
+            }
+
+            if (isAppName)
+            {
+                if (ApplicationNameMemoryCache[name] is string cachedAppName)
+                {
+                    // Found in cache, quick return of already processed value
+                    // cached value may be empty string if all characters are foreign characters
+                    return string.IsNullOrWhiteSpace(cachedAppName) ? null : cachedAppName;
+                }
+            }
+            */
+            var strippedName = RemoveDiacritics(name);
+            var final = new List<char>();
+            var spaces = 0;
+            for (int i = 0; i < strippedName.Length; i++)
+            {
+                var c = strippedName[i];
+                if (char.IsLetterOrDigit(c) || c == '_' || c == '-' || c == '.')
+                {
+                    final.Add(c);
+                    spaces = 0;
+                }
+                else if ((char.IsPunctuation(c) || c == ' ') && spaces == 0 && c != '\'')
+                {
+                    final.Add(' ');
+                    ++spaces;
+                }
+            }
+            var cleanName = string.Join("", final).Trim();
+
+            if (isAppName)
+            {
+                //ApplicationNameMemoryCache[name] = cleanName;
+                if (string.IsNullOrWhiteSpace(cleanName))
+                {
+                    return string.Empty;
+                }
+            }
+            else
+            {
+                //EnvironmentMemoryCache[name] = cleanName;
+                if (string.IsNullOrWhiteSpace(cleanName))
+                {
+                    return string.Empty;
+                }
+            }
+
+            return cleanName;
+        }
+        // https://stackoverflow.com/a/2086575/8121383
+        private static string RemoveDiacritics(string name)
+        {
+            var tempBytes = Encoding.GetEncoding("ISO-8859-8").GetBytes(name);
+            return Encoding.UTF8.GetString(tempBytes);
+        }
     }
 }
