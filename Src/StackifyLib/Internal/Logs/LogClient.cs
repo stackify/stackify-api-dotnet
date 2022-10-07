@@ -218,6 +218,12 @@ namespace StackifyLib.Internal.Logs
                              Msgs = new List<LogMsg>()
                         };
 
+                        if (Config.EnableCleanName)
+                        {
+                            group.AppName = group.AppName.GetCleanName();
+                            group.Env = group.Env.GetCleanName();
+                        }
+
                         groups[groupKey] = group;
                     }
                 }
@@ -282,6 +288,15 @@ namespace StackifyLib.Internal.Logs
             if (!string.IsNullOrEmpty(env.ConfiguredEnvironmentName))
             {
                 group.Env = env.ConfiguredEnvironmentName;
+            }
+
+            if (Config.EnableCleanName)
+            {
+                // clean the app and env names
+                // even if we've cleaned the configured names
+                // the appname might come from the http request
+                group.Env = group.Env.GetCleanName();
+                group.AppName = group.AppName.GetCleanName();
             }
 
             group.Logger = _LoggerName;

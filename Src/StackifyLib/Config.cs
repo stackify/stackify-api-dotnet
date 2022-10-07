@@ -70,9 +70,18 @@ namespace StackifyLib
 
                 ApiKey = Get("Stackify.ApiKey", ApiKey ?? string.Empty);
 
-                AppName = Get("Stackify.AppName", AppName ?? string.Empty);
+                if (Config.EnableCleanName)
+                {
+                    AppName = Get("Stackify.AppName", AppName ?? string.Empty).GetCleanName();
 
-                Environment = Get("Stackify.Environment", Environment ?? string.Empty);
+                    Environment = Get("Stackify.Environment", Environment ?? string.Empty).GetCleanName();
+                } else
+                {
+                    AppName = Get("Stackify.AppName", AppName ?? string.Empty);
+
+                    Environment = Get("Stackify.Environment", Environment ?? string.Empty);
+                }
+               
 
                 CaptureErrorHeadersWhitelist = Get("Stackify.CaptureErrorHeadersWhitelist", string.Empty);
 
