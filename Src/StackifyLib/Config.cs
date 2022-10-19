@@ -66,11 +66,22 @@ namespace StackifyLib
 
                 CaptureErrorPostdata = Get("Stackify.CaptureErrorPostdata", bool.FalseString).Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
 
+                EnableCleanName = Get("Stackify.EnableCleanName", bool.FalseString).Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
+
                 ApiKey = Get("Stackify.ApiKey", ApiKey ?? string.Empty);
 
-                AppName = Get("Stackify.AppName", AppName ?? string.Empty);
+                if (Config.EnableCleanName)
+                {
+                    AppName = Get("Stackify.AppName", AppName ?? string.Empty).GetCleanName();
 
-                Environment = Get("Stackify.Environment", Environment ?? string.Empty);
+                    Environment = Get("Stackify.Environment", Environment ?? string.Empty).GetCleanName();
+                } else
+                {
+                    AppName = Get("Stackify.AppName", AppName ?? string.Empty);
+
+                    Environment = Get("Stackify.Environment", Environment ?? string.Empty);
+                }
+               
 
                 CaptureErrorHeadersWhitelist = Get("Stackify.CaptureErrorHeadersWhitelist", string.Empty);
 
@@ -182,6 +193,7 @@ namespace StackifyLib
         public static List<string> ErrorCookiesBadKeys = new List<string>();
         public static List<string> ErrorSessionGoodKeys = new List<string>();
 
+        public static bool EnableCleanName { get; set; }
         public static bool CaptureSessionVariables { get; set; }
         public static bool CaptureServerVariables { get; set; }
         public static bool CaptureErrorPostdata { get; set; }
