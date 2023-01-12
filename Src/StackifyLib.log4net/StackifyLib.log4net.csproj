@@ -22,11 +22,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\StackifyLib\StackifyLib.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="log4net" Version="2.0.11" />
+    <PackageReference Include="StackifyLib" Version="2.2.*" />
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   
