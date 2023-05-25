@@ -312,6 +312,12 @@ namespace StackifyLib.Utils
                     env.ConfiguredEnvironmentName = Config.Environment;
                 }
 
+                //Applicable only for Azure AppService
+                if(AzureConfig.InAzure && AzureConfig.IsWebsite)
+                {
+                    env.DeviceName = AzureConfig.AzureInstanceName;
+                }
+
                 string jsonData = JsonConvert.SerializeObject(env, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
 
                 var response =
