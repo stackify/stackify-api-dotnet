@@ -33,6 +33,14 @@ namespace StackifyLib.Models
         /// </summary>
         private void GetAzureInfo()
         {
+            //IsAzureWorkerRole is set when instantiating EnvironmentDetail
+            //Useful in other parts directly referencing AzureInstanceName
+            if(!IsAzureWorkerRole && AzureConfig.InAzure && AzureConfig.IsWebsite)
+            {
+                AzureInstanceName = AzureConfig.AzureInstanceName;
+
+            }
+
 #if NETFULL
             if (registryAccessFailure)
                 return;
