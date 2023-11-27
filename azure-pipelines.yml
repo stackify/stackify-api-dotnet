@@ -112,7 +112,7 @@ steps:
   - task: CmdLine@2
     displayName: 'Sign outputted .exe with global AzureSignTool'
     inputs:
-      script: AzureSignTool sign -du "$(SigningURL)" -kvu "$(SigningVaultURL)" -kvi "$(SigningAppClientId)" -kvs "$(SigningClientSecret)" -kvc "$(SigningCertName)" -tr http://timestamp.digicert.com -v $(Build.ArtifactStagingDirectory)\*.nupkg
+      script: AzureSignTool sign -du "$(SigningURL)" -kvu "$(SigningVaultURL)" -kvi "$(SigningAppClientId)" -kvt "$(SigningAppTenantId)" -kvs "$(SigningClientSecret)" -kvc "$(SigningCertName)" -tr http://timestamp.digicert.com -v $(Build.ArtifactStagingDirectory)\*.nupkg
       workingDirectory: $(Build.SourcesDirectory)
 #  - task: PowerShell@2
 #    displayName: 'Sign Nuget Packages'
