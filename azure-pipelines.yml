@@ -104,6 +104,7 @@ steps:
       searchPatternPack: Src\StackifyLib\*.csproj;
       nobuild: true
   - task: DotNetCoreCLI@2
+    continueOnError: true
     inputs:
       command: 'custom'
       custom: 'tool'
