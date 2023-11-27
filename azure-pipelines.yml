@@ -118,7 +118,7 @@ steps:
   - task: CmdLine@2
     displayName: 'Sign nuget package'
     inputs:
-      script: AzureSignTool sign -du "$(SigningURL)" -kvu "$(SigningVaultURL)" -kvi "$(SigningAppClientId)" -kvt "$(SigningAppTenantId)" -kvs "$(SigningClientSecret)" -kvc "$(SigningCertName)" -tr http://timestamp.digicert.com -v $(Build.ArtifactStagingDirectory)\*.nupkg
+      script: AzureSignTool sign -du "$(SigningURL)" -kvu "$(SigningVaultURL)" -kvi "$(SigningAppClientId)" -kvt "$(SigningAppTenantId)" -kvs "$(SigningClientSecret)" -kvc "$(SigningCertName)" -tr http://timestamp.digicert.com -v $(Build.ArtifactStagingDirectory)\StackifyLib.signed.2.2.14-beta.nupkg
       workingDirectory: $(Build.SourcesDirectory)
 #  - task: PowerShell@2
 #    displayName: 'Sign Nuget Packages'
