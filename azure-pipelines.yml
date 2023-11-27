@@ -38,7 +38,7 @@ steps:
       KeyVaultName: keyvault-build-resources
       RunAsPreJob: true
   - task: PowerShell@2
-    displayName: PowerShell Script
+    displayName: 'Veracode SCA Scan'
     condition: and(succeeded(), eq('${{ parameters.RUN_VERACODE_SCA }}', 'true'))
     inputs:
       targetType: inline
@@ -111,7 +111,12 @@ steps:
       arguments: 'install --global azuresigntool'
     displayName: Install AzureSignTool
   - task: CmdLine@2
-    displayName: 'Sign outputted .exe with global AzureSignTool'
+    displayName: 'Show directory contents'
+    inputs:
+      script: dir
+      workingDirectory: $(Build.ArtifactStagingDirectory)
+  - task: CmdLine@2
+    displayName: 'Sign nuget package'
     inputs:
       script: AzureSignTool sign -du "$(SigningURL)" -kvu "$(SigningVaultURL)" -kvi "$(SigningAppClientId)" -kvt "$(SigningAppTenantId)" -kvs "$(SigningClientSecret)" -kvc "$(SigningCertName)" -tr http://timestamp.digicert.com -v $(Build.ArtifactStagingDirectory)\*.nupkg
       workingDirectory: $(Build.SourcesDirectory)
