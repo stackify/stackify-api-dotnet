@@ -73,13 +73,6 @@ steps:
       }
     displayName: Uncoment signing attribute
   
-  - task: PowerShell@2
-    displayName: 'Setup Code Signing'
-    inputs:
-      targetType: filePath
-      filePath: ./Scripts/codesign.ps1
-      arguments: '$(codeSigning2023) $(codeSigning2023-pw)'
-      workingDirectory: $(Build.SourcesDirectory)
   - task: DotNetCoreCLI@2
     displayName: dotnet restore
     inputs:
@@ -108,13 +101,6 @@ steps:
     inputs:
       command: 'custom'
       custom: 'tool'
-      arguments: 'install --global azuresigntool'
-    displayName: Install AzureSignTool
-  - task: DotNetCoreCLI@2
-    continueOnError: true
-    inputs:
-      command: 'custom'
-      custom: 'tool'
       arguments: 'install --global NuGetKeyVaultSignTool'
     displayName: Install NuGetKeyVaultSignTool
   - task: CmdLine@2
@@ -127,17 +113,6 @@ steps:
     inputs:
       script: NuGetKeyVaultSignTool sign $(Build.ArtifactStagingDirectory)\StackifyLib.signed.*.nupkg -kvu "$(SigningVaultURL)" -kvi "$(SigningAppClientId)" -kvt "$(SigningAppTenantId)" -kvs "$(SigningClientSecret)" -kvc "$(SigningCertName)" -tr http://timestamp.digicert.com
       workingDirectory: $(Build.SourcesDirectory)
-#  - task: CmdLine@2
-#    displayName: 'Sign nuget package'
-#    inputs:
-#      script: AzureSignTool sign -du "$(SigningURL)" -kvu "$(SigningVaultURL)" -kvi "$(SigningAppClientId)" -kvt "$(SigningAppTenantId)" -kvs "$(SigningClientSecret)" -kvc "$(SigningCertName)" -tr http://timestamp.digicert.com -v $(Build.ArtifactStagingDirectory)\StackifyLib.signed.2.2.14-beta.nupkg
-#      workingDirectory: $(Build.SourcesDirectory)
-#  - task: PowerShell@2
-#    displayName: 'Sign Nuget Packages'
-#    inputs:
-#      targetType: inline
-#      script: dotnet nuget sign $(Build.ArtifactStagingDirectory)\*.nupkg --certificate-path $(Build.SourcesDirectory)/certificate.pfx --certificate-password $(codeSigning2023-pw) --timestamper http://timestamp.sectigo.com
-#      workingDirectory: $(Build.SourcesDirectory)
   - task: PowerShell@2
     displayName: Rename signed assemblies
     enabled: False
