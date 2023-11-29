@@ -104,11 +104,6 @@ steps:
       arguments: 'install --global NuGetKeyVaultSignTool'
     displayName: Install NuGetKeyVaultSignTool
   - task: CmdLine@2
-    displayName: 'Show directory contents'
-    inputs:
-      script: dir
-      workingDirectory: $(Build.ArtifactStagingDirectory)
-  - task: CmdLine@2
     displayName: 'Sign nuget package'
     inputs:
       script: NuGetKeyVaultSignTool sign $(Build.ArtifactStagingDirectory)\StackifyLib.signed.*.nupkg -kvu "$(SigningVaultURL)" -kvi "$(SigningAppClientId)" -kvt "$(SigningAppTenantId)" -kvs "$(SigningClientSecret)" -kvc "$(SigningCertName)" -tr http://timestamp.digicert.com
