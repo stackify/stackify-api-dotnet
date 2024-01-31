@@ -133,7 +133,7 @@ namespace NLog.Targets.Stackify
             }
             catch (Exception ex)
             {
-                InternalLogger.Error("StackifyTarget: Failed to send");
+                InternalLogger.Error(ex, "StackifyTarget: Failed to send");
                 logEvent.Continuation(ex);  // Signal failure to NLog
                 StackifyAPILogger.Log(ex.ToString());
             }
