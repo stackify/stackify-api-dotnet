@@ -11,32 +11,6 @@ schedules:
       - develop
     always: true
 
-parameters:
-- name: 'Build StackifyLib'
-  type: boolean
-  default: true
-- name: 'Build StackifyLib Signed'
-  type: boolean
-  default: true
-- name: 'Build StackifyLib.AspNetCore'
-  type: boolean
-  default: true
-- name: 'Build StackifyLib.CoreLogger'
-  type: boolean
-  default: true
-- name: 'Build StackifyLib.log4net'
-  type: boolean
-  default: true
-- name: 'Build Nlog.Targets.Stackify'
-  type: boolean
-  default: true
-- name: 'Build NLog.Web.Stackify'
-  type: boolean
-  default: true
-- name: 'Build StackifyLib.StackifyTraceListener'
-  type: boolean
-  default: true
-
 pool:
   name: win2016-vs2017
 #  name: Azure Pipelines
@@ -50,33 +24,52 @@ parameters:
     displayName: 'Execute Veracode SCA'
     type: boolean
     default: false
+  - name: 'Build StackifyLib'
+    type: boolean
+    default: true
+  - name: 'Build StackifyLib Signed'
+    type: boolean
+    default: true
+  - name: 'Build StackifyLib.AspNetCore'
+    type: boolean
+    default: true
+  - name: 'Build StackifyLib.CoreLogger'
+    type: boolean
+    default: true
+  - name: 'Build StackifyLib.log4net'
+    type: boolean
+    default: true
+  - name: 'Build NLog.Targets.Stackify'
+    type: boolean
+    default: true
+  - name: 'Build NLog.Web.Stackify'
+    type: boolean
+    default: true
+  - name: 'Build StackifyLib.StackifyTraceListener'
+    type: boolean
+    default: true
+
 variables:
   - group: code-signing
 
-jobs:
-  - job: Checkout repo
-    steps:
-    - checkout: self
-      clean: true
-      lfs: true
-  - job: Setup Prerequisites
-    steps:
-    - task: AzureKeyVault@2
-      displayName: 'Azure Key Vault: keyvault-build-resources'
-      inputs:
-        ConnectedServiceName: 514ed7d6-3846-4422-8013-af27483dd22c
-        KeyVaultName: keyvault-build-resources
-        RunAsPreJob: true
-    - task: PowerShell@2
-      displayName: 'Veracode SCA Scan'
-      condition: and(succeeded(), eq('${{ parameters.RUN_VERACODE_SCA }}', 'true'))
-      inputs:
-        targetType: inline
-        script: >
-          $Env:SRCCLR_API_TOKEN="$(SRCCLR_API_TOKEN)"; Set-ExecutionPolicy AllSigned -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://download.sourceclear.com/ci.ps1')); srcclr scan .\Src\StackifyLib;
-  - job: Prepare StackifyLib Signing
-    condition: and(succeeded(), eq(parameters['Build StackifyLib Signed'], true))
-    steps:
+steps:
+  - checkout: self
+    clean: true
+    lfs: true
+  - task: AzureKeyVault@2
+    displayName: 'Azure Key Vault: keyvault-build-resources'
+    inputs:
+      ConnectedServiceName: 514ed7d6-3846-4422-8013-af27483dd22c
+      KeyVaultName: keyvault-build-resources
+      RunAsPreJob: true
+  - task: PowerShell@2
+    displayName: 'Veracode SCA Scan'
+    condition: and(succeeded(), eq('${{ parameters.RUN_VERACODE_SCA }}', 'true'))
+    inputs:
+      targetType: inline
+      script: >
+        $Env:SRCCLR_API_TOKEN="$(SRCCLR_API_TOKEN)"; Set-ExecutionPolicy AllSigned -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://download.sourceclear.com/ci.ps1')); srcclr scan .\Src\StackifyLib;
+  - ${{ if eq(parameters['Build StackifyLib Signed'], true) }}:
     - task: DownloadSecureFile@1
       name: SNK
       displayName: Download Strong Name Key
@@ -104,17 +97,19 @@ jobs:
           (gc $_) -replace ([regex]::Escape("//[assembly: AssemblyKeyFile")), "[assembly: AssemblyKeyFile" | Set-Content $_.FullName -Encoding utf8
         }
       displayName: Uncoment signing attribute
-  - job: Restore Project
-    steps:
-    - task: DotNetCoreCLI@2
-      displayName: dotnet restore
-      inputs:
-        command: restore
-        restoreArguments: .\Src
-  - job: Build StackifyLib Project
-    dependsOn: 'Prepare StackifyLib Signing'
-    condition: and(succeeded(), eq(parameters['Build StackifyLib'], true))
-    steps:
+  - task: DotNetCoreCLI@2
+    displayName: dotnet restore
+    inputs:
+      command: restore
+      projects: |
+        Src\StackifyLib\*.csproj
+        Src\StackifyLib.AspNetCore\*.csproj
+        Src\StackifyLib.CoreLogger\*.csproj
+        Src\StackifyLib.log4net\*.csproj
+        Src\Nlog.Targets.Stackify\*.csproj
+        Src\NLog.Web.Stackify\*.csproj
+        Src\StackifyLib.StackifyTraceListener\*.csproj
+  - ${{ if eq(parameters['Build StackifyLib'], true) }}:
     - task: DotNetCoreCLI@2
       displayName: dotnet build
       inputs:
@@ -126,12 +121,8 @@ jobs:
       inputs:
         command: pack
         searchPatternPack: Src\StackifyLib\*.csproj;
-      nobuild: true
-  - job: Sign StackifyLib Project
-    dependsOn: 'Build StackifyLib Project'
-    condition: and(succeeded(), eq(parameters['Build StackifyLib Signed'], true))
-    steps:
-      nobuild: true
+        nobuild: true
+  - ${{ if eq(parameters['Build StackifyLib Signed'], true) }}:
     - task: DotNetCoreCLI@2
       displayName: Install NuGetKeyVaultSignTool
       continueOnError: true
@@ -196,78 +187,72 @@ jobs:
         targetType: inline
         script: >
           (Get-Content -path Src\StackifyLib\StackifyLib.csproj -Raw) -replace '<PackageId>StackifyLib.signed</PackageId>','<PackageId>StackifyLib</PackageId>' | Set-Content -Path Src\StackifyLib\StackifyLib.csproj
-  - template: templates/build-and-pack.yml
-    condition: and(succeeded(), eq(parameters['Build StackifyLib.AspNetCore'], true))
-    displayName: Build StackifyLib.AspNetCore
-    variables:
-      BuildConfiguration: '$(BuildConfiguration)',
-      ProjectName: 'StackifyLib.AspNetCore'
-      ProjectLocation: 'Src\StackifyLib.AspNetCore\*.csproj'
-  - template: templates/build-and-pack.yml
-    condition: and(succeeded(), eq(parameters['Build StackifyLib.CoreLogger'], true))
-    displayName: Build StackifyLib.CoreLogger
-    variables:
-      BuildConfiguration: '$(BuildConfiguration)',
-      ProjectName: 'StackifyLib.CoreLogger'
-      ProjectLocation: 'Src\StackifyLib.CoreLogger\*.csproj'
-  - template: templates/build-and-pack.yml
-    condition: and(succeeded(), eq(parameters['Build StackifyLib.log4net'], true))
-    displayName: Build StackifyLib.log4net
-    variables:
-      BuildConfiguration: '$(BuildConfiguration)',
-      ProjectName: 'StackifyLib.log4net'
-      ProjectLocation: 'Src\StackifyLib.log4net\*.csproj'
-  - template: templates/build-and-pack.yml
-    condition: and(succeeded(), eq(parameters['Build Nlog.Targets.Stackify'], true))
-    displayName: Build Nlog.Targets.Stackify
-    variables:
-      BuildConfiguration: '$(BuildConfiguration)',
-      ProjectName: 'Nlog.Targets.Stackify'
-      ProjectLocation: 'Src\Nlog.Targets.Stackify\*.csproj'
-        - task: DotNetCoreCLI@2
-  - template: templates/build-and-pack.yml
-    condition: and(succeeded(), eq(parameters['Build NLog.Web.Stackify'], true))
-    displayName: Build NLog.Web.Stackify
-    variables:
-      BuildConfiguration: '$(BuildConfiguration)',
-      ProjectName: 'NLog.Web.Stackify'
-      ProjectLocation: 'Src\NLog.Web.Stackify\*.csproj'
-  - template: templates/build-and-pack.yml
-    condition: and(succeeded(), eq(parameters['Build StackifyLib.StackifyTraceListener'], true))
-    displayName: Build StackifyLib.StackifyTraceListener
-    variables:
-      BuildConfiguration: '$(BuildConfiguration)',
-      ProjectName: 'StackifyLib.StackifyTraceListener'
-      ProjectLocation: 'Src\StackifyLib.StackifyTraceListener\*.csproj'
-  - job: Publish Artifact Unsigned Packages
-    steps:
-    - task: PublishPipelineArtifact@1
-      displayName: Publish Pipeline Artifact [Unsigned]
-      inputs:
-        path: $(Build.ArtifactStagingDirectory)
-        artifactName: Unsigned NuGet Packages
-    - task: PowerShell@2
-      displayName: PowerShell Script
-      inputs:
-        targetType: inline
-        script: |
-          $xml = [Xml] (Get-Content .\Src\StackifyLib\StackifyLib.csproj)
-          $version = $xml.Project.PropertyGroup.Version
-          echo $version
-          $version = "$version".Trim()
-          echo "##vso[task.setvariable variable=version]$version"
-          echo "StackifyLib."$version".nupkg"
-        workingDirectory: $(Build.SourcesDirectory)
-  - job: Send StackifyLib to Veracode
-    dependsOn: 'Build StackifyLib Project'
-    condition: and(succeeded(), eq(parameters['Build StackifyLib Signed'], true))
-    steps:
-    - task: Veracode@3
-      displayName: 'Upload and scan: $(Build.ArtifactStagingDirectory)/StackifyLib.$(version).nupkg'
-      condition: and(succeeded(), eq('${{ parameters.RUN_VERACODE_SCAN }}', 'true'))
-      enabled: True
-      inputs:
-        AnalysisService: 51003f89-58ab-463c-8e20-41484888d9c7
-        veracodeAppProfile: Retrace .Net StackifyLib
-        version: AZ-Devops-Build-$(build.buildNumber)
-        filepath: $(Build.ArtifactStagingDirectory)/StackifyLib.$(version).nupkg
+  - ${{ if eq(parameters['Build StackifyLib.AspNetCore'], true) }}:
+    - template: templates/build-and-pack.yml
+      parameters:
+        BuildConfiguration: '$(BuildConfiguration)'
+        ProjectJobName: 'StackifyLib_AspNetCore'
+        ProjectName: 'StackifyLib.AspNetCore'
+        ProjectLocation: 'Src\StackifyLib.AspNetCore\*.csproj'
+  - ${{ if eq(parameters['Build StackifyLib.CoreLogger'], true) }}:
+    - template: templates/build-and-pack.yml
+      parameters:
+        BuildConfiguration: '$(BuildConfiguration)'
+        ProjectJobName: 'StackifyLib_CoreLogger'
+        ProjectName: 'StackifyLib.CoreLogger'
+        ProjectLocation: 'Src\StackifyLib.CoreLogger\*.csproj'
+  - ${{ if eq(parameters['Build StackifyLib.log4net'], true) }}:
+    - template: templates/build-and-pack.yml
+      parameters:
+        BuildConfiguration: '$(BuildConfiguration)'
+        ProjectName: 'StackifyLib.log4net'
+        ProjectJobName: 'StackifyLib_log4net'
+        ProjectLocation: 'Src\StackifyLib.log4net\*.csproj'
+  - ${{ if eq(parameters['Build NLog.Targets.Stackify'], true) }}:
+    - template: templates/build-and-pack.yml
+      parameters:
+        BuildConfiguration: '$(BuildConfiguration)'
+        ProjectName: 'NLog.Targets.Stackify'
+        ProjectJobName: 'NLog_Targets_Stackify'
+        ProjectLocation: 'Src\NLog.Targets.Stackify\*.csproj'
+  - ${{ if eq(parameters['Build NLog.Web.Stackify'], true) }}:
+    - template: templates/build-and-pack.yml
+      parameters:
+        BuildConfiguration: '$(BuildConfiguration)'
+        ProjectName: 'NLog.Web.Stackify'
+        ProjectJobName: 'NLog_Web_Stackify'
+        ProjectLocation: 'Src\NLog.Web.Stackify\*.csproj'
+  - ${{ if eq(parameters['Build StackifyLib.StackifyTraceListener'], true) }}:
+    - template: templates/build-and-pack.yml
+      parameters:
+        BuildConfiguration: '$(BuildConfiguration)'
+        ProjectName: 'StackifyLib.StackifyTraceListener'
+        ProjectJobName: 'StackifyLib_StackifyTraceListener'
+        ProjectLocation: 'Src\StackifyLib.StackifyTraceListener\*.csproj'
+  - task: PublishPipelineArtifact@1
+    displayName: Publish Pipeline Artifact [Unsigned]
+    inputs:
+      path: $(Build.ArtifactStagingDirectory)
+      artifactName: Unsigned NuGet Packages
+  - ${{ if eq(parameters['Build StackifyLib'], true) }}:
+          - task: PowerShell@2
+            displayName: PowerShell Script
+            inputs:
+              targetType: inline
+              script: |
+                $xml = [Xml] (Get-Content .\Src\StackifyLib\StackifyLib.csproj)
+                $version = $xml.Project.PropertyGroup.Version
+                echo $version
+                $version = "$version".Trim()
+                echo "##vso[task.setvariable variable=version]$version"
+                echo "StackifyLib."$version".nupkg"
+              workingDirectory: $(Build.SourcesDirectory)
+          - task: Veracode@3
+            displayName: 'Upload and scan: $(Build.ArtifactStagingDirectory)/StackifyLib.$(version).nupkg'
+            condition: and(succeeded(), eq('${{ parameters.RUN_VERACODE_SCAN }}', 'true'))
+            enabled: True
+            inputs:
+              AnalysisService: 51003f89-58ab-463c-8e20-41484888d9c7
+              veracodeAppProfile: Retrace .Net StackifyLib
+              version: AZ-Devops-Build-$(build.buildNumber)
+              filepath: $(Build.ArtifactStagingDirectory)/StackifyLib.$(version).nupkg
