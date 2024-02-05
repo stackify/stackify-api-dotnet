@@ -15,7 +15,7 @@
     <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-    <Version>2.1.8-beta</Version>
+    <Version>2.2.0-beta1</Version>
     <PackageLicenseUrl>https://github.com/stackify/stackify-api-dotnet/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/stackify/stackify-api-dotnet</PackageProjectUrl>
     <PackageIconUrl>https://stackify.com/wp-content/uploads/2017/02/stk.png</PackageIconUrl>
@@ -23,12 +23,12 @@
     <RepositoryType>git</RepositoryType>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
-  
+
   <ItemGroup>
-    <ProjectReference Include="..\StackifyLib\StackifyLib.csproj" />
-    <PackageReference Include="NLog" Version="4.5.11" />
+    <PackageReference Include="StackifyLib" Version="2.2.13" />
+    <PackageReference Include="NLog" Version="4.7.15" />
   </ItemGroup>
-  
+
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
     <DefineConstants>NETCORE</DefineConstants>
   </PropertyGroup>
@@ -36,5 +36,4 @@
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net40' OR '$(TargetFramework)' == 'net45' OR '$(TargetFramework)' == 'net461' ">
     <DefineConstants>NETFULL</DefineConstants>
   </PropertyGroup>
-  
 </Project>
