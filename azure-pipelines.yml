@@ -23,7 +23,7 @@ parameters:
   - name: RUN_VERACODE_SCA
     displayName: 'Execute Veracode SCA'
     type: boolean
-    default: false
+    default: true
   - name: 'Build StackifyLib'
     type: boolean
     default: true
