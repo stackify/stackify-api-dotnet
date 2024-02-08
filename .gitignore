@@ -32,3 +32,4 @@ packages/
 BuildOutput/
 *.pfx
 *.snk
+/.vs

@@ -1,0 +1,25 @@
+# BuildAndPack.yml
+
+parameters:
+  - name: ProjectLocation
+    type: string
+  - name: ProjectName
+    type: string
+  - name: ProjectJobName
+    type: string
+  - name: BuildConfiguration
+    type: string
+
+steps:
+- task: DotNetCoreCLI@2
+  displayName: dotnet build ${{parameters.ProjectName}} [Unsigned]
+  inputs:
+    projects: |
+      ${{ parameters.ProjectLocation }}
+    arguments: '-c ${{ parameters.BuildConfiguration }}'
+- task: DotNetCoreCLI@2
+  displayName: dotnet pack copy ${{parameters.ProjectName}} [Unsigned]
+  inputs:
+    command: pack
+    searchPatternPack: ${{ parameters.ProjectLocation }}
+    nobuild: true
