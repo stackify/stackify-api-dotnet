@@ -7,6 +7,8 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using StackifyLib.Utils;
+using System.Web;
+
 #if NETFULL
 using System.Linq;
 using System.Web.Hosting;
@@ -104,8 +106,13 @@ namespace StackifyLib.Models
 #endif
         }
 
+        private static bool? _isIMDSv1;
         // http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html#d0e30002
         private const string EC2InstanceIdUrl = "http://169.254.169.254/latest/meta-data/instance-id";
+        private const string IMDS_BASE_URL = "http://169.254.169.254/latest";
+        private const string IMDS_TOKEN_PATH = "/api/token";
+        private const string IMDS_INSTANCE_ID_PATH = "/meta-data/instance-id";
+        private const string IMDSV1_BASE_URL = "http://169.254.169.254/latest/meta-data/";
         public static readonly object ec2InstanceLock = new object();
         private static DateTimeOffset? ec2InstanceIdLastUpdate = null;
         private static string ec2InstanceId = null;
@@ -140,6 +147,45 @@ namespace StackifyLib.Models
             return deviceName.Substring(0, deviceName.Length > 60 ? 60 : deviceName.Length);
         }
 
+        public static bool IsIMDSv1()
+        {
+            
+            if (_isIMDSv1.HasValue)
+            {
+                return _isIMDSv1.Value;
+            }
+            try
+            {
+                var _httpRequest = (HttpWebRequest)WebRequest.Create(IMDSV1_BASE_URL);
+                using (HttpWebResponse response = (HttpWebResponse)_httpRequest.GetResponse())
+                {
+                    _isIMDSv1 = true;
+                    return true;
+                }
+            }
+            catch (WebException)
+            {
+                _isIMDSv1 = false;
+                return false;
+            }
+        }
+
+        public static string GetAccessToken()
+        {
+            var url = IMDS_BASE_URL + IMDS_TOKEN_PATH;
+            var httpRequest = (HttpWebRequest)WebRequest.Create(url);
+            httpRequest.Method = "PUT";
+            httpRequest.Headers.Add("X-aws-ec2-metadata-token-ttl-seconds", "60");
+
+            using (var httpResponse = (HttpWebResponse)httpRequest.GetResponse())
+            using (var stream = httpResponse.GetResponseStream())
+            using (var reader = new StreamReader(stream))
+            {
+                return reader.ReadToEnd();
+            }
+        }
+
+
         public static string GetEC2InstanceId()
         {
             string r = null;
@@ -165,9 +211,17 @@ namespace StackifyLib.Models
                 return r;
             }
 
+            bool isIMDSv1 = IsIMDSv1();
+
             try
             {
                 var request = (HttpWebRequest)WebRequest.Create(EC2InstanceIdUrl);
+                if(isIMDSv1 == false)
+                {
+                    var token = GetAccessToken();
+                    request.Headers.Add("X-aws-ec2-metadata-token", token);
+                }
+
                 // wait 5 seconds
                 request.Timeout = 5000;
                 using (var response = (HttpWebResponse)request.GetResponse())
@@ -226,40 +280,63 @@ namespace StackifyLib.Models
             return deviceName.Substring(0, deviceName.Length > 60 ? 60 : deviceName.Length);
         }
 
+        public static async Task<string> GetAccessTokenAsync()
+        {
+            var url = IMDS_BASE_URL + IMDS_TOKEN_PATH;
+            var request = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Put, url);
+            request.Headers.Add("X-aws-ec2-metadata-token-ttl-seconds", "60");
+            var response = await Client.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        public static async Task<bool> IsIMDSv1()
+        {
+            if (_isIMDSv1.HasValue)
+            {
+                return _isIMDSv1.Value; // Return the cached result
+            }
+            try
+            {
+                var response = await Client.GetAsync(IMDSV1_BASE_URL);
+                response.EnsureSuccessStatusCode(); // Check if the request succeeds
+                _isIMDSv1 = true; // Cache the result
+                return true; // IMDSv1 endpoint exists, so assume it's IMDSv1
+            }
+            catch (System.Net.Http.HttpRequestException)
+            {
+                // Request to IMDSv1 endpoint failed, so assume it's IMDSv2
+                return false;
+            }
+        }
+
         public static async Task<string> GetEC2InstanceId()
         {
             string r = null;
-
             try
             {
                 Client.Timeout = TimeSpan.FromSeconds(5);
-                var content = await Client.GetAsync(EC2InstanceIdUrl).ConfigureAwait(false);
-
-                int statusCode = (int)content.StatusCode;
-
-                if (statusCode >= 200 && statusCode < 300)
+                bool isIMDSv1 = await IsIMDSv1();
+                var request = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Get, EC2InstanceIdUrl);
+                if (isIMDSv1 == false)
                 {
-                    string id = await content.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    r = string.IsNullOrWhiteSpace(id) ? null : id;
-
-                    if (r.Contains("html"))
-                    {
-                        r = Environment.MachineName;
-                    }
+                    var token = await GetAccessTokenAsync();
+                    request.Headers.Add("X-aws-ec2-metadata-token", token);
                 }
-
+                var response = await Client.SendAsync(request);
+                response.EnsureSuccessStatusCode();
+                string id = await response.Content.ReadAsStringAsync();
+                r = string.IsNullOrWhiteSpace(id) ? null : id;
             }
-            catch // if not in aws this will timeout
+            catch(Exception ex) // if not in aws this will timeout
             {
                 r = null;
             }
-
             lock (ec2InstanceLock)
             {
                 ec2InstanceId = r;
                 ec2InstanceIdLastUpdate = DateTimeOffset.UtcNow;
             }
-
             return r;
         }
 
