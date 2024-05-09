@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) 2024 BMC Software, Inc.
+// Copyright (c) 2021-2024 Netreo
+// Copyright (c) 2019 Stackify
+
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
