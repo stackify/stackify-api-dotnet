@@ -289,9 +289,9 @@ namespace StackifyLib.Models
             var url = IMDS_BASE_URL + IMDS_TOKEN_PATH;
             var request = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Put, url);
             request.Headers.Add("X-aws-ec2-metadata-token-ttl-seconds", "60");
-            var response = await Client.SendAsync(request);
+            var response = await Client.SendAsync(request).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsStringAsync();
+            return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
         }
 
         public static async Task<bool> IsIMDSv1()
@@ -302,7 +302,7 @@ namespace StackifyLib.Models
             }
             try
             {
-                var response = await Client.GetAsync(IMDSV1_BASE_URL);
+                var response = await Client.GetAsync(IMDSV1_BASE_URL).ConfigureAwait(false);
                 response.EnsureSuccessStatusCode(); // Check if the request succeeds
                 _isIMDSv1 = true; // Cache the result
                 return true; // IMDSv1 endpoint exists, so assume it's IMDSv1
@@ -327,9 +327,9 @@ namespace StackifyLib.Models
                     var token = await GetAccessTokenAsync();
                     request.Headers.Add("X-aws-ec2-metadata-token", token);
                 }
-                var response = await Client.SendAsync(request);
+                var response = await Client.SendAsync(request).ConfigureAwait(false);
                 response.EnsureSuccessStatusCode();
-                string id = await response.Content.ReadAsStringAsync();
+                string id = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 r = string.IsNullOrWhiteSpace(id) ? null : id;
             }
             catch(Exception ex) // if not in aws this will timeout
