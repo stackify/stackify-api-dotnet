@@ -78,19 +78,6 @@ stages:
                 Src\Nlog.Targets.Stackify\*.csproj
                 Src\NLog.Web.Stackify\*.csproj
                 Src\StackifyLib.StackifyTraceListener\*.csproj
-          - ${{ if eq(parameters['Build StackifyLib'], true) }}:
-              - task: DotNetCoreCLI@2
-                displayName: dotnet build
-                inputs:
-                  projects: |
-                    Src\StackifyLib\*.csproj
-                  arguments: '-c $(BuildConfiguration)'
-              - task: DotNetCoreCLI@2
-                displayName: dotnet pack unsigned stackify lib
-                inputs:
-                  command: pack
-                  searchPatternPack: Src\StackifyLib\*.csproj;
-                  nobuild: true
           - ${{ if eq(parameters['Build StackifyLib Signed'], true) }}:
               - task: DownloadSecureFile@1
                 name: SNK
@@ -189,6 +176,19 @@ stages:
                   targetType: inline
                   script: >
                     (Get-Content -path Src\StackifyLib\StackifyLib.csproj -Raw) -replace '<PackageId>StackifyLib.signed</PackageId>','<PackageId>StackifyLib</PackageId>' | Set-Content -Path Src\StackifyLib\StackifyLib.csproj
+            - ${{ if eq(parameters['Build StackifyLib'], true) }}:
+              - task: DotNetCoreCLI@2
+                displayName: dotnet build
+                inputs:
+                  projects: |
+                    Src\StackifyLib\*.csproj
+                  arguments: '-c $(BuildConfiguration)'
+              - task: DotNetCoreCLI@2
+                displayName: dotnet pack unsigned stackify lib
+                inputs:
+                  command: pack
+                  searchPatternPack: Src\StackifyLib\*.csproj;
+                  nobuild: true
           - ${{ if eq(parameters['Build StackifyLib.AspNetCore'], true) }}:
               - template: templates/build-and-pack.yml
                 parameters:
