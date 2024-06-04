@@ -176,7 +176,7 @@ stages:
                   targetType: inline
                   script: >
                     (Get-Content -path Src\StackifyLib\StackifyLib.csproj -Raw) -replace '<PackageId>StackifyLib.signed</PackageId>','<PackageId>StackifyLib</PackageId>' | Set-Content -Path Src\StackifyLib\StackifyLib.csproj
-            - ${{ if eq(parameters['Build StackifyLib'], true) }}:
+          - ${{ if eq(parameters['Build StackifyLib'], true) }}:
               - task: DotNetCoreCLI@2
                 displayName: dotnet build
                 inputs:
