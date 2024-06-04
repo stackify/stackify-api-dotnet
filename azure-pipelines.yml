@@ -107,7 +107,13 @@ stages:
                   }
                 displayName: Uncoment signing attribute
               - task: DotNetCoreCLI@2
-                displayName: dotnet pack unsigned stackify lib
+                displayName: dotnet build
+                inputs:
+                  projects: |
+                    Src\StackifyLib\*.csproj
+                  arguments: '-c $(BuildConfiguration)'
+              - task: DotNetCoreCLI@2
+                displayName: dotnet pack signed stackify lib
                 inputs:
                   command: pack
                   searchPatternPack: Src\StackifyLib\*.csproj;
