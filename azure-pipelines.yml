@@ -119,6 +119,11 @@ stages:
                   command: pack
                   searchPatternPack: Src\StackifyLib\*.csproj;
                   nobuild: true
+              - task: PublishPipelineArtifact@1
+                displayName: Publish Pipeline Artifact [Unsigned]
+                inputs:
+                  path: $(Build.ArtifactStagingDirectory)
+                  artifactName: Unsigned NuGet Packages
           - ${{ if eq(parameters['Build StackifyLib Signed'], true) }}:
               - task: DotNetCoreCLI@2
                 displayName: Install NuGetKeyVaultSignTool
