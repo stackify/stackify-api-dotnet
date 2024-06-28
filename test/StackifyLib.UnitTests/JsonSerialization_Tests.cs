@@ -1,3 +1,7 @@
+// Copyright (c) 2024 BMC Software, Inc.
+// Copyright (c) 2021-2024 Netreo
+// Copyright (c) 2019 Stackify
+#if NETCORE
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -134,3 +138,4 @@ namespace StackifyLib.UnitTests
         }
     }
 }
+#endif

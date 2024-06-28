@@ -30,9 +30,9 @@ namespace StackifyLib.Models
             return _CachedCopy ?? (_CachedCopy = new EnvironmentDetail());
         }
 #if NETSTANDARD
-        private static System.Net.Http.HttpClient Client => new System.Net.Http.HttpClient();
+        private System.Net.Http.HttpClient Client => new System.Net.Http.HttpClient();
 #endif
-        private static bool registryAccessFailure = false;
+        private bool registryAccessFailure = false;
 
         /// <summary>
         /// Figures out if the server is in azure and if so gets the azure instance name
@@ -110,23 +110,23 @@ namespace StackifyLib.Models
 #endif
         }
 
-        private static bool? _isIMDSv1;
+        private bool? _isIMDSv1;
         // http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html#d0e30002
         private const string EC2InstanceIdUrl = "http://169.254.169.254/latest/meta-data/instance-id";
         private const string IMDS_BASE_URL = "http://169.254.169.254/latest";
         private const string IMDS_TOKEN_PATH = "/api/token";
         private const string IMDS_INSTANCE_ID_PATH = "/meta-data/instance-id";
         private const string IMDSV1_BASE_URL = "http://169.254.169.254/latest/meta-data/";
-        public static readonly object ec2InstanceLock = new object();
-        private static DateTimeOffset? ec2InstanceIdLastUpdate = null;
-        private static string ec2InstanceId = null;
+        public  static readonly object ec2InstanceLock = new object();
+        private DateTimeOffset? ec2InstanceIdLastUpdate = null;
+        private string ec2InstanceId = string.Empty;
 
         /// <summary>
         /// Get the EC2 Instance name if it exists else null
         /// </summary>
 #if NETFULL
 
-        public static string GetDeviceName()
+        public string GetDeviceName()
         {
             var deviceName = Environment.GetEnvironmentVariable("STACKIFY_DEVICE_NAME");
             if (!String.IsNullOrEmpty(deviceName))
@@ -139,7 +139,7 @@ namespace StackifyLib.Models
 
             var isDefaultDeviceNameEc2 = IsEc2MachineName(deviceName);
 
-            if (Config.IsEc2 == null || Config.IsEc2 == true || isDefaultDeviceNameEc2)
+            if ((Config.IsEc2.HasValue && Config.IsEc2 == true) || isDefaultDeviceNameEc2)
             {
                 var instanceID_task = GetEC2InstanceId();
                 if (string.IsNullOrWhiteSpace(instanceID_task) == false)
@@ -151,7 +151,7 @@ namespace StackifyLib.Models
             return deviceName.Substring(0, deviceName.Length > 60 ? 60 : deviceName.Length);
         }
 
-        public static bool IsIMDSv1()
+        public bool IsIMDSv1()
         {
             
             if (_isIMDSv1.HasValue)
@@ -174,7 +174,7 @@ namespace StackifyLib.Models
             }
         }
 
-        public static string GetAccessToken()
+        public string GetAccessToken()
         {
             var url = IMDS_BASE_URL + IMDS_TOKEN_PATH;
             var httpRequest = (HttpWebRequest)WebRequest.Create(url);
@@ -190,7 +190,7 @@ namespace StackifyLib.Models
         }
 
 
-        public static string GetEC2InstanceId()
+        public string GetEC2InstanceId()
         {
             string r = null;
 
@@ -258,7 +258,7 @@ namespace StackifyLib.Models
             return r;
         }
 #else
-        public static string GetDeviceName()
+        public string GetDeviceName()
         {
             var deviceName = Environment.GetEnvironmentVariable("STACKIFY_DEVICE_NAME");
             if (!String.IsNullOrEmpty(deviceName))
@@ -271,7 +271,7 @@ namespace StackifyLib.Models
 
             var isDefaultDeviceNameEc2 = IsEc2MachineName(deviceName);
 
-            if (Config.IsEc2 == null || Config.IsEc2 == true || isDefaultDeviceNameEc2)
+            if ((Config.IsEc2.HasValue && Config.IsEc2 == true) || isDefaultDeviceNameEc2)
             {
                 var instanceID_task = GetEC2InstanceId();
                 instanceID_task.Wait();
@@ -284,7 +284,7 @@ namespace StackifyLib.Models
             return deviceName.Substring(0, deviceName.Length > 60 ? 60 : deviceName.Length);
         }
 
-        public static async Task<string> GetAccessTokenAsync()
+        public async Task<string> GetAccessTokenAsync()
         {
             var url = IMDS_BASE_URL + IMDS_TOKEN_PATH;
             var request = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Put, url);
@@ -294,7 +294,7 @@ namespace StackifyLib.Models
             return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
         }
 
-        public static async Task<bool> IsIMDSv1()
+        public async Task<bool> IsIMDSv1()
         {
             if (_isIMDSv1.HasValue)
             {
@@ -314,7 +314,7 @@ namespace StackifyLib.Models
             }
         }
 
-        public static async Task<string> GetEC2InstanceId()
+        public async Task<string> GetEC2InstanceId()
         {
             string r = null;
             try
@@ -345,7 +345,7 @@ namespace StackifyLib.Models
         }
 
 #endif
-        private static bool IsEc2MachineName(string machineName)
+        private bool IsEc2MachineName(string machineName)
         {
             if (string.IsNullOrWhiteSpace(machineName))
             {
