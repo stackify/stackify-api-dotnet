@@ -63,7 +63,7 @@ stages:
           - task: AzureKeyVault@2
             displayName: 'Azure Key Vault: keyvault-build-resources'
             inputs:
-              ConnectedServiceName: 514ed7d6-3846-4422-8013-af27483dd22c
+              ConnectedServiceName: d5f05656-fdf4-44f0-a545-12ee3fc9ae77
               KeyVaultName: keyvault-build-resources
               RunAsPreJob: true
           - task: DotNetCoreCLI@2
