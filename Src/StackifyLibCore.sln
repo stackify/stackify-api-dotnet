@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30907.101
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35303.130
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StackifyLib", "StackifyLib\StackifyLib.csproj", "{03CF7411-65E2-4998-A157-9224ECA6199B}"
 EndProject
@@ -71,11 +71,9 @@ Global
 		{D0E1AABD-6397-4CC7-9737-4904A4BF5BCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D0E1AABD-6397-4CC7-9737-4904A4BF5BCD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2B832B34-BA30-4B5A-8E78-D6DC78AF16FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2B832B34-BA30-4B5A-8E78-D6DC78AF16FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2B832B34-BA30-4B5A-8E78-D6DC78AF16FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2B832B34-BA30-4B5A-8E78-D6DC78AF16FB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BC6FDF2B-E063-4F8B-ABBA-6BD9425D4C64}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BC6FDF2B-E063-4F8B-ABBA-6BD9425D4C64}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BC6FDF2B-E063-4F8B-ABBA-6BD9425D4C64}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BC6FDF2B-E063-4F8B-ABBA-6BD9425D4C64}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CB09D719-F393-413D-B5CD-E0125543AD24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -99,15 +97,12 @@ Global
 		{647F27AD-13D7-40C2-A7BB-97A5D19CE3D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{647F27AD-13D7-40C2-A7BB-97A5D19CE3D5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{ADBD2138-9DE7-4211-AF58-84C7F0F9BEA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ADBD2138-9DE7-4211-AF58-84C7F0F9BEA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ADBD2138-9DE7-4211-AF58-84C7F0F9BEA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ADBD2138-9DE7-4211-AF58-84C7F0F9BEA5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{99C81723-20FB-4241-862C-32F7ADDB7A9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{99C81723-20FB-4241-862C-32F7ADDB7A9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{99C81723-20FB-4241-862C-32F7ADDB7A9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{99C81723-20FB-4241-862C-32F7ADDB7A9B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{EC5742DF-C1A8-4A7A-81DC-B6E0A4D3472D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EC5742DF-C1A8-4A7A-81DC-B6E0A4D3472D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EC5742DF-C1A8-4A7A-81DC-B6E0A4D3472D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EC5742DF-C1A8-4A7A-81DC-B6E0A4D3472D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{18F96933-468E-4104-961E-0C68A5EF2B29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU

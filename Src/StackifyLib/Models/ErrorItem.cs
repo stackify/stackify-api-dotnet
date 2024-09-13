@@ -298,15 +298,15 @@ namespace StackifyLib.Models
         {
             StringBuilder sb = new StringBuilder();
 
+            if (InnerError != null)
+            {
+                sb.Append(InnerError.FramesToString());
+                sb.Append("--- End of inner exception stack trace ---\r\n");
+            }
+
             foreach (var item in this.StackTrace)
             {
                 sb.AppendFormat("  at {0}\r\n", item.Method);
-            }
-
-            if (InnerError != null)
-            {
-                sb.Append("--- End of inner exception stack trace ---\r\n");
-                sb.Append(InnerError.FramesToString());
             }
 
             return sb.ToString();
