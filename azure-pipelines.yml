@@ -63,7 +63,7 @@ stages:
           - task: AzureKeyVault@2
             displayName: 'Azure Key Vault: keyvault-build-resources'
             inputs:
-              ConnectedServiceName: 6d8c8cb2-5e16-4db5-9cf2-da22abf7f285
+              ConnectedServiceName: 5313674e-7e2b-426b-9eaf-8d3d5bd22e2c
               KeyVaultName: keyvault-build-resources
               RunAsPreJob: true
           - ${{ if eq(parameters['Build StackifyLib Signed'], true) }}:
