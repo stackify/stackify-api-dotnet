@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <AssemblyTitle>NLog.Targets.Stackify</AssemblyTitle>
-    <VersionPrefix>2.0.0</VersionPrefix>
+    <VersionPrefix>3.0.0</VersionPrefix>
+    <VersionSuffix>beta1</VersionSuffix>
     <TargetFrameworks>netstandard2.0;net40;net45;net461</TargetFrameworks>
     <AssemblyName>NLog.Targets.Stackify</AssemblyName>
     <PackageId>NLog.Targets.Stackify</PackageId>
@@ -15,7 +16,7 @@
     <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-    <Version>2.2.0</Version>
+    <Version>3.0.0-beta1</Version>
     <PackageLicenseUrl>https://github.com/stackify/stackify-api-dotnet/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/stackify/stackify-api-dotnet</PackageProjectUrl>
     <PackageIconUrl>https://stackify.com/wp-content/uploads/2017/02/stk.png</PackageIconUrl>
@@ -25,8 +26,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="StackifyLib" Version="2.2.13" />
-    <PackageReference Include="NLog" Version="4.7.15" />
+    <PackageReference Include="NLog" Version="4.7.15" PrivateAssets="all" />
+    <PackageReference Include="StackifyLib" Version="2.2.16" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
