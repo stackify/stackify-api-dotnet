@@ -13,7 +13,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Src\NLog.Targets.Stackify\NLog.Targets.Stackify.csproj" />
     <ProjectReference Include="..\..\Src\StackifyLib.log4net\StackifyLib.log4net.csproj" />
     <ProjectReference Include="..\..\Src\StackifyLib\StackifyLib.csproj" />
   </ItemGroup>
@@ -22,7 +21,8 @@
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.0.0" />
-    <PackageReference Include="NLog" Version="4.5.11" />
+    <PackageReference Include="NLog" Version="4.7.15" />
+    <PackageReference Include="NLog.Targets.Stackify" Version="2.2.0" />
     <PackageReference Include="Serilog" Version="2.4.0" />
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
     <PackageReference Include="System.Net.Sockets" Version="4.3.0" />
