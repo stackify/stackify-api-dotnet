@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Text.RegularExpressions;
+﻿// Copyright (c) 2024-2025 BMC Software, Inc.
+// Copyright (c) 2021-2024 Netreo
+// Copyright (c) 2019 Stackify
+using System;
 using StackifyLib.Utils;
-using System.Linq;
 #if NETFULL
 using Microsoft.Win32;
 #endif
@@ -13,22 +11,26 @@ namespace StackifyLib.Models
 {
     public class AzureConfig
     {
-        private static bool? _inAzure;
-        private static AzureRoleType _azureRoleType = AzureRoleType.Unknown;
-        private static string _azureRoleName;
-        private static string _azureInstanceName;
-        private static string _entryPoint;
+        private static AzureConfig _instance = new AzureConfig();
+        public static AzureConfig Instance => _instance;
 
-        private static readonly DateTime AppStarted = DateTime.UtcNow;
+        private bool? _inAzure;
+        private AzureRoleType _azureRoleType = AzureRoleType.Unknown;
+        private string _azureRoleName;
+        private string _azureInstanceName;
+        private string _entryPoint;
 
-        private static readonly object Locker = new object();
+        private readonly DateTime AppStarted = DateTime.UtcNow;
+
+        private readonly object Locker = new object();
+        public const string ProductionEnvName = "Production";
 
 
-        public static string AzureAppWebConfigEnvironment { get; set; }
-        public static string AzureAppWebConfigApiKey { get; set; }
-        public static string AzureDriveLetter { get; set; }
+        public string AzureAppWebConfigEnvironment { get; set; }
+        public string AzureAppWebConfigApiKey { get; set; }
+        public string AzureDriveLetter { get; set; }
 
-        public static string AzureInstanceName
+        public string AzureInstanceName
         {
             get
             {
@@ -37,7 +39,7 @@ namespace StackifyLib.Models
             }
         }
 
-        public static bool InAzure
+        public bool InAzure
         {
             get
             {
@@ -62,7 +64,7 @@ namespace StackifyLib.Models
             }
         }
 
-        public static bool IsWebsite
+        public bool IsWebsite
         {
             get
             {
@@ -75,12 +77,24 @@ namespace StackifyLib.Models
             }
         }
 
-        private static void EnsureInAzureRan()
+        private EnvironmentDetail _environmentDetail = null;
+
+        public AzureConfig()
+        {
+
+        }
+
+        public AzureConfig(EnvironmentDetail environmentDetail)
+        {
+            _environmentDetail = environmentDetail;
+        }
+
+        private void EnsureInAzureRan()
         {
             bool ensureTestHasBeenDone = InAzure;
         }
 
-        public static void LoadAzureSettings()
+        public void LoadAzureSettings()
         {
             if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WEBSITE_SITE_NAME")) == false && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID")) == false)
             {
@@ -90,13 +104,13 @@ namespace StackifyLib.Models
                 var slotId = GetDeploymentSlotId() ?? "0000";
 
                 _azureRoleName = Environment.GetEnvironmentVariable("WEBSITE_SITE_NAME");
-                _azureInstanceName = $"{Environment.GetEnvironmentVariable("WEBSITE_SITE_NAME")} {ServerConfigHelper.GetEnvironment()} [{slotId}-{Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID").Left(6)}]";
+                _azureInstanceName = $"{Environment.GetEnvironmentVariable("WEBSITE_SITE_NAME")} {GetEnvironment()} [{slotId}-{Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID").Left(6)}]";
 
                 return;
             }
         }
 
-        public static string GetDeploymentSlotId()
+        public string GetDeploymentSlotId()
         {
             try
             {
@@ -112,6 +126,37 @@ namespace StackifyLib.Models
             }
 
             return null;
+        }
+
+        public string GetEnvironment()
+        {
+            if (IsWebsite)
+            {
+                if (_environmentDetail == null)
+                {
+                    _environmentDetail = EnvironmentDetail.Get();
+                }
+
+                var key = _environmentDetail.ConfiguredEnvironmentName;
+                if (string.IsNullOrEmpty(key))
+                {
+                    key = Environment.GetEnvironmentVariable("Stackify.Environment");
+                }
+
+                if (string.IsNullOrEmpty(key) == false)
+                {
+                    return key;
+                }
+
+                if (string.IsNullOrEmpty(AzureAppWebConfigEnvironment) == false)
+                {
+                    return AzureAppWebConfigEnvironment;
+                }
+
+                return ProductionEnvName;
+            }
+
+            return string.Empty;
         }
     }
 
