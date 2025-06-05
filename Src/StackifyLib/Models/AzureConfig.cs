@@ -137,20 +137,15 @@ namespace StackifyLib.Models
                     _environmentDetail = EnvironmentDetail.Get();
                 }
 
-                var key = _environmentDetail.ConfiguredEnvironmentName;
+                var key = Environment.GetEnvironmentVariable("Stackify.Environment");
                 if (string.IsNullOrEmpty(key))
                 {
-                    key = Environment.GetEnvironmentVariable("Stackify.Environment");
+                    key = _environmentDetail.ConfiguredEnvironmentName;
                 }
 
                 if (string.IsNullOrEmpty(key) == false)
                 {
                     return key;
-                }
-
-                if (string.IsNullOrEmpty(AzureAppWebConfigEnvironment) == false)
-                {
-                    return AzureAppWebConfigEnvironment;
                 }
 
                 return ProductionEnvName;

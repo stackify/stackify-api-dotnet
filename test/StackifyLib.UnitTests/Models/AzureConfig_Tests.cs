@@ -141,19 +141,6 @@ namespace StackifyLib.UnitTests.Models
         }
 
         [Fact]
-        public void GetEnvironment_ReturnsWebConfigValue_WhenNoEnvVarSet()
-        {
-            SetEnvironmentVariables("site", "instance");
-            ResetAzureConfig();
-
-            var env = new AzureConfig(new EnvironmentDetail())
-            {
-                AzureAppWebConfigEnvironment = "Test"
-            }.GetEnvironment();
-            Assert.Equal("Test", env);
-        }
-
-        [Fact]
         public void GetEnvironment_ReturnsProduction_WhenNoConfigurationSet()
         {
             SetEnvironmentVariables("site", "instance");
@@ -188,6 +175,18 @@ namespace StackifyLib.UnitTests.Models
         }
 
         [Fact(Skip = "Environment set is dynamic. Skip and run manually")]
+        public void GetEnvironment_ReturnsTest_WhenEnvSetFirst_AppSettingsSet()
+        {
+            Environment.SetEnvironmentVariable("Stackify.Environment", "StagingFirstApp");
+            System.Configuration.ConfigurationManager.AppSettings["Stackify.Environment"] = "Test";
+            SetEnvironmentVariables("site", "instance");
+            ResetAzureConfig();
+
+            var env = new AzureConfig(new EnvironmentDetail()).GetEnvironment();
+            Assert.Equal("StagingFirstApp", env);
+        }
+
+        [Fact(Skip = "Environment set is dynamic. Skip and run manually")]
         public void AzureInstanceName_CorrectFormat_WhenAppSettingsEnvStagingAppSet()
         {
             Environment.SetEnvironmentVariable("Stackify.Environment", "");
@@ -197,6 +196,18 @@ namespace StackifyLib.UnitTests.Models
 
             var instanceName = new AzureConfig(new EnvironmentDetail()).AzureInstanceName;
             Assert.Equal("my-site StagingApp [1234-full-i]", instanceName);
+        }
+
+        [Fact(Skip = "Environment set is dynamic. Skip and run manually")]
+        public void AzureInstanceName_CorrectFormat_WhenEnvSetFirst_AppSettings()
+        {
+            Environment.SetEnvironmentVariable("Stackify.Environment", "StagingFirst");
+            System.Configuration.ConfigurationManager.AppSettings["Stackify.Environment"] = "StagingApp";
+            SetEnvironmentVariables("my-site", "full-instance-id-12345", "site__1234");
+            ResetAzureConfig();
+
+            var instanceName = new AzureConfig(new EnvironmentDetail()).AzureInstanceName;
+            Assert.Equal("my-site StagingFirst [1234-full-i]", instanceName);
         }
 #endif
 
@@ -219,6 +230,46 @@ namespace StackifyLib.UnitTests.Models
 
             var env = new AzureConfig(new EnvironmentDetail()).GetEnvironment();
             Assert.Equal("TestCore", env);
+        }
+
+        [Fact(Skip = "Environment set is dynamic. Skip and run manually")]
+        public void GetEnvironment_ReturnsTestCore_WhenEnvFirst_IConfigurationSet()
+        {
+            Environment.SetEnvironmentVariable("Stackify.Environment", "TestCoreFirst");
+            SetEnvironmentVariables("site", "instance");
+            ResetAzureConfig();
+
+            var iconfig = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string>
+                {
+                    ["Stackify:Environment"] = "TestCore"
+                })
+                .Build();
+            Config.SetConfiguration(iconfig);
+            Config.LoadSettings();
+
+            var env = new AzureConfig(new EnvironmentDetail()).GetEnvironment();
+            Assert.Equal("TestCoreFirst", env);
+        }
+
+        [Fact(Skip = "Environment set is dynamic. Skip and run manually")]
+        public void AzureInstanceName_CorrectFormat_WhenEnvSetFirst_IConfigurationEnvStagingConfigSet()
+        {
+            Environment.SetEnvironmentVariable("Stackify.Environment", "StagingConfigFirst");
+            SetEnvironmentVariables("my-site", "full-instance-id-12345", "site__1234");
+            ResetAzureConfig();
+
+            var iconfig = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string>
+                {
+                    ["Stackify:Environment"] = "StagingConfig"
+                })
+                .Build();
+            Config.SetConfiguration(iconfig);
+            Config.LoadSettings();
+
+            var instanceName = new AzureConfig(new EnvironmentDetail()).AzureInstanceName;
+            Assert.Equal("my-site StagingConfigFirst [1234-full-i]", instanceName);
         }
 
         [Fact(Skip = "Environment set is dynamic. Skip and run manually")]
