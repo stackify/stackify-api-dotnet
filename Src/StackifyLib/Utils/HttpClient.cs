@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) 2024-2025 BMC Software, Inc.
+// Copyright (c) 2021-2024 Netreo
+// Copyright (c) 2019 Stackify
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -313,9 +316,9 @@ namespace StackifyLib.Utils
                 }
 
                 //Applicable only for Azure AppService
-                if(AzureConfig.InAzure && AzureConfig.IsWebsite)
+                if(AzureConfig.Instance.InAzure && AzureConfig.Instance.IsWebsite)
                 {
-                    env.DeviceName = AzureConfig.AzureInstanceName;
+                    env.DeviceName = AzureConfig.Instance.AzureInstanceName;
                 }
 
                 string jsonData = JsonConvert.SerializeObject(env, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
