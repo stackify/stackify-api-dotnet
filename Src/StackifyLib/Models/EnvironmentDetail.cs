@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2024 BMC Software, Inc.
+﻿// Copyright (c) 2024-2025 BMC Software, Inc.
 // Copyright (c) 2021-2024 Netreo
 // Copyright (c) 2019 Stackify
 
@@ -41,9 +41,9 @@ namespace StackifyLib.Models
         {
             //IsAzureWorkerRole is set when instantiating EnvironmentDetail
             //Useful in other parts directly referencing AzureInstanceName
-            if(!IsAzureWorkerRole && AzureConfig.InAzure && AzureConfig.IsWebsite)
+            if(!IsAzureWorkerRole && AzureConfig.Instance.InAzure && AzureConfig.Instance.IsWebsite)
             {
-                AzureInstanceName = AzureConfig.AzureInstanceName;
+                AzureInstanceName = AzureConfig.Instance.AzureInstanceName;
 
             }
 
