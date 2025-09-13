@@ -75,7 +75,7 @@ For proxy using custom credentials:
 For proxy using default credentials:
 ```xml
 <appSettings>
-        <add key="Stackify.ProxyUseDefaultCredentials" value="false" />
+        <add key="Stackify.ProxyUseDefaultCredentials" value="true" />
 </appSettings>
 ```
 
