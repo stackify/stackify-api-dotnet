@@ -4,7 +4,6 @@
 	  <TargetFrameworks>net6.0;net462</TargetFrameworks>
 	  <IsPackable>false</IsPackable>
 	  <IsTestProject>true</IsTestProject>
-    <IsUnitTestMode>true</IsUnitTestMode>
   </PropertyGroup>
 
 	<PropertyGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
