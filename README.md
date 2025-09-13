@@ -65,14 +65,33 @@ StackifyLib.Logger.GlobalEnvironment = "";
 
 By default the library will use the WebRequest.DefaultWebProxy. If you want to set a specific proxy server only for StackifyLib, you can do so in code OR via config.
 
+For proxy using custom credentials:
 ```xml
 <appSettings>
         <add key="Stackify.ProxyServer" value="http://test:test@172.19.1.1:8888/" />
 </appSettings>
 ```
 
+For proxy using default credentials:
+```xml
+<appSettings>
+        <add key="Stackify.ProxyUseDefaultCredentials" value="false" />
+</appSettings>
+```
+
+For proxy that needs to be tailor fit
 ```csharp
 StackifyLib.Utils.HttpClient.CustomWebProxy = new WebProxy();
+```
+
+In case it need some web request intervention, a delegate has been provided to customize the http request
+```csharp
+StackifyLib.Utils.HttpClient.CustomRequestModifier = (request) =>
+{
+        // Examples:
+        request.PreAuthenticate = true; // If proxy needs pre-authentication
+        request.Timeout = 30000;
+};
 ```
 
 If you are having problems you can get logging out of the framework by hooking in to its custom logging.
