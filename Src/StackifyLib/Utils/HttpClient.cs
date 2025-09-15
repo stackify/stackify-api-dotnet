@@ -85,9 +85,7 @@ namespace StackifyLib.Utils
 
         static HttpClient()
         {
-#if NETFULL
             LoadWebProxyConfig();
-#endif
         }
 
         public HttpClient(string apiKey, string apiUrl)
