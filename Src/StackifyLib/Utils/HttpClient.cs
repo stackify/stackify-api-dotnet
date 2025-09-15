@@ -31,7 +31,9 @@ namespace StackifyLib.Utils
 
     public class HttpClient
     {
-         public static IWebProxy CustomWebProxy = null;
+        public static IWebProxy CustomWebProxy = null;
+        public static Action<HttpWebRequest> CustomRequestModifier = null;
+        public static bool IsUnitTest = false;
 
         public string BaseAPIUrl { get; private set; }
 
@@ -83,9 +85,7 @@ namespace StackifyLib.Utils
 
         static HttpClient()
         {
-#if NETFULL
             LoadWebProxyConfig();
-#endif
         }
 
         public HttpClient(string apiKey, string apiUrl)
@@ -121,39 +121,31 @@ namespace StackifyLib.Utils
                 BaseAPIUrl += "/";
         }
 
-#if NETFULL
         public static void LoadWebProxyConfig()
         {
             try
             {
-                string val = Config.Get("Stackify.ProxyServer");
-
+                string val = Config.ProxyServer;
                 if (!string.IsNullOrEmpty(val))
                 {
-
                     StackifyAPILogger.Log("Setting proxy server based on override config", true);
-
                     var uri = new Uri(val);
-
-                    var proxy = new WebProxy(uri, false);
+                    WebProxy proxy = new WebProxy(uri);
 
                     if (!string.IsNullOrEmpty(uri.UserInfo) && uri.UserInfo.Contains(":"))
                     {
                         string[] pieces = uri.UserInfo.Split(':');
-
-                        proxy.Credentials = new NetworkCredential(pieces[0], pieces[1]);
+                        proxy = new WebProxy(uri)
+                        {
+                            Credentials = new NetworkCredential(pieces[0], pieces[1])
+                        };
                     }
                     else
                     {
-
-                        string settingUseDefault = Config.Get("Stackify.ProxyUseDefaultCredentials");
-
-                        bool useDefault;
-
-                        if (!string.IsNullOrEmpty(settingUseDefault) && bool.TryParse(settingUseDefault, out useDefault))
+                        bool? settingUseDefault = Config.ProxyUseDefaultCredentials;
+                        if (settingUseDefault.HasValue && settingUseDefault.Value)
                         {
-                            //will make it use the user of the running windows service
-                            proxy.UseDefaultCredentials = useDefault;
+                            proxy.UseDefaultCredentials = true;
                         }
                     }
                     CustomWebProxy = proxy;
@@ -164,7 +156,6 @@ namespace StackifyLib.Utils
                 StackifyAPILogger.Log("Error setting default web proxy " + ex.Message, true);
             }
         }
-#endif
 
         /// <summary>
         /// This method does some throttling when errors happen to control when it should try again. Error backoff logic
@@ -614,23 +605,40 @@ namespace StackifyLib.Utils
             request.Headers[HttpRequestHeader.UserAgent] = "StackifyLib-" + _version;
 #endif
 
-            request.Headers["X-Stackify-Key"] = this.APIKey;
+            request.Headers.Add("X-Stackify-Key", this.APIKey);
             request.ContentType = "application/json";
 
-            //if (HttpClient.CustomWebProxy != null)
-            //{
+            if (CustomWebProxy != null)
+            {
+                request.Proxy = CustomWebProxy;
+            }
 
-            //    request.Proxy = HttpClient.CustomWebProxy;
-            //}
+            if (CustomRequestModifier != null)
+            {
+                try
+                {
+                    CustomRequestModifier(request);
+                }
+                catch (Exception ex)
+                {
+                    StackifyAPILogger.Log($"Failed to set CustomRequestModifier - Message: {ex.Message}", true);
+                }
+            }
 
             if (!string.IsNullOrEmpty(jsonData) && compress)
             {
                 request.Method = "POST";
-                request.Headers[HttpRequestHeader.ContentEncoding] = "gzip";
+                request.Headers.Add(HttpRequestHeader.ContentEncoding, "gzip");
+
+                if (IsUnitTest)
+                {
+                    return request;
+                }
 
                 byte[] payload = Encoding.UTF8.GetBytes(jsonData);
 
 #if NETFULL
+                request.ContentLength = payload.Length;
                 using (Stream postStream = request.GetRequestStream())
 #else
                 using (Stream postStream = request.GetRequestStreamAsync().GetAwaiter().GetResult())
@@ -647,8 +655,12 @@ namespace StackifyLib.Utils
             {
                 request.Method = "POST";
 
-                byte[] payload = Encoding.UTF8.GetBytes(jsonData);
+                if (IsUnitTest)
+                {
+                    return request;
+                }
 
+                byte[] payload = Encoding.UTF8.GetBytes(jsonData);
 #if NETFULL
                 request.ContentLength= payload.Length;
                 using (Stream stream = request.GetRequestStream())
@@ -697,13 +709,29 @@ namespace StackifyLib.Utils
             request.Headers[HttpRequestHeader.ContentLength] = "0";
 #endif
 
-            //if (HttpClient.CustomWebProxy != null)
-            //{
-            //    request.Proxy = HttpClient.CustomWebProxy;
-            //}
+            if (HttpClient.CustomWebProxy != null)
+            {
+                request.Proxy = HttpClient.CustomWebProxy;
+            }
 
+            if (CustomRequestModifier != null)
+            {
+                try
+                {
+                    CustomRequestModifier(request);
+                }
+                catch (Exception ex)
+                {
+                    StackifyAPILogger.Log($"Failed to set CustomRequestModifier - Message: {ex.Message}", true);
+                }
+            }
 
             request.Method = "POST";
+
+            if (IsUnitTest)
+            {
+                return request;
+            }
 
             if (!String.IsNullOrEmpty(postdata))
             {

@@ -5,6 +5,7 @@
 	  <IsPackable>false</IsPackable>
 	  <IsTestProject>true</IsTestProject>
   </PropertyGroup>
+
 	<PropertyGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
 		<DefineConstants>NETCORE</DefineConstants>
 	</PropertyGroup>
@@ -12,7 +13,6 @@
 	<PropertyGroup Condition=" '$(TargetFramework)' == 'net462' ">
 		<DefineConstants>NETFULL</DefineConstants>
 	</PropertyGroup>
-
 
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="5.5.3" />

@@ -166,6 +166,13 @@ namespace StackifyLib
                 {
                     RumKey = rumKey;
                 }
+
+                ProxyServer = Get("Stackify.ProxyServer", string.Empty);
+                var proxyUseDefaultCredentials = Get("Stackify.ProxyUseDefaultCredentials", string.Empty);
+                if (string.IsNullOrWhiteSpace(proxyUseDefaultCredentials) == false)
+                {
+                    ProxyUseDefaultCredentials = proxyUseDefaultCredentials.Equals(bool.TrueString, StringComparison.CurrentCultureIgnoreCase);
+                }
             }
             catch (Exception ex)
             {
@@ -216,6 +223,9 @@ namespace StackifyLib
         public static string RumScriptUrl { get; set; }
 
         public static string RumKey { get; set; }
+
+        public static string ProxyServer { get; set; }
+        public static bool?  ProxyUseDefaultCredentials { get; set; } = false;
 
 
         /// <summary>
