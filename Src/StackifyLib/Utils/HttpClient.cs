@@ -638,7 +638,6 @@ namespace StackifyLib.Utils
                 byte[] payload = Encoding.UTF8.GetBytes(jsonData);
 
 #if NETFULL
-                request.ContentLength = payload.Length;
                 using (Stream postStream = request.GetRequestStream())
 #else
                 using (Stream postStream = request.GetRequestStreamAsync().GetAwaiter().GetResult())
