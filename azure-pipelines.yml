@@ -16,14 +16,6 @@ pool:
 #  name: Azure Pipelines
 
 parameters:
-  - name: RUN_VERACODE_SCAN
-    displayName: 'Upload to Veracode'
-    type: boolean
-    default: true
-  - name: RUN_VERACODE_SCA
-    displayName: 'Execute Veracode SCA'
-    type: boolean
-    default: true
   - name: 'Build StackifyLib'
     type: boolean
     default: true
@@ -255,22 +247,3 @@ stages:
                     echo "##vso[task.setvariable variable=version]$version"
                     echo "StackifyLib."$version".nupkg"
                   workingDirectory: $(Build.SourcesDirectory)
-              - task: Veracode@3
-                displayName: 'Upload and scan: $(Build.ArtifactStagingDirectory)/StackifyLib.$(version).nupkg'
-                condition: and(succeeded(), eq('${{ parameters.RUN_VERACODE_SCAN }}', 'true'))
-                enabled: True
-                inputs:
-                  AnalysisService: 51003f89-58ab-463c-8e20-41484888d9c7
-                  veracodeAppProfile: Retrace .Net StackifyLib
-                  version: AZ-Devops-Build-$(build.buildNumber)
-                  filepath: $(Build.ArtifactStagingDirectory)/StackifyLib.$(version).nupkg
-
-      - job: SCA
-        pool:
-          vmImage: 'windows-latest'
-        steps:
-          - task: PowerShell@2
-            inputs:
-              targetType: 'inline'
-              script: $Env:SRCCLR_API_TOKEN="$(SRCCLR_API_TOKEN)"; Set-ExecutionPolicy AllSigned -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://download.srcclr.com/ci.ps1')); srcclr scan --allow-dirty .;
-            condition: and(succeeded(), eq('${{ parameters.RUN_VERACODE_SCA }}', 'true'))
